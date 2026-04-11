@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -13,13 +13,110 @@
 <title>GBR Sistemas — Plataforma de Gestão</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
-<!-- Esconder app imediatamente quando for link publico de agendamento -->
+<!-- Esconder app imediatamente quando for link público de agendamento -->
 <script>
+// ══════════════════════════════════════════════════
+// LOGIN MOCK PROVISÓRIO — sem Firebase
+// ══════════════════════════════════════════════════
+(function() {
+  var MOCK = [
+    {email:'gbrsistemassa@gmail.com', senha:'GBM2026!', role:'superadmin'},
+    {email:'admin@estetica.com',      senha:'123456',   role:'adm1', tenantId:'demo'},
+    {email:'gerente@estetica.com',    senha:'123456',   role:'adm2', tenantId:'demo'},
+    {email:'func@estetica.com',       senha:'123456',   role:'func', tenantId:'demo'},
+  ];
+
+  // Sobrescrever QUALQUER doLogin definido depois — usar setTimeout para garantir última execução
+  function instalarLogin() {
+    window.doLogin = function() {
+      // Tentar pegar os campos — o HTML usa 'loginEmail'/'loginPass'
+      var emailEl = document.getElementById('loginEmail') || document.getElementById('lEmail');
+      var passEl  = document.getElementById('loginPass')  || document.getElementById('lPass');
+      var errEl   = document.getElementById('loginErr');
+      var btn     = document.getElementById('btnLogin');
+
+      if (!emailEl || !passEl) { alert('Erro: campos de login não encontrados'); return; }
+
+      var email = emailEl.value.trim().toLowerCase();
+      var senha = passEl.value;
+
+      if (errEl) errEl.style.display = 'none';
+      if (!email || !senha) {
+        if (errEl) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display = 'block'; }
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Aguarde...'; }
+
+      var user = MOCK.find(function(u){ return u.email === email && u.senha === senha; });
+      if (!user) {
+        if (errEl) { errEl.textContent = 'E-mail ou senha incorretos.'; errEl.style.display = 'block'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '▶ Entrar'; }
+        return;
+      }
+
+      // Simular sessão
+      window._tenantId = (user.role==='superadmin') ? 'gbr-master' : (user.tenantId || 'demo');
+      window._userRole = user.role;
+      window._currentAuthUser = { email: user.email, uid: 'mock-uid-' + Date.now() };
+      window._firebaseReady = true;
+      window._authResolved = true;
+      window._enabledModules = {
+        agenda:true, clientes:true, caixa:true, financeiro:true,
+        estoque:true, fichatecnica:true, servicos:true, fidelidade:true,
+        checklist:true, whatsapp:true, relatorios:true, admin:true
+      };
+      window._planoAtual = 'premium';
+
+      // Atualizar UI de usuário
+      var nick = user.email.split('@')[0].toUpperCase();
+      var avEl = document.getElementById('userAv');
+      var nmEl = document.getElementById('userNm');
+      if (avEl) { avEl.textContent = nick[0]; avEl.style.background = 'rgba(79,195,247,.25)'; avEl.style.color = 'var(--accent)'; }
+      if (nmEl) nmEl.textContent = nick;
+
+      // Esconder login
+      var ls = document.getElementById('loginScreen');
+      if (ls) ls.style.display = 'none';
+
+      // Superadmin: mostrar console GBR no sidebar
+      if (user.role === 'superadmin') {
+        var saSection = document.getElementById('sa-sidebar-section');
+        if (saSection) saSection.style.display = 'block';
+        var saTag = document.getElementById('saAdminTag');
+        if (saTag) saTag.style.display = 'inline-flex';
+      }
+
+      // Iniciar app
+      if (typeof initApp === 'function') {
+        initApp();
+      } else if (typeof window.initApp === 'function') {
+        window.initApp();
+      } else {
+        // Dispatch evento que o sistema original espera
+        window.dispatchEvent(new Event('firebaseReady'));
+      }
+    };
+
+    // Sobrescrever logout também
+    window.logout = function() {
+      if (!confirm('Deseja sair?')) return;
+      window._tenantId = null; window._userRole = null; window._currentAuthUser = null;
+      window._firebaseReady = false;
+      location.reload();
+    };
+  }
+
+  // Instalar imediatamente e depois de todos os scripts carregarem
+  instalarLogin();
+  document.addEventListener('DOMContentLoaded', instalarLogin);
+  window.addEventListener('load', instalarLogin);
+})();
+
 (function(){
   if(new URLSearchParams(window.location.search).get('book')){
     document.documentElement.style.setProperty('--hide-app','none');
-    var _bs = document.createElement('style');
-    _bs.textContent = '#topbar,#sidebar,#mobileMenu,#loginScreen{display:none!important}#main>*:not(#bookingPublico){display:none!important}';
+    var _bs=document.createElement('style');
+    _bs.textContent='#topbar,#sidebar,#mobileMenu,#loginScreen{display:none!important}#main>*:not(#bookingPublico){display:none!important}';
     document.head.appendChild(_bs);
   }
 })();
@@ -39,183 +136,75 @@ function toast(msg, type='ok') {
 </script>
 
 
-
 <script>
-// MODO TESTE â€” bypass de autenticacao
-// Remove a necessidade de login para testar o sistema localmente
-window._tenantId = 'demo';
-window._userRole = 'superadmin';
-window._currentAuthUser = { email: 'gbrsistemassa@gmail.com', uid: 'local-test' };
-window._firebaseReady = true;
-window._authResolved = true;
-window._isMockAuth = true;
-window._planoAtual = 'premium';
-window._enabledModules = {
-  agenda:true, clientes:true, caixa:true, financeiro:true,
-  estoque:true, fichatecnica:true, servicos:true, fidelidade:true,
-  checklist:true, whatsapp:true, relatorios:true, admin:true
-};
-
-window.doLogin = function() {
-  var ls = document.getElementById('loginScreen');
-  if (ls) ls.style.display = 'none';
-  var avEl = document.getElementById('userAv');
-  var nmEl = document.getElementById('userNm');
-  if (avEl) { avEl.textContent = 'G'; avEl.style.background = 'rgba(79,195,247,.25)'; avEl.style.color = 'var(--accent)'; }
-  if (nmEl) nmEl.textContent = 'GBR SISTEMAS';
-  var saSec = document.getElementById('sa-sidebar-section');
-  if (saSec) saSec.style.display = 'block';
-  var saTag = document.getElementById('saAdminTag');
-  if (saTag) saTag.style.display = 'inline-flex';
-  if (typeof initApp === 'function') initApp();
-  else window.dispatchEvent(new Event('firebaseReady'));
-};
-
-window.logout = function() {
-  if (!confirm('Sair?')) return;
-  location.reload();
-};
-
-// Auto-login ao carregar pagina (modo teste)
-document.addEventListener('DOMContentLoaded', function() {
-  // Atualizar UI
-  var avEl = document.getElementById('userAv');
-  var nmEl = document.getElementById('userNm');
-  if (avEl) { avEl.textContent = 'G'; avEl.style.background = 'rgba(79,195,247,.25)'; avEl.style.color = 'var(--accent)'; }
-  if (nmEl) nmEl.textContent = 'GBR SISTEMAS';
-  var saSec = document.getElementById('sa-sidebar-section');
-  if (saSec) saSec.style.display = 'block';
-  var saTag = document.getElementById('saAdminTag');
-  if (saTag) saTag.style.display = 'inline-flex';
-  // Esconder tela de login
-  var ls = document.getElementById('loginScreen');
-  if (ls) ls.style.display = 'none';
-  // Iniciar app
-  if (typeof initApp === 'function') initApp();
-  else window.dispatchEvent(new Event('firebaseReady'));
-});
-</script>
-
-<script>
-// ══════════════════════════════════════════════════════
-// GBR DATA LAYER v2 — tenant-aware + mock DB adapter
-// Namespace: gbr_{tenantId}_{key}
-// ══════════════════════════════════════════════════════
-var GBRData = (function(){
-  function _tid(){ return window._tenantId || 'demo'; }
-  function _key(k){ return 'gbr_'+_tid()+'_'+k; }
-
-  function saveData(key,data){
-    try{ localStorage.setItem(_key(key),JSON.stringify(data)); }
-    catch(e){ console.warn('[GBRData] saveData erro:',e); }
-  }
-  function getData(key,fallback){
-    try{
-      var raw=localStorage.getItem(_key(key));
-      return raw ? JSON.parse(raw) : (fallback!==undefined?fallback:null);
-    }catch(e){ return fallback!==undefined?fallback:null; }
-  }
-  function removeData(key){
-    try{ localStorage.removeItem(_key(key)); }catch(e){}
-  }
-  function listKeys(prefix){
-    var ns='gbr_'+_tid()+'_'+(prefix||'');
-    var keys=[];
-    for(var i=0;i<localStorage.length;i++){
-      var k=localStorage.key(i);
-      if(k&&k.startsWith(ns)) keys.push(k.replace('gbr_'+_tid()+'_',''));
-    }
-    return keys;
-  }
-  function salvarLogoLocal(file){
-    var reader=new FileReader();
-    reader.onload=function(e){
-      saveData('logo',e.target.result);
-      document.querySelectorAll('.logo-img').forEach(function(el){el.src=e.target.result;});
-      if(typeof toast==='function') toast('Logo salvo localmente','ok');
+// TRAVAR doLogin - impedir sobrescrita pelos scripts do admin
+(function lockDoLogin() {
+  var _realDoLogin = null;
+  
+  function getMockDoLogin() {
+    var MOCK = [
+      {email:'gbrsistemassa@gmail.com', senha:'GBM2026!', role:'superadmin'},
+      {email:'admin@estetica.com',      senha:'123456',   role:'adm1', tenantId:'demo'},
+      {email:'gerente@estetica.com',    senha:'123456',   role:'adm2', tenantId:'demo'},
+      {email:'func@estetica.com',       senha:'123456',   role:'func', tenantId:'demo'},
+    ];
+    return function() {
+      var emailEl = document.getElementById('loginEmail') || document.getElementById('lEmail');
+      var passEl  = document.getElementById('loginPass')  || document.getElementById('lPass');
+      var errEl   = document.getElementById('loginErr');
+      var btn     = document.getElementById('btnLogin');
+      if (!emailEl || !passEl) { console.error('Campos de login não encontrados'); return; }
+      var email = emailEl.value.trim().toLowerCase();
+      var senha = passEl.value;
+      if (errEl) errEl.style.display = 'none';
+      if (!email || !senha) {
+        if (errEl) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display = 'block'; }
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Aguarde...'; }
+      var user = MOCK.find(function(u){ return u.email === email && u.senha === senha; });
+      if (!user) {
+        if (errEl) { errEl.textContent = 'E-mail ou senha incorretos.'; errEl.style.display = 'block'; }
+        if (btn) { btn.disabled = false; btn.innerHTML = '▶ Entrar'; }
+        return;
+      }
+      window._tenantId = (user.role==='superadmin') ? 'gbr-master' : (user.tenantId || 'demo');
+      window._userRole = user.role;
+      window._currentAuthUser = { email: user.email, uid: 'mock-' + Date.now() };
+      window._firebaseReady = true; window._authResolved = true;
+      window._enabledModules = {agenda:true,clientes:true,caixa:true,financeiro:true,estoque:true,fichatecnica:true,servicos:true,fidelidade:true,checklist:true,whatsapp:true,relatorios:true,admin:true};
+      window._planoAtual = 'premium';
+      var nick = user.email.split('@')[0].toUpperCase();
+      var avEl = document.getElementById('userAv'); var nmEl = document.getElementById('userNm');
+      if (avEl) { avEl.textContent = nick[0]; avEl.style.background='rgba(79,195,247,.25)'; avEl.style.color='var(--accent)'; }
+      if (nmEl) nmEl.textContent = nick;
+      var ls = document.getElementById('loginScreen'); if (ls) ls.style.display = 'none';
+      if (user.role === 'superadmin') {
+        var saSec = document.getElementById('sa-sidebar-section'); if (saSec) saSec.style.display = 'block';
+        var saTag = document.getElementById('saAdminTag'); if (saTag) saTag.style.display = 'inline-flex';
+      }
+      window.dispatchEvent(new Event('firebaseReady'));
     };
-    reader.readAsDataURL(file);
   }
-  function gerarTenantId(){
-    return 'tenant_'+Date.now().toString(36)+'_'+Math.random().toString(36).substr(2,6);
-  }
-  function _getMaster(key){ try{var r=localStorage.getItem('gbr_master_'+key);return r?JSON.parse(r):null;}catch(e){return null;} }
-  function _setMaster(key,data){ try{localStorage.setItem('gbr_master_'+key,JSON.stringify(data));}catch(e){} }
-  function criarTenant(cfg){
-    var id=gerarTenantId();
-    var tenant={id:id,nome:cfg.nome||'Cliente GBR',email:cfg.email||'',plano:cfg.plano||'basico',
-      status:'ativo',criadoEm:new Date().toISOString(),cores:cfg.cores||{ac:'#4fc3f7',ac2:'#ff7043',bg:'#07080f'},
-      link:window.location.href.split('?')[0]+'?t='+id,senha:cfg.senha||'123456'};
-    var todos=_getMaster('tenants')||{};
-    todos[id]=tenant;
-    _setMaster('tenants',todos);
-    var users=_getMaster('users')||{};
-    users[cfg.email]={tenantId:id,role:cfg.role||'adm1',senha:cfg.senha||'123456'};
-    _setMaster('users',users);
-    return tenant;
-  }
-  function listarTenants(){ return _getMaster('tenants')||{}; }
-  function getTenantConfig(tid){ var t=_getMaster('tenants')||{}; return t[tid]||null; }
 
-  return {saveData:saveData,getData:getData,removeData:removeData,listKeys:listKeys,
-    salvarLogoLocal:salvarLogoLocal,gerarTenantId:gerarTenantId,
-    criarTenant:criarTenant,listarTenants:listarTenants,getTenantConfig:getTenantConfig};
+  try {
+    Object.defineProperty(window, 'doLogin', {
+      get: function() { return _realDoLogin || getMockDoLogin(); },
+      set: function(v) { /* ignorar sobrescrita — proteção do mock */ },
+      configurable: false
+    });
+    _realDoLogin = getMockDoLogin();
+  } catch(e) {
+    window.doLogin = getMockDoLogin();
+  }
+
+  window.logout = function() {
+    if (!confirm('Deseja sair?')) return;
+    window._tenantId=null; window._userRole=null; window._currentAuthUser=null;
+    location.reload();
+  };
 })();
-window.saveData = GBRData.saveData;
-window.getData  = GBRData.getData;
-window.GBRData  = GBRData;
-
-// ── DB Adapter — roteia para localStorage (mock) ou Firebase ─────────────
-function _fakeSnap(data){
-  return {val:function(){return data;},exists:function(){return data!==null&&data!==undefined;},
-    forEach:function(cb){if(data&&typeof data==='object'){Object.keys(data).forEach(function(k){cb({key:k,val:function(){return data[k];}});});}}};
-}
-function _lsKey(path){ return 'gbr_ls__'+path.replace(/\//g,'__'); }
-function dbGet(path){
-  if(!window._isMockAuth&&window._db) return window._db.ref(path).once('value');
-  var data=(function(){try{var r=localStorage.getItem(_lsKey(path));return r?JSON.parse(r):null;}catch(e){return null;}})();
-  return Promise.resolve(_fakeSnap(data));
-}
-function dbSet(path,value){
-  if(!window._isMockAuth&&window._db) return window._db.ref(path).set(value);
-  try{if(value===null)localStorage.removeItem(_lsKey(path));
-      else localStorage.setItem(_lsKey(path),JSON.stringify(value));}catch(e){}
-  return Promise.resolve();
-}
-function dbPush(path,value){
-  if(!window._isMockAuth&&window._db) return window._db.ref(path).push(value);
-  var newKey='-'+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
-  var all=(function(){try{var r=localStorage.getItem(_lsKey(path));return r?JSON.parse(r):{};}catch(e){return{};}})();
-  all[newKey]=value;
-  try{localStorage.setItem(_lsKey(path),JSON.stringify(all));}catch(e){}
-  return Promise.resolve({key:newKey});
-}
-function dbUpdate(path,value){
-  if(!window._isMockAuth&&window._db) return window._db.ref(path).update(value);
-  var ex=(function(){try{var r=localStorage.getItem(_lsKey(path));return r?JSON.parse(r):{};}catch(e){return{};}})();
-  Object.assign(ex,value);
-  try{localStorage.setItem(_lsKey(path),JSON.stringify(ex));}catch(e){}
-  return Promise.resolve();
-}
-function dbRemove(path){
-  if(!window._isMockAuth&&window._db) return window._db.ref(path).remove();
-  try{localStorage.removeItem(_lsKey(path));}catch(e){}
-  return Promise.resolve();
-}
-function dbOnValue(path,cb){
-  if(!window._isMockAuth&&window._db){window._db.ref(path).on('value',function(s){cb(s);});return;}
-  dbGet(path).then(function(snap){cb(snap);});
-}
-window.dbGet=dbGet;window.dbSet=dbSet;window.dbPush=dbPush;
-window.dbUpdate=dbUpdate;window.dbRemove=dbRemove;window.dbOnValue=dbOnValue;
-window.fbGet=function(p){return dbGet(p);};
-window.fbSet=function(p,v){return dbSet(p,v);};
-window.fbPush=function(p,v){return dbPush(p,v);};
-window.fbUpdate=function(p,v){return dbUpdate(p,v);};
-window.fbRemove=function(p){return dbRemove(p);};
 </script>
-
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -236,43 +225,81 @@ window.fbRemove=function(p){return dbRemove(p);};
   // ── BACKEND URL ────────────────────────────────────────────────
   window.BACKEND_URL = 'https://gbr-backend-d1ju.onrender.com';
 
-  // ── WHITE LABEL — identidade visual por tenant ─────────────────────
+  // ── WHITE LABEL — carregar marca da estética ANTES do login ───
+  // Detecta ?t=tenantId e busca dados públicos do tenant no backend
   (function(){
-    var params = new URLSearchParams(window.location.search);
-    var tParam = params.get('t');
-    if(!tParam) return;
+    var params  = new URLSearchParams(window.location.search);
+    var tParam  = params.get('t');
+    if (!tParam) return;
     window._tenantIdPreLogin = tParam;
-    window._tenantId = tParam;
-
-    function aplicarUI(dados){
-      if(!dados) return;
-      var logo=document.querySelector('.login-logo,.tb-logo');
-      if(logo&&dados.nome) logo.innerHTML=dados.nome;
-      var sub=document.querySelector('.login-sub');
-      if(sub&&dados.nome) sub.textContent=dados.nome+' — Sistema de Gestão';
-      if(dados.cores){
-        if(dados.cores.ac)  document.documentElement.style.setProperty('--accent',dados.cores.ac);
-        if(dados.cores.ac2) document.documentElement.style.setProperty('--accent2',dados.cores.ac2);
-        if(dados.cores.bg)  document.documentElement.style.setProperty('--bg',dados.cores.bg);
-      }
-      if(dados.nome) document.title=dados.nome+' — Gestão';
-    }
-
-    // 1. localStorage primeiro (modo mock)
-    try{
-      var mt=localStorage.getItem('gbr_master_tenants');
-      if(mt){ var ts=JSON.parse(mt); if(ts[tParam]){ aplicarUI(ts[tParam]); return; } }
-    }catch(e){}
-
-    // 2. Fallback: backend Firebase
-    if(window.BACKEND_URL){
-      fetch(window.BACKEND_URL+'/tenant-publico/'+tParam)
-        .then(function(r){return r.ok?r.json():null;})
-        .then(function(d){aplicarUI(d);})
-        .catch(function(){});
-    }
+    fetch(window.BACKEND_URL + '/tenant-publico/' + tParam)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(dados){
+        if (!dados) return;
+        // Personalizar tela de login com a marca da estética
+        var logo = document.querySelector('.login-logo');
+        if (logo && dados.nome) logo.innerHTML = dados.nome;
+        var sub = document.querySelector('.login-sub');
+        if (sub) sub.textContent = 'Sistema de Gestão Automotiva';
+        if (dados.cores) {
+          if (dados.cores.ac)  document.documentElement.style.setProperty('--accent',  dados.cores.ac);
+          if (dados.cores.ac2) document.documentElement.style.setProperty('--accent2', dados.cores.ac2);
+          if (dados.cores.bg)  document.documentElement.style.setProperty('--bg',      dados.cores.bg);
+        }
+        document.title = (dados.nome || 'Sistema') + ' — Gestão';
+      })
+      .catch(function(){});
   })();
+
+  window.doLogin=async function(){
+    // MODO PROVISÓRIO — sem Firebase
+    // Login hardcoded para testes locais
+    const MOCK_USERS=[
+      {email:'gbrsistemassa@gmail.com',senha:'GBM2026!',role:'superadmin'},
+      {email:'admin@estetica.com',senha:'123456',role:'adm1',tenantId:'demo'},
+      {email:'gerente@estetica.com',senha:'123456',role:'adm2',tenantId:'demo'},
+      {email:'func@estetica.com',senha:'123456',role:'func',tenantId:'demo'},
+    ];
+    var e=document.getElementById('loginEmail').value.trim().toLowerCase();
+    var p=document.getElementById('loginPass').value;
+    if(!e||!p)return toast('Preencha e-mail e senha','err');
+    var btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Aguarde...';
+    var u=MOCK_USERS.find(x=>x.email===e&&x.senha===p);
+    if(!u){toast('E-mail ou senha incorretos','err');btn.disabled=false;btn.innerHTML='&#9658; Entrar';return;}
+    // Simular usuário logado
+    window._tenantId=u.tenantId||'demo';
+    window._userRole=u.role;
+    window._currentAuthUser={email:u.email,uid:'mock-'+Date.now()};
+    window._firebaseReady=true;window._authResolved=true;
+    document.getElementById('loginScreen').style.display='none';
+    var nick=u.email.split('@')[0];
+    document.getElementById('userNm').textContent=nick.toUpperCase();
+    document.getElementById('userAv').textContent=nick[0].toUpperCase();
+    document.getElementById('userAv').style.background='rgba(79,195,247,.25)';
+    document.getElementById('userAv').style.color='var(--accent)';
+    // Módulos — tudo liberado no modo mock
+    window._enabledModules={agenda:true,clientes:true,caixa:true,financeiro:true,estoque:true,fichatecnica:true,servicos:true,fidelidade:true,checklist:true,whatsapp:true,relatorios:true,admin:true};
+    window._planoAtual='premium';
+    // Superadmin: mostrar console GBR
+    if(u.role==='superadmin'){
+      var saSection=document.getElementById('sa-sidebar-section');
+      if(saSection)saSection.style.display='block';
+      var saTag=document.getElementById('saAdminTag');
+      if(saTag)saTag.style.display='inline-flex';
+    }
+    // Aplicar permissões por role
+    aplicarPermissoesMock(u.role);
+    // Carregar dashboard
+    initApp();
+  };
   
+  function aplicarPermissoesMock(role){
+    // func: esconder admin e financeiro completo
+    if(role==='func'){
+      var adm=document.querySelector('.ni[onclick*="admin"]');
+      if(adm)adm.style.display='none';
+    }
+  }
   
   
 
@@ -646,6 +673,11 @@ window.fbRemove=function(p){return dbRemove(p);};
     }
   })();
 
+  window.logout=function(){
+    if(!confirm('Deseja sair?'))return;
+    if(typeof auditLog==='function')auditLog('logout','Sessao encerrada');
+    _fbAuth.signOut().then(function(){location.reload();});
+  };
 </script>
 
 <style>
@@ -657,18 +689,6 @@ window.fbRemove=function(p){return dbRemove(p);};
   --text:#e8eaf6;--muted:#5c6080;--muted2:#8b90b0;
   --font-d:'Bebas Neue',sans-serif;--font-b:'DM Sans',sans-serif;--font-m:'JetBrains Mono',monospace;
   --r2:14px;
-  /* Aliases de compatibilidade com tokens legados */
-  --ac: var(--accent);
-  --ac2: var(--accent2);
-  --fd: var(--font-d);
-  --fb: var(--font-b);
-  --fm: var(--font-m);
-  --s1: var(--surface);
-  --s2: var(--surface2);
-  --s3: var(--surface3);
-  --b1: var(--border);
-  --b2: var(--border2);
-  --r: 10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -977,6 +997,92 @@ body.light .badge{opacity:.9}
   #btnGlobalSearch .search-label{display:none}
 }
 </style>
+<script>
+/* GBR SAFE LAYER â€” garante funcoes criticas mesmo em modo local */
+
+// goPage seguro â€” redireciona para funcao original ou faz fallback
+if (typeof window.goPage === 'undefined') {
+  window.goPage = function(pg) {
+    // Tentar funcao interna showPage
+    if (typeof showPage === 'function') { showPage(pg); return; }
+    // Fallback: esconder todas as pages e mostrar a correta
+    document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+    var target = document.getElementById(pg);
+    if (target) {
+      target.classList.add('active');
+      // Atualizar sidebar
+      document.querySelectorAll('.ni,.sub-ni').forEach(function(el){ el.classList.remove('active'); });
+      var navItem = document.querySelector('[onclick*="' + pg + '"]');
+      if (navItem) navItem.classList.add('active');
+    }
+  };
+}
+
+// dbGet/dbSet seguros â€” nao quebram sem tenantId
+var _origDbGet = window.dbGet;
+window.dbGet = function(path) {
+  // Se chamado sem tenantId e temos _fbDB, usar direto
+  if (window._db && !window._isMockAuth) {
+    return window._db.ref(path).once('value').catch(function(e){
+      return { val: function(){ return null; }, exists: function(){ return false; } };
+    });
+  }
+  // Mock: ler do localStorage
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var data = null;
+  try { var r = localStorage.getItem(lsKey); data = r ? JSON.parse(r) : null; } catch(e){}
+  return Promise.resolve({ val: function(){ return data; }, exists: function(){ return data !== null; },
+    forEach: function(cb){ if(data && typeof data==='object'){ Object.keys(data).forEach(function(k){ cb({key:k,val:function(){return data[k];}}); }); } }
+  });
+};
+
+window.dbSet = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).set(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  try { if(value===null) localStorage.removeItem(lsKey); else localStorage.setItem(lsKey, JSON.stringify(value)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbPush = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).push(value).catch(function(){});
+  var nk = '-' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+  var all = {};
+  try { var r = localStorage.getItem('gbr_ls__' + path.replace(/\//g,'__')); all = r ? JSON.parse(r) : {}; } catch(e){}
+  all[nk] = value;
+  try { localStorage.setItem('gbr_ls__' + path.replace(/\//g,'__'), JSON.stringify(all)); } catch(e){}
+  return Promise.resolve({ key: nk });
+};
+
+window.dbUpdate = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).update(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var ex = {};
+  try { var r = localStorage.getItem(lsKey); ex = r ? JSON.parse(r) : {}; } catch(e){}
+  Object.assign(ex, value);
+  try { localStorage.setItem(lsKey, JSON.stringify(ex)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbRemove = function(path) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).remove().catch(function(){});
+  try { localStorage.removeItem('gbr_ls__' + path.replace(/\//g,'__')); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbOnValue = function(path, cb) {
+  if (window._db && !window._isMockAuth) { window._db.ref(path).on('value', cb); return; }
+  window.dbGet(path).then(function(snap){ cb(snap); });
+};
+
+// Aliases fbGet/fbSet para codigo legado
+window.fbGet = function(p){ return window.dbGet(p).then(function(s){ return s.val(); }); };
+window.fbSet = function(p,v){ return window.dbSet(p,v); };
+window.fbUpdate = function(p,v){ return window.dbUpdate(p,v); };
+window.fbPush = function(p,v){ return window.dbPush(p,v); };
+window.fbRemove = function(p){ return window.dbRemove(p); };
+
+console.log('[GBR Safe Layer] ativo â€” modo:', window._isMockAuth ? 'mock/localStorage' : 'Firebase');
+</script>
 </head>
 <body>
 
@@ -1115,8 +1221,7 @@ body.light .badge{opacity:.9}
   <div class="ni" onclick="goTo('suporte')"><span class="ico">🎧</span>Suporte <span class="nbadge nb-red" id="navSupBadge" style="display:none">!</span></div>
   <!-- CONSOLE GBR — APENAS SUPERADMIN VÊ -->
   <div id="sa-sidebar-section" style="display:none">
-    <div style="margin:10px 8px 2px;border-top:1px solid rgba(79,195,247,.2)">
-  <div class="ni" onclick="goPage('sa-tenants');carregarListaTenants()"><span class="ico">🏢</span><span class="lbl">Clientes / Tenants</span></div></div>
+    <div style="margin:10px 8px 2px;border-top:1px solid rgba(79,195,247,.2)"></div>
     <div class="ns" style="color:rgba(79,195,247,.6)">⚡ Console GBR</div>
     <div class="ni" onclick="goSA('sa-pg-dash')"><span class="ico">🚀</span>Visão Geral</div>
     <div class="ni" onclick="goSA('sa-pg-est')"><span class="ico">🏢</span>Estéticas</div>
@@ -4880,10 +4985,11 @@ var FB = {
 };
 var SA = "gbrsistemassa@gmail.com";
 
-var _saApp=(function(){try{return firebase.app();}catch(e){return firebase.initializeApp(FB);}})();
-var db=_saApp.database();
-var auth=_saApp.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){});
+firebase.initializeApp(FB);
+var db   = firebase.database();
+var auth = firebase.auth();
+// SESSION: login do admin nao afeta outras abas
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){}); // configurado via patch doLogin
 
 /* ════════════════════════════════════════════
    HELPERS FIREBASE
@@ -4933,35 +5039,52 @@ function toast(msg,t){
 /* ════════════════════════════════════════════
    AUTH
 ════════════════════════════════════════════ */
-function _saConsoleLogin(){
-  var em=document.getElementById('loginEmail')||document.getElementById('lEmail');
-  var pw=document.getElementById('loginPass')||document.getElementById('lPass');
+function doLogin(){
+  var em=document.getElementById('lEmail').value.trim();
+  var pw=document.getElementById('lPass').value;
   var err=document.getElementById('loginErr');
-  if(!em||!pw){return;}
-  if(err)err.style.display='none';
-  if(!em.value||!pw.value){if(err){err.textContent='Preencha e-mail e senha.';err.style.display='block';}return;}
+  err.style.display='none';
+  if(!em||!pw){err.textContent='Preencha e-mail e senha.';err.style.display='block';return;}
   var btn=document.getElementById('btnLogin');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="sp"></span> Aguarde...';}
-  auth.signInWithEmailAndPassword(em.value.trim(),pw.value).catch(function(e){
-    var map={'auth/invalid-credential':'E-mail ou senha incorretos.','auth/user-not-found':'Usuário não encontrado.','auth/wrong-password':'Senha incorreta.','auth/too-many-requests':'Muitas tentativas. Aguarde.','auth/invalid-email':'E-mail inválido.'};
-    if(err){err.innerHTML=(map[e.code]||'Erro: '+e.code);err.style.display='block';}
-    if(btn){btn.disabled=false;btn.innerHTML='&#9658; Acessar Console';}
+  btn.disabled=true;btn.innerHTML='<span class="sp"></span> Aguarde...';
+  auth.signInWithEmailAndPassword(em,pw).catch(function(e){
+    var map={
+      'auth/invalid-credential':'E-mail ou senha incorretos.',
+      'auth/user-not-found':'Usuário não encontrado no Firebase.',
+      'auth/wrong-password':'Senha incorreta.',
+      'auth/too-many-requests':'Muitas tentativas. Aguarde.',
+      'auth/invalid-email':'E-mail inválido.'
+    };
+    err.innerHTML=(map[e.code]||'Erro: '+e.code)+'<br><small style="opacity:.6">'+e.code+'</small>';
+    err.style.display='block';
+    btn.disabled=false;btn.innerHTML='&#9658; Acessar Console';
   });
 }
 
 auth.onAuthStateChanged(function(u){
-  // Console SA: este listener so age quando nao esta em mock mode
-  if(window._isMockAuth)return;
   var ld=document.getElementById('loader');
   if(ld){ld.classList.add('out');setTimeout(function(){if(ld.parentNode)ld.parentNode.removeChild(ld);},450);}
+
   if(u){
-    if(u.email!==SA){auth.signOut();return;}
-    var ls=document.getElementById('loginScreen');if(ls)ls.style.display='none';
-    var ap=document.getElementById('app');if(ap)ap.style.display='block';
-    var nm=document.getElementById('uNm'),av=document.getElementById('userAv')||document.getElementById('uAv');
-    var nn=u.email.split('@')[0];
-    if(nm)nm.textContent=nn.toUpperCase();if(av)av.textContent=nn[0].toUpperCase();
-    if(typeof init==='function')init();
+    if(u.email!==SA){
+      auth.signOut();
+      document.getElementById('loginScreen').style.display='flex';
+      document.getElementById('app').style.display='none';
+      var e=document.getElementById('loginErr');
+      e.textContent='Acesso negado. Apenas Super Admin.';e.style.display='block';
+      return;
+    }
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    var n=u.email.split('@')[0];
+    document.getElementById('uNm').textContent=n.toUpperCase();
+    document.getElementById('uAv').textContent=n[0].toUpperCase();
+    init();
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('app').style.display='none';
+    var b=document.getElementById('btnLogin');
+    if(b){b.disabled=false;b.innerHTML='&#9658; Acessar Console';}
   }
 });
 
@@ -8987,7 +9110,44 @@ function cms_cmsLog(msg,tipo) {
   }
 
   /* ── doLogin ADMIN COM AWAIT E DEBUG ──────────────────────*/
-
+  function corrigirDoLoginAdmin() {
+    window.doLogin = async function() {
+      var em = document.getElementById('lEmail');
+      var pw = document.getElementById('lPass');
+      var errEl = document.getElementById('loginErr');
+      if (!em || !pw) return;
+      var email = em.value.trim(), pass = pw.value;
+      if (errEl) errEl.style.display = 'none';
+      if (!email || !pass) {
+        if (errEl) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display = 'block'; }
+        return;
+      }
+      var btn = document.getElementById('btnLogin');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="sp"></span> Aguarde...'; }
+      console.log('[GBR ADMIN PATCH] doLogin admin — configurando persistência SESSION...');
+      try {
+        await window.auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+        console.log('[GBR ADMIN PATCH] Persistência SESSION OK — fazendo signIn...');
+        await window.auth.signInWithEmailAndPassword(email, pass);
+        console.log('[GBR ADMIN PATCH] ✅ signIn admin concluído.');
+      } catch (e) {
+        console.error('[GBR ADMIN PATCH] Erro no login:', e.code, e.message);
+        var map = {
+          'auth/invalid-credential': 'E-mail ou senha incorretos.',
+          'auth/user-not-found': 'Usuário não encontrado.',
+          'auth/wrong-password': 'Senha incorreta.',
+          'auth/too-many-requests': 'Muitas tentativas. Aguarde.',
+          'auth/invalid-email': 'E-mail inválido.'
+        };
+        if (errEl) {
+          errEl.innerHTML = (map[e.code] || 'Erro: ' + e.code) + '<br><small style="opacity:.6">' + e.code + '</small>';
+          errEl.style.display = 'block';
+        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#9658; Acessar Console'; }
+      }
+    };
+    console.log('[GBR ADMIN PATCH] ✅ doLogin admin com await e debug configurado.');
+  }
 
   /* ── MONITOR DE CONEXÃO DB ─────────────────────────────────*/
   function instalarMonitorDB() {
@@ -9004,6 +9164,7 @@ function cms_cmsLog(msg,tipo) {
     console.log('[GBR ADMIN PATCH] 🚀 Aplicando correções no painel admin...');
     instalarDebugAuth();
     instalarLoaderFailsafe();
+    corrigirDoLoginAdmin();
     instalarMonitorDB();
     console.log('[GBR ADMIN PATCH] ✅ Patch v1.0 ativo.');
   });
@@ -11798,7 +11959,93 @@ function imprimirCaixa(){
   const win=window.open('','_blank','width=600,height=800');
   const movs=document.getElementById('caixaBody').innerHTML;
   const cards=document.getElementById('caixaCards').innerHTML;
-  win.document.write(`<html><head><title>Fechamento de Caixa</title><style>body{font-family:Arial;padding:20px;color:#000}h2{margin-bottom:8px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:6px 10px;font-size:12px}th{background:#f0f0f0}.cards{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #ccc;border-radius:6px;padding:10px;min-width:120px}</style></head><body><h2>GBR Sistemas — Fechamento de Caixa</h2><p><strong>Data:</strong> ${document.getElementById('caixaDataLabel').textContent}</p><p><strong>Operador:</strong> ${window._currentAuthUser?.email||'—'}</p><hr><h3>Resumo</h3><div class="cards">${cards.replace(/<div class="cv[^"]*">/g,'<div class="cv"><strong>').replace(/<\/div>/g,'</strong></div>').replace(/<button[^>]*>.*?<\/button>/gs,'')}</div><h3>Movimentações</h3><table><thead><tr><th>Hora</th><th>Tipo</th><th>Descrição</th><th>Pgto</th><th>Valor</th><th>Operador</th></tr></thead><tbody>${movs.replace(/<button[^>]*>.*?<\/button>/gs,'')}</tbody></table><br><p style="font-size:12px;color:#666">Impresso em ${new Date().toLocaleString('pt-BR')} — Sistema GBR Sistemas v1.0</p></body></html>`);
+  win.document.write(`<html><head><title>Fechamento de Caixa</title><style>body{font-family:Arial;padding:20px;color:#000}h2{margin-bottom:8px}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:6px 10px;font-size:12px}th{background:#f0f0f0}.cards{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.card{border:1px solid #ccc;border-radius:6px;padding:10px;min-width:120px}</style><script>
+/* GBR SAFE LAYER â€” garante funcoes criticas mesmo em modo local */
+
+// goPage seguro â€” redireciona para funcao original ou faz fallback
+if (typeof window.goPage === 'undefined') {
+  window.goPage = function(pg) {
+    // Tentar funcao interna showPage
+    if (typeof showPage === 'function') { showPage(pg); return; }
+    // Fallback: esconder todas as pages e mostrar a correta
+    document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+    var target = document.getElementById(pg);
+    if (target) {
+      target.classList.add('active');
+      // Atualizar sidebar
+      document.querySelectorAll('.ni,.sub-ni').forEach(function(el){ el.classList.remove('active'); });
+      var navItem = document.querySelector('[onclick*="' + pg + '"]');
+      if (navItem) navItem.classList.add('active');
+    }
+  };
+}
+
+// dbGet/dbSet seguros â€” nao quebram sem tenantId
+var _origDbGet = window.dbGet;
+window.dbGet = function(path) {
+  // Se chamado sem tenantId e temos _fbDB, usar direto
+  if (window._db && !window._isMockAuth) {
+    return window._db.ref(path).once('value').catch(function(e){
+      return { val: function(){ return null; }, exists: function(){ return false; } };
+    });
+  }
+  // Mock: ler do localStorage
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var data = null;
+  try { var r = localStorage.getItem(lsKey); data = r ? JSON.parse(r) : null; } catch(e){}
+  return Promise.resolve({ val: function(){ return data; }, exists: function(){ return data !== null; },
+    forEach: function(cb){ if(data && typeof data==='object'){ Object.keys(data).forEach(function(k){ cb({key:k,val:function(){return data[k];}}); }); } }
+  });
+};
+
+window.dbSet = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).set(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  try { if(value===null) localStorage.removeItem(lsKey); else localStorage.setItem(lsKey, JSON.stringify(value)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbPush = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).push(value).catch(function(){});
+  var nk = '-' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+  var all = {};
+  try { var r = localStorage.getItem('gbr_ls__' + path.replace(/\//g,'__')); all = r ? JSON.parse(r) : {}; } catch(e){}
+  all[nk] = value;
+  try { localStorage.setItem('gbr_ls__' + path.replace(/\//g,'__'), JSON.stringify(all)); } catch(e){}
+  return Promise.resolve({ key: nk });
+};
+
+window.dbUpdate = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).update(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var ex = {};
+  try { var r = localStorage.getItem(lsKey); ex = r ? JSON.parse(r) : {}; } catch(e){}
+  Object.assign(ex, value);
+  try { localStorage.setItem(lsKey, JSON.stringify(ex)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbRemove = function(path) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).remove().catch(function(){});
+  try { localStorage.removeItem('gbr_ls__' + path.replace(/\//g,'__')); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbOnValue = function(path, cb) {
+  if (window._db && !window._isMockAuth) { window._db.ref(path).on('value', cb); return; }
+  window.dbGet(path).then(function(snap){ cb(snap); });
+};
+
+// Aliases fbGet/fbSet para codigo legado
+window.fbGet = function(p){ return window.dbGet(p).then(function(s){ return s.val(); }); };
+window.fbSet = function(p,v){ return window.dbSet(p,v); };
+window.fbUpdate = function(p,v){ return window.dbUpdate(p,v); };
+window.fbPush = function(p,v){ return window.dbPush(p,v); };
+window.fbRemove = function(p){ return window.dbRemove(p); };
+
+console.log('[GBR Safe Layer] ativo â€” modo:', window._isMockAuth ? 'mock/localStorage' : 'Firebase');
+</script>
+</head><body><h2>GBR Sistemas — Fechamento de Caixa</h2><p><strong>Data:</strong> ${document.getElementById('caixaDataLabel').textContent}</p><p><strong>Operador:</strong> ${window._currentAuthUser?.email||'—'}</p><hr><h3>Resumo</h3><div class="cards">${cards.replace(/<div class="cv[^"]*">/g,'<div class="cv"><strong>').replace(/<\/div>/g,'</strong></div>').replace(/<button[^>]*>.*?<\/button>/gs,'')}</div><h3>Movimentações</h3><table><thead><tr><th>Hora</th><th>Tipo</th><th>Descrição</th><th>Pgto</th><th>Valor</th><th>Operador</th></tr></thead><tbody>${movs.replace(/<button[^>]*>.*?<\/button>/gs,'')}</tbody></table><br><p style="font-size:12px;color:#666">Impresso em ${new Date().toLocaleString('pt-BR')} — Sistema GBR Sistemas v1.0</p></body></html>`);
   win.document.close();
   win.print();
   auditLog('caixa','Caixa impresso');
@@ -12909,7 +13156,93 @@ function previewTela(){
       async function dbGet(k){return []}
       async function dbSet(k,v){}
     <\/script>
-  </head><body>${conteudo}</body></html>`);
+  <script>
+/* GBR SAFE LAYER â€” garante funcoes criticas mesmo em modo local */
+
+// goPage seguro â€” redireciona para funcao original ou faz fallback
+if (typeof window.goPage === 'undefined') {
+  window.goPage = function(pg) {
+    // Tentar funcao interna showPage
+    if (typeof showPage === 'function') { showPage(pg); return; }
+    // Fallback: esconder todas as pages e mostrar a correta
+    document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+    var target = document.getElementById(pg);
+    if (target) {
+      target.classList.add('active');
+      // Atualizar sidebar
+      document.querySelectorAll('.ni,.sub-ni').forEach(function(el){ el.classList.remove('active'); });
+      var navItem = document.querySelector('[onclick*="' + pg + '"]');
+      if (navItem) navItem.classList.add('active');
+    }
+  };
+}
+
+// dbGet/dbSet seguros â€” nao quebram sem tenantId
+var _origDbGet = window.dbGet;
+window.dbGet = function(path) {
+  // Se chamado sem tenantId e temos _fbDB, usar direto
+  if (window._db && !window._isMockAuth) {
+    return window._db.ref(path).once('value').catch(function(e){
+      return { val: function(){ return null; }, exists: function(){ return false; } };
+    });
+  }
+  // Mock: ler do localStorage
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var data = null;
+  try { var r = localStorage.getItem(lsKey); data = r ? JSON.parse(r) : null; } catch(e){}
+  return Promise.resolve({ val: function(){ return data; }, exists: function(){ return data !== null; },
+    forEach: function(cb){ if(data && typeof data==='object'){ Object.keys(data).forEach(function(k){ cb({key:k,val:function(){return data[k];}}); }); } }
+  });
+};
+
+window.dbSet = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).set(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  try { if(value===null) localStorage.removeItem(lsKey); else localStorage.setItem(lsKey, JSON.stringify(value)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbPush = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).push(value).catch(function(){});
+  var nk = '-' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+  var all = {};
+  try { var r = localStorage.getItem('gbr_ls__' + path.replace(/\//g,'__')); all = r ? JSON.parse(r) : {}; } catch(e){}
+  all[nk] = value;
+  try { localStorage.setItem('gbr_ls__' + path.replace(/\//g,'__'), JSON.stringify(all)); } catch(e){}
+  return Promise.resolve({ key: nk });
+};
+
+window.dbUpdate = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).update(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var ex = {};
+  try { var r = localStorage.getItem(lsKey); ex = r ? JSON.parse(r) : {}; } catch(e){}
+  Object.assign(ex, value);
+  try { localStorage.setItem(lsKey, JSON.stringify(ex)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbRemove = function(path) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).remove().catch(function(){});
+  try { localStorage.removeItem('gbr_ls__' + path.replace(/\//g,'__')); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbOnValue = function(path, cb) {
+  if (window._db && !window._isMockAuth) { window._db.ref(path).on('value', cb); return; }
+  window.dbGet(path).then(function(snap){ cb(snap); });
+};
+
+// Aliases fbGet/fbSet para codigo legado
+window.fbGet = function(p){ return window.dbGet(p).then(function(s){ return s.val(); }); };
+window.fbSet = function(p,v){ return window.dbSet(p,v); };
+window.fbUpdate = function(p,v){ return window.dbUpdate(p,v); };
+window.fbPush = function(p,v){ return window.dbPush(p,v); };
+window.fbRemove = function(p){ return window.dbRemove(p); };
+
+console.log('[GBR Safe Layer] ativo â€” modo:', window._isMockAuth ? 'mock/localStorage' : 'Firebase');
+</script>
+</head><body>${conteudo}</body></html>`);
   win.document.close();
 }
 
@@ -13413,7 +13746,93 @@ function imprimirQRFidelidade(){
   .logo span{color:#0277bd}.info{font-size:13px;margin:10px 0;line-height:1.6}
   .pts{font-size:18px;font-weight:700;color:#f39c12;margin:8px 0}
   .tip{font-size:11px;color:#666;margin-top:12px;border:1px dashed #ccc;padding:8px;border-radius:6px}
-  @media print{button{display:none}}</style></head>
+  @media print{button{display:none}}</style><script>
+/* GBR SAFE LAYER â€” garante funcoes criticas mesmo em modo local */
+
+// goPage seguro â€” redireciona para funcao original ou faz fallback
+if (typeof window.goPage === 'undefined') {
+  window.goPage = function(pg) {
+    // Tentar funcao interna showPage
+    if (typeof showPage === 'function') { showPage(pg); return; }
+    // Fallback: esconder todas as pages e mostrar a correta
+    document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+    var target = document.getElementById(pg);
+    if (target) {
+      target.classList.add('active');
+      // Atualizar sidebar
+      document.querySelectorAll('.ni,.sub-ni').forEach(function(el){ el.classList.remove('active'); });
+      var navItem = document.querySelector('[onclick*="' + pg + '"]');
+      if (navItem) navItem.classList.add('active');
+    }
+  };
+}
+
+// dbGet/dbSet seguros â€” nao quebram sem tenantId
+var _origDbGet = window.dbGet;
+window.dbGet = function(path) {
+  // Se chamado sem tenantId e temos _fbDB, usar direto
+  if (window._db && !window._isMockAuth) {
+    return window._db.ref(path).once('value').catch(function(e){
+      return { val: function(){ return null; }, exists: function(){ return false; } };
+    });
+  }
+  // Mock: ler do localStorage
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var data = null;
+  try { var r = localStorage.getItem(lsKey); data = r ? JSON.parse(r) : null; } catch(e){}
+  return Promise.resolve({ val: function(){ return data; }, exists: function(){ return data !== null; },
+    forEach: function(cb){ if(data && typeof data==='object'){ Object.keys(data).forEach(function(k){ cb({key:k,val:function(){return data[k];}}); }); } }
+  });
+};
+
+window.dbSet = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).set(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  try { if(value===null) localStorage.removeItem(lsKey); else localStorage.setItem(lsKey, JSON.stringify(value)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbPush = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).push(value).catch(function(){});
+  var nk = '-' + Date.now().toString(36) + Math.random().toString(36).substr(2,4);
+  var all = {};
+  try { var r = localStorage.getItem('gbr_ls__' + path.replace(/\//g,'__')); all = r ? JSON.parse(r) : {}; } catch(e){}
+  all[nk] = value;
+  try { localStorage.setItem('gbr_ls__' + path.replace(/\//g,'__'), JSON.stringify(all)); } catch(e){}
+  return Promise.resolve({ key: nk });
+};
+
+window.dbUpdate = function(path, value) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).update(value).catch(function(){});
+  var lsKey = 'gbr_ls__' + path.replace(/\//g,'__');
+  var ex = {};
+  try { var r = localStorage.getItem(lsKey); ex = r ? JSON.parse(r) : {}; } catch(e){}
+  Object.assign(ex, value);
+  try { localStorage.setItem(lsKey, JSON.stringify(ex)); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbRemove = function(path) {
+  if (window._db && !window._isMockAuth) return window._db.ref(path).remove().catch(function(){});
+  try { localStorage.removeItem('gbr_ls__' + path.replace(/\//g,'__')); } catch(e){}
+  return Promise.resolve();
+};
+
+window.dbOnValue = function(path, cb) {
+  if (window._db && !window._isMockAuth) { window._db.ref(path).on('value', cb); return; }
+  window.dbGet(path).then(function(snap){ cb(snap); });
+};
+
+// Aliases fbGet/fbSet para codigo legado
+window.fbGet = function(p){ return window.dbGet(p).then(function(s){ return s.val(); }); };
+window.fbSet = function(p,v){ return window.dbSet(p,v); };
+window.fbUpdate = function(p,v){ return window.dbUpdate(p,v); };
+window.fbPush = function(p,v){ return window.dbPush(p,v); };
+window.fbRemove = function(p){ return window.dbRemove(p); };
+
+console.log('[GBR Safe Layer] ativo â€” modo:', window._isMockAuth ? 'mock/localStorage' : 'Firebase');
+</script>
+</head>
   <body>
   <div class="logo">GBR <span>SISTEMAS</span></div>
   <div class="info">Cartão de Fidelidade</div>
@@ -15047,7 +15466,32 @@ window.copiarRegrasFirebase = function() {
   }
 
   /* ── 3. PATCH DO doLogin — persistência LOCAL + debug ─────*/
-
+  function corrigirDoLogin() {
+    window.doLogin = async function() {
+      var e = document.getElementById('loginEmail');
+      var p = document.getElementById('loginPass');
+      if (!e || !p) return;
+      var email = e.value.trim(), pass = p.value;
+      if (!email || !pass) return toast('Preencha e-mail e senha', 'err');
+      var btn = document.getElementById('btnLogin');
+      if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+      console.log('[GBR PATCH] [LOGIN] Configurando persistência LOCAL...');
+      try {
+        await window._fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+        injetarAuthOverlay();
+        _setOverlayMsg('Autenticando...');
+        console.log('[GBR PATCH] [LOGIN] Persistência LOCAL OK — fazendo signIn...');
+        await window._fbAuth.signInWithEmailAndPassword(email, pass);
+        console.log('[GBR PATCH] [LOGIN] signIn concluído — aguardando onAuthStateChanged');
+      } catch (err) {
+        console.error('[GBR PATCH] [LOGIN] Erro:', err.code, err.message);
+        removerOverlay();
+        toast('E-mail ou senha incorretos', 'err');
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#9658; Entrar'; }
+      }
+    };
+    console.log('[GBR PATCH] ✅ [1/5] doLogin com LOCAL e debug configurado');
+  }
 
   /* ── 4. LISTENER PARALELO — guarda o lockScreen ───────────
      Roda em PARALELO ao listener original.
@@ -15178,6 +15622,7 @@ window.copiarRegrasFirebase = function() {
   /* ── INIT ──────────────────────────────────────────────────*/
   esperarFirebase(function() {
     console.log('[GBR PATCH] 🚀 Aplicando correções de auth...');
+    corrigirDoLogin();
     aplicarGuardaLockScreen();
     instalarFailsafe();
     console.log('[GBR PATCH] ✅ Patch v1.0 ativo. Etapas: [1/5]→[5/5] no console.');
@@ -15217,10 +15662,11 @@ var FB = {
 };
 var SA = "gbrsistemassa@gmail.com";
 
-var _saApp=(function(){try{return firebase.app();}catch(e){return firebase.initializeApp(FB);}})();
-var db=_saApp.database();
-var auth=_saApp.auth();
-auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){});
+firebase.initializeApp(FB);
+var db   = firebase.database();
+var auth = firebase.auth();
+// SESSION: login do admin nao afeta outras abas
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(){}); // configurado via patch doLogin
 
 /* ════════════════════════════════════════════
    HELPERS FIREBASE
@@ -15270,11 +15716,54 @@ function toast(msg,t){
 /* ════════════════════════════════════════════
    AUTH
 ════════════════════════════════════════════ */
-/* AUTH: console SA usa _saConsoleLogin; login principal usa window.doLogin do GBRAuthWrapper */
-function _saConsoleLogin2(){ if(typeof _saConsoleLogin==='function')_saConsoleLogin(); }
+function doLogin(){
+  var em=document.getElementById('lEmail').value.trim();
+  var pw=document.getElementById('lPass').value;
+  var err=document.getElementById('loginErr');
+  err.style.display='none';
+  if(!em||!pw){err.textContent='Preencha e-mail e senha.';err.style.display='block';return;}
+  var btn=document.getElementById('btnLogin');
+  btn.disabled=true;btn.innerHTML='<span class="sp"></span> Aguarde...';
+  auth.signInWithEmailAndPassword(em,pw).catch(function(e){
+    var map={
+      'auth/invalid-credential':'E-mail ou senha incorretos.',
+      'auth/user-not-found':'Usuário não encontrado no Firebase.',
+      'auth/wrong-password':'Senha incorreta.',
+      'auth/too-many-requests':'Muitas tentativas. Aguarde.',
+      'auth/invalid-email':'E-mail inválido.'
+    };
+    err.innerHTML=(map[e.code]||'Erro: '+e.code)+'<br><small style="opacity:.6">'+e.code+'</small>';
+    err.style.display='block';
+    btn.disabled=false;btn.innerHTML='&#9658; Acessar Console';
+  });
+}
 
-/* segundo listener SA: desativado, gerenciado pelo primeiro */
-void(0); /* auth.onAuthStateChanged duplicado removido */
+auth.onAuthStateChanged(function(u){
+  var ld=document.getElementById('loader');
+  if(ld){ld.classList.add('out');setTimeout(function(){if(ld.parentNode)ld.parentNode.removeChild(ld);},450);}
+
+  if(u){
+    if(u.email!==SA){
+      auth.signOut();
+      document.getElementById('loginScreen').style.display='flex';
+      document.getElementById('app').style.display='none';
+      var e=document.getElementById('loginErr');
+      e.textContent='Acesso negado. Apenas Super Admin.';e.style.display='block';
+      return;
+    }
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    var n=u.email.split('@')[0];
+    document.getElementById('uNm').textContent=n.toUpperCase();
+    document.getElementById('uAv').textContent=n[0].toUpperCase();
+    init();
+  } else {
+    document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('app').style.display='none';
+    var b=document.getElementById('btnLogin');
+    if(b){b.disabled=false;b.innerHTML='&#9658; Acessar Console';}
+  }
+});
 
 function logout(){
   if(!confirm('Sair do console?'))return;
@@ -19239,117 +19728,5 @@ function cms_cmsLog(msg,tipo) {
 }
 /* FIM CMS Editor */
 </script>
-
-<!-- ══ TENANT MANAGER PAGE (superadmin only) ══ -->
-<div id="sa-tenants" class="page" style="display:none">
-  <div class="ph">
-    <div class="ph-l">
-      <div class="ph-t">CLIENTES / <span>TENANTS</span></div>
-      <div class="ph-s">Gerencie clientes e gere links únicos de acesso</div>
-    </div>
-    <div class="ph-r">
-      <button class="btn btn-primary" onclick="abrirCriarTenant()">+ Novo Cliente</button>
-    </div>
-  </div>
-
-  <div id="form-criar-tenant" style="display:none" class="card">
-    <div style="font-family:var(--font-d);font-size:18px;letter-spacing:2px;margin-bottom:16px">NOVO CLIENTE</div>
-    <div class="fgrid c2" style="gap:14px">
-      <div class="fg"><label>Nome da Empresa</label><input id="nt-nome" placeholder="Ex: Auto Center Silva"/></div>
-      <div class="fg"><label>Plano</label>
-        <select id="nt-plano">
-          <option value="trial">Trial (30 dias)</option>
-          <option value="basico">Básico</option>
-          <option value="profissional">Profissional</option>
-          <option value="premium">Premium</option>
-        </select>
-      </div>
-      <div class="fg"><label>E-mail Admin</label><input id="nt-email" type="email" placeholder="admin@empresa.com"/></div>
-      <div class="fg"><label>Senha Inicial</label><input id="nt-senha" type="password" placeholder="Senha de acesso"/></div>
-      <div class="fg"><label>Cor Primária</label><input id="nt-ac" type="color" value="#4fc3f7"/></div>
-      <div class="fg"><label>Cor Secundária</label><input id="nt-ac2" type="color" value="#ff7043"/></div>
-      <div class="fg"><label>Cor de Fundo</label><input id="nt-bg" type="color" value="#07080f"/></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-primary" onclick="salvarNovoTenant()">✓ Criar e Gerar Link</button>
-      <button class="btn btn-ghost" onclick="document.getElementById('form-criar-tenant').style.display='none'">Cancelar</button>
-    </div>
-  </div>
-
-  <div id="tenant-link-box" style="display:none" class="card">
-    <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-bottom:8px">✓ Cliente criado — Link exclusivo gerado</div>
-    <div style="display:flex;align-items:center;gap:10px">
-      <input id="tenant-link-display" readonly style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--accent);padding:10px 14px;border-radius:8px;font-family:var(--font-m);font-size:13px"/>
-      <button class="btn btn-ghost" onclick="copiarLink()">📋 Copiar</button>
-    </div>
-  </div>
-
-  <div class="tw">
-    <div class="twh">
-      <span class="twt">CLIENTES CADASTRADOS</span>
-      <button class="btn btn-ghost btn-sm" onclick="carregarListaTenants()">↻ Atualizar</button>
-    </div>
-    <table><thead><tr>
-      <th>Nome</th><th>ID</th><th>Plano</th><th>E-mail</th><th>Status</th><th>Link</th><th>Criado em</th>
-    </tr></thead>
-    <tbody id="tenants-tbody">
-      <tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:32px">Carregando...</td></tr>
-    </tbody></table>
-  </div>
-</div>
-
-<script>
-// ── Tenant Manager ──────────────────────────────────────────────────
-function abrirCriarTenant(){
-  var f=document.getElementById('form-criar-tenant');
-  f.style.display=f.style.display==='none'?'block':'none';
-  document.getElementById('tenant-link-box').style.display='none';
-}
-function salvarNovoTenant(){
-  var nome=document.getElementById('nt-nome').value.trim();
-  var email=document.getElementById('nt-email').value.trim().toLowerCase();
-  var senha=document.getElementById('nt-senha').value;
-  var plano=document.getElementById('nt-plano').value;
-  var ac=document.getElementById('nt-ac').value;
-  var ac2=document.getElementById('nt-ac2').value;
-  var bg=document.getElementById('nt-bg').value;
-  if(!nome||!email||!senha){toast('Preencha nome, e-mail e senha','err');return;}
-  var tenant=GBRData.criarTenant({nome:nome,email:email,senha:senha,plano:plano,cores:{ac:ac,ac2:ac2,bg:bg}});
-  document.getElementById('form-criar-tenant').style.display='none';
-  document.getElementById('tenant-link-display').value=tenant.link;
-  document.getElementById('tenant-link-box').style.display='block';
-  toast('✓ Cliente "'+nome+'" criado!','ok');
-  carregarListaTenants();
-}
-function copiarLink(){
-  var el=document.getElementById('tenant-link-display');
-  if(navigator.clipboard){navigator.clipboard.writeText(el.value).then(function(){toast('Link copiado!','ok');});}
-  else{el.select();document.execCommand('copy');toast('Link copiado!','ok');}
-}
-function copiarLinkTenant(link){
-  if(navigator.clipboard){navigator.clipboard.writeText(link).then(function(){toast('Link copiado!','ok');});}
-  else{var el=document.createElement('input');el.value=link;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);toast('Link copiado!','ok');}
-}
-function carregarListaTenants(){
-  var tbody=document.getElementById('tenants-tbody');
-  if(!tbody)return;
-  var tenants=GBRData.listarTenants();
-  var keys=Object.keys(tenants);
-  if(!keys.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted2);padding:32px">Nenhum cliente cadastrado ainda</td></tr>';return;}
-  tbody.innerHTML=keys.map(function(id){
-    var t=tenants[id];
-    var cor=t.status==='ativo'?'bg-green':'bg-red';
-    var data=t.criadoEm?new Date(t.criadoEm).toLocaleDateString('pt-BR'):'-';
-    return '<tr><td><strong>'+t.nome+'</strong></td>'+
-      '<td class="tm" style="color:var(--muted2);font-size:10px">'+id+'</td>'+
-      '<td><span class="badge bg-blue">'+t.plano.toUpperCase()+'</span></td>'+
-      '<td style="font-size:12px">'+t.email+'</td>'+
-      '<td><span class="badge '+cor+'">'+t.status+'</span></td>'+
-      '<td><button class="btn btn-ghost btn-sm" onclick="copiarLinkTenant(\''+t.link+'\')">📋 Link</button></td>'+
-      '<td class="tm" style="font-size:11px">'+data+'</td></tr>';
-  }).join('');
-}
-</script>
-
 </body>
 </html>
