@@ -502,8 +502,25 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
   </div>
 </div>
 
+<!-- SETUP INICIAL (só aparece no primeiro acesso) -->
+<div id="setupPage" class="login-wrap" style="display:none">
+  <div class="login-card" style="max-width:420px">
+    <div class="login-logo">
+      <div class="login-logo-icon">GBR</div>
+      <h2>Configuração Inicial</h2>
+      <p>Crie o administrador principal do sistema</p>
+    </div>
+    <div id="setupMsg" class="login-msg"></div>
+    <div class="form-group"><label>Nome da Empresa / Estética <span class="req">*</span></label><input type="text" id="setupEmpresa" placeholder="Ex: Auto Premium Estética"></div>
+    <div class="form-group"><label>E-mail do Superadmin <span class="req">*</span></label><input type="email" id="setupEmail" placeholder="admin@suaempresa.com" autocomplete="off"></div>
+    <div class="form-group"><label>Senha <span class="req">*</span></label><input type="password" id="setupSenha" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
+    <div class="form-group"><label>Confirmar Senha <span class="req">*</span></label><input type="password" id="setupConfirma" placeholder="Repita a senha" autocomplete="new-password"></div>
+    <button class="btn btn-primary btn-lg" onclick="concluirSetup()" style="margin-top:8px">Criar Conta e Entrar</button>
+  </div>
+</div>
+
 <!-- LOGIN -->
-<div id="loginPage" class="login-wrap">
+<div id="loginPage" class="login-wrap" style="display:none">
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-icon">GBR</div>
@@ -1563,7 +1580,16 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
 
 <script>
 // ===== CONFIG =====
-const CONFIG={SUPERADMIN_EMAIL:'gbrsistemassa@gmail.com',DEFAULT_PASSWORD:'tenant@1234'};
+// CONFIG — sem credenciais hardcoded. Tudo carregado do localStorage.
+const CONFIG = {
+  get SUPERADMIN_EMAIL() { return localStorage.getItem('gbr_sa_email') || null; },
+  genTempPwd() {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+    let p = '';
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    return p;
+  }
+};
 
 // ===== ESTADO =====
 let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[]};
@@ -1674,9 +1700,11 @@ function carregarDados(){
     catch(e) { console.warn('[GBR] Erro ao carregar chave:', k, e); }
   });
   if (DATA.tenants.length === 0 || DATA.users.length === 0) {
+    // Primeiro acesso: limpar e exibir tela de configuração inicial
     Object.keys(localStorage).filter(k => k.startsWith('gbr_')).forEach(k => localStorage.removeItem(k));
-    Object.keys(DATA).forEach(k => DATA[k] = []);
-    seedDados();
+    Object.keys(DATA).forEach(k => { if (Array.isArray(DATA[k])) DATA[k] = []; else DATA[k] = {}; });
+    mostrarSetupInicial();
+    return;
   }
   const sessao = localStorage.getItem('gbr_sessao');
   if (sessao) {
@@ -1686,6 +1714,9 @@ function carregarDados(){
       if (u && u.ativo) { loginSucesso(u); return; }
     } catch(e) { localStorage.removeItem('gbr_sessao'); }
   }
+  // Sem sessão ativa: exibir tela de login
+  const lp = document.getElementById('loginPage');
+  if (lp) lp.style.display = 'flex';
 }
 
 // Versão async pronta para API (use quando GBR_API_ADAPTER estiver disponível)
@@ -1713,11 +1744,41 @@ function salvarDados(){
   }
 }
 
-function seedDados(){
-  const tid=uid();
-  DATA.tenants.push({id:tid,nome:'Estética Auto Premium',slug:'auto-premium',data_expiracao:new Date(Date.now()+365*86400000).toISOString(),ativo:true,created_at:new Date().toISOString()});
-  DATA.users.push({id:uid(),email:CONFIG.SUPERADMIN_EMAIL,nome:'Administrador GBR',role:'superadmin',tenant_id:null,password:CONFIG.DEFAULT_PASSWORD,must_change_password:false,ativo:true});
-  DATA.users.push({id:uid(),email:'demo@estetica.com',nome:'Usuario Demo',role:'owner',tenant_id:tid,password:CONFIG.DEFAULT_PASSWORD,must_change_password:false,ativo:true});
+function mostrarSetupInicial() {
+  const sp = document.getElementById('setupPage');
+  const lp = document.getElementById('loginPage');
+  if (sp) sp.style.display = 'flex';
+  if (lp) lp.style.display = 'none';
+}
+
+function concluirSetup() {
+  const empresa = (document.getElementById('setupEmpresa')?.value || '').trim();
+  const email   = (document.getElementById('setupEmail')?.value || '').trim().toLowerCase();
+  const senha   = document.getElementById('setupSenha')?.value || '';
+  const conf    = document.getElementById('setupConfirma')?.value || '';
+  const msgEl   = document.getElementById('setupMsg');
+  const showErr = (m) => { if(msgEl){msgEl.className='login-msg erro';msgEl.textContent=m;msgEl.style.display='block';} };
+  if (!empresa) { showErr('Informe o nome da empresa.'); return; }
+  if (!email || !email.includes('@')) { showErr('Informe um e-mail válido.'); return; }
+  if (senha.length < 8) { showErr('A senha deve ter no mínimo 8 caracteres.'); return; }
+  if (senha !== conf) { showErr('As senhas não conferem.'); return; }
+  localStorage.setItem('gbr_sa_email', email);
+  seedDados(email, senha, empresa);
+  const sp = document.getElementById('setupPage');
+  if (sp) sp.style.display = 'none';
+  const user = DATA.users.find(u => u.email === email && u.ativo);
+  if (user) loginSucesso(user);
+}
+
+function seedDados(saEmail, saSenha, empresaNome) {
+  saEmail     = saEmail     || localStorage.getItem('gbr_sa_email') || 'admin@gbrsistemas.com';
+  saSenha     = saSenha     || CONFIG.genTempPwd();
+  empresaNome = empresaNome || 'Estética Auto Premium';
+  const slug  = empresaNome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const tid   = uid();
+  DATA.tenants.push({id:tid,nome:empresaNome,slug,data_expiracao:new Date(Date.now()+365*86400000).toISOString(),ativo:true,created_at:new Date().toISOString()});
+  DATA.users.push({id:uid(),email:saEmail,nome:'Administrador GBR',role:'superadmin',tenant_id:null,password:saSenha,must_change_password:false,ativo:true,created_at:new Date().toISOString()});
+  DATA.users.push({id:uid(),email:'owner@'+slug+'.com',nome:'Owner '+empresaNome,role:'owner',tenant_id:tid,password:saSenha,must_change_password:true,ativo:true,created_at:new Date().toISOString()});
   DATA.clientes=[
     {id:uid(),tenant_id:tid,nome_completo:'Rafael Mendes',telefone:'(11) 98765-4321',email:'rafael@email.com',cpf_cnpj:'123.456.789-00',data_nascimento:'1990-05-15',pontos_fidelidade:520,endereco:{cep:'01310-100',logradouro:'Av. Paulista',numero:'1000',bairro:'Bela Vista',cidade:'São Paulo',uf:'SP'},ativo:true,created_at:new Date().toISOString()},
     {id:uid(),tenant_id:tid,nome_completo:'Camila Torres',telefone:'(11) 91234-5678',email:'camila@email.com',cpf_cnpj:'987.654.321-00',data_nascimento:'1995-09-20',pontos_fidelidade:185,endereco:{cep:'04038-000',logradouro:'R. Domingos de Morais',numero:'200',bairro:'Vila Mariana',cidade:'São Paulo',uf:'SP'},ativo:true,created_at:new Date().toISOString()},
@@ -1753,7 +1814,7 @@ function fazerLogin(){
   const email=document.getElementById('loginEmail').value.trim();
   const senha=document.getElementById('loginSenha').value.trim();
   if(!email||!senha){showLoginMsg('Preencha email e senha','erro');return;}
-  if(DATA.users.length===0){localStorage.clear();seedDados();}
+  if(DATA.users.length===0){mostrarSetupInicial();return;}
   const user=DATA.users.find(u=>u.email===email&&u.password===senha&&u.ativo);
   if(!user){showLoginMsg('Email ou senha incorretos','erro');return;}
   if(user.tenant_id){
@@ -1789,6 +1850,7 @@ function loginSucesso(user){
   document.getElementById('userAvatar').textContent=user.nome.charAt(0).toUpperCase();
   if(currentTenant){document.getElementById('tenantNome').textContent=currentTenant.nome;document.getElementById('tenantSub').textContent=currentTenant.slug;}
   verificarCaixa();
+  try { carregarAparenciaTenant(); } catch(e) { console.warn('[GBR] aparência:', e); }
   atualizarFidAlerts();
   showPage('dashboard');
 }
@@ -2786,7 +2848,7 @@ function renderConsoleTenants(){
 }
 
 function renderConsoleUsers(){
-  const lista=DATA.users.filter(u=>u.email!==CONFIG.SUPERADMIN_EMAIL);
+  const lista=DATA.users.filter(u=>CONFIG.SUPERADMIN_EMAIL?u.email!==CONFIG.SUPERADMIN_EMAIL:u.role!=='superadmin');
   const tb=document.getElementById('consoleUsersTbody');
   if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário</td></tr>';return;}
   tb.innerHTML=lista.map(u=>{const t=DATA.tenants.find(x=>x.id===u.tenant_id);return'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td><td><span class="badge badge-'+(u.role==='owner'?'purple':u.role==='admin'?'blue':'gray')+'">'+u.role+'</span></td><td>'+(t?t.nome:'-')+'</td><td><span class="badge badge-'+(u.must_change_password?'amber':'green')+'">'+(u.must_change_password?'Pendente':'OK')+'</span></td><td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarUsuario(\''+u.id+'\')">Editar</button><button class="btn btn-secondary btn-xs" onclick="resetarSenha(\''+u.id+'\')">Reset Senha</button><button class="btn btn-danger btn-xs" onclick="toggleUsuario(\''+u.id+'\')">'+(u.ativo?'Desativar':'Ativar')+'</button></div></td></tr>';}).join('');
@@ -2802,7 +2864,7 @@ function salvarTenant(){
   if(!nome||!slug){toast('Preencha nome e slug','error');return;}
   if(!id&&DATA.tenants.find(t=>t.slug===slug)){toast('Slug já existe','error');return;}
   if(id){const i=DATA.tenants.findIndex(t=>t.id===id);if(i>=0){DATA.tenants[i].nome=nome;DATA.tenants[i].slug=slug;DATA.tenants[i].data_expiracao=exp?new Date(exp).toISOString():null;}}
-  else{const tid=uid();DATA.tenants.push({id:tid,nome,slug,data_expiracao:exp?new Date(exp).toISOString():null,ativo:true,created_at:new Date().toISOString()});DATA.users.push({id:uid(),email:slug+'@'+slug+'.com',nome:'Admin '+nome,role:'owner',tenant_id:tid,password:CONFIG.DEFAULT_PASSWORD,must_change_password:true,ativo:true,created_at:new Date().toISOString()});}
+  else{const tid=uid();DATA.tenants.push({id:tid,nome,slug,data_expiracao:exp?new Date(exp).toISOString():null,ativo:true,created_at:new Date().toISOString()});const _tmpPwd=CONFIG.genTempPwd();DATA.users.push({id:uid(),email:slug+'@'+slug+'.com',nome:'Admin '+nome,role:'owner',tenant_id:tid,password:_tmpPwd,must_change_password:true,ativo:true,created_at:new Date().toISOString()});toast('Tenant criado. Senha do Owner: '+_tmpPwd,'warn');}
   salvarDados();closeModal('modalTenant');renderConsole();toast('Tenant salvo!');
 }
 function toggleTenant(id){const i=DATA.tenants.findIndex(t=>t.id===id);if(i>=0){DATA.tenants[i].ativo=!DATA.tenants[i].ativo;salvarDados();renderConsole();toast(DATA.tenants[i].ativo?'Tenant ativado':'Tenant suspenso');}}
@@ -2817,10 +2879,10 @@ function salvarUsuario(){
   const role=document.getElementById('u_role').value;
   if(!nome||!email){toast('Preencha nome e email','error');return;}
   if(id){const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].nome=nome;DATA.users[i].email=email;DATA.users[i].role=role;}}
-  else{if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:CONFIG.DEFAULT_PASSWORD,must_change_password:true,ativo:true,created_at:new Date().toISOString()});}
+  else{if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}const _tmpPwd2=CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd2,must_change_password:true,ativo:true,created_at:new Date().toISOString()});toast('Usuário criado. Senha temporária: '+_tmpPwd2,'warn');}
   salvarDados();closeModal('modalUsuario');renderConsole();toast('Usuário salvo!');
 }
-function resetarSenha(id){if(!confirm('Resetar senha para "'+CONFIG.DEFAULT_PASSWORD+'"?'))return;const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].password=CONFIG.DEFAULT_PASSWORD;DATA.users[i].must_change_password=true;salvarDados();renderConsole();toast('Senha resetada!');}}
+function resetarSenha(id){const nova=prompt('Nova senha para o usuário (mín. 6 caracteres):');if(!nova||nova.length<6){toast('Senha inválida','error');return;}const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].password=nova;DATA.users[i].must_change_password=true;salvarDados();renderConsole();toast('Senha alterada com sucesso!');}}
 function toggleUsuario(id){const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].ativo=!DATA.users[i].ativo;salvarDados();renderConsole();toast(DATA.users[i].ativo?'Usuário ativado':'Usuário desativado');}}
 
 // Fechar modais ao clicar fora
@@ -3402,7 +3464,7 @@ function renderAdminPage(){
 // ── Acessos ──────────────────────────────────────────────
 function renderAdminAcessos(){
   if(!currentTenant)return;
-  const users=DATA.users.filter(u=>u.tenant_id===currentTenant.id&&u.email!==CONFIG.SUPERADMIN_EMAIL);
+  const users=DATA.users.filter(u=>u.tenant_id===currentTenant.id&&u.role!=='superadmin');
   const tb=document.getElementById('adminUsersTbody');
   if(!tb)return;
   if(!users.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário cadastrado</td></tr>';return;}
@@ -3444,7 +3506,7 @@ function salvarUsuarioAdmin(){
     }
   }else{
     if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}
-    DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:senha||CONFIG.DEFAULT_PASSWORD,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});
+    const _tmpPwd3=senha||CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd3,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});if(!senha)toast('Senha temporária gerada: '+_tmpPwd3,'warn');
     logAuditoria('Criou Usuário',nome+' — '+role);
   }
   salvarDados();closeModal('modalUsuarioAdmin');renderAdminAcessos();toast('Usuário salvo!');
@@ -3505,7 +3567,7 @@ function salvarAutomacoes(){
 function resetModulo(mod){
   const senha=prompt('Digite a senha admin para confirmar:');
   const cfg=DATA.configuracoes[currentTenant?.id]||{};
-  if(senha!==cfg.senha_admin&&senha!==CONFIG.DEFAULT_PASSWORD){toast('Senha incorreta','error');return;}
+  if(senha!==cfg.senha_admin){toast('Senha incorreta','error');return;}
   if(!confirm('TEM CERTEZA? Esta ação é irreversível!'))return;
   DATA[mod]=DATA[mod].filter(x=>x.tenant_id!==currentTenant?.id);
   logAuditoria('Reset de Módulo',mod);salvarDados();toast(mod+' limpo!','warn');
@@ -3606,7 +3668,7 @@ function carregarLogo(input){
 function previewCores(){
   const acc=document.getElementById('cp_accent').value;
   document.getElementById('cp_accent_hex').value=acc;
-  document.root?.style.setProperty('--accent',acc);
+  document.documentElement.style.setProperty('--accent',acc);
 }
 function syncColor(key,hex){
   if(/^#[0-9a-f]{6}$/i.test(hex)){
