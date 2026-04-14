@@ -453,6 +453,15 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
 /* PERMISSÃO TABS */
 .role-tab{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif}
 .role-tab.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.console-filtro-btn{transition:all .15s}
+.console-filtro-btn.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);border:1px solid var(--accent)}
+/* ═══ CONSOLE MASTER ESTILOS ═══ */
+.console-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.license-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
+.license-chip.free{background:rgba(255,255,255,.06);color:var(--text2)}
+.license-chip.basic{background:rgba(59,130,246,.1);color:var(--blue)}
+.license-chip.pro{background:rgba(139,92,246,.1);color:var(--purple)}
+.license-chip.enterprise{background:rgba(245,158,11,.1);color:var(--accent)}
 
 </style>
 </head>
@@ -556,7 +565,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="sidebar-header">
       <div class="logo-row">
         <div class="logo-box">GBR</div>
-        <div class="logo-info"><div class="logo-name">GBR Sistemas</div><div class="logo-ver">v3.0 Profissional</div></div>
+        <div class="logo-info"><div class="logo-name">GBR Sistemas</div><div class="logo-ver">v4.0 Profissional</div></div>
       </div>
       <div class="tenant-pill"><strong id="tenantNome">Carregando...</strong><span id="tenantSub"></span></div>
     </div>
@@ -772,7 +781,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
           <div class="card-title" style="margin-bottom:16px">💸 Regras de Desconto</div>
           <div class="form-group"><label>Desconto máx. sem senha (%)</label><input type="number" id="cfgDescSenha" min="0" max="100" placeholder="10"></div>
           <div class="form-group"><label>Desconto máx. com senha admin (%)</label><input type="number" id="cfgDescAdmin" min="0" max="100" placeholder="50"></div>
-          <div class="form-group"><label>Senha administrativa para desconto</label><input type="password" id="cfgSenhaAdmin" placeholder="Senha do owner"></div>
+          <div class="form-group"><label>Senha administrativa para desconto</label><input type="password" id="cfgSenhaAdmin" placeholder="Senha do owner" autocomplete="new-password"></div>
           <button class="btn btn-primary" onclick="salvarRegraDesconto()">Salvar Regras</button>
         </div>
         <div class="card">
@@ -881,21 +890,44 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
 
     <!-- CONSOLE MASTER -->
     <div class="page" id="pg-console">
-      <div class="section-header"><div><div class="section-title">Console Master</div><div class="section-sub">Administração global de tenants e usuários</div></div></div>
+      <div class="section-header">
+        <div><div class="section-title">Console Master</div><div class="section-sub">Administração global de licenças, tenants e usuários</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="renderConsole()">🔄 Atualizar</button>
+          <button class="btn btn-primary" onclick="abrirModalTenant()">+ Nova Licença</button>
+        </div>
+      </div>
+      <div id="consoleAlertas"></div>
       <div class="stats-grid">
-        <div class="stat-card accent"><div class="stat-label">Tenants Ativos</div><div class="stat-value" id="metricTenants">0</div></div>
-        <div class="stat-card red"><div class="stat-label">Licenças a Vencer</div><div class="stat-value" id="metricVencer">0</div></div>
-        <div class="stat-card blue"><div class="stat-label">Usuários Totais</div><div class="stat-value" id="metricUsers">0</div></div>
-        <div class="stat-card green"><div class="stat-label">Novos (Mês)</div><div class="stat-value" id="metricNovos">0</div></div>
+        <div class="stat-card green"><div class="stat-label">Tenants Ativos</div><div class="stat-value" id="metricTenants">0</div><div class="stat-icon">🏢</div></div>
+        <div class="stat-card red"><div class="stat-label">Vencendo (30d)</div><div class="stat-value" id="metricVencer">0</div><div class="stat-icon">⏰</div></div>
+        <div class="stat-card blue"><div class="stat-label">Usuários Totais</div><div class="stat-value" id="metricUsers">0</div><div class="stat-icon">👥</div></div>
+        <div class="stat-card accent"><div class="stat-label">Novos (Mês)</div><div class="stat-value" id="metricNovos">0</div><div class="stat-icon">✨</div></div>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">Tenants</div><button class="btn btn-primary btn-sm" onclick="abrirModalTenant()">+ Novo Tenant</button></div>
-        <div class="search-bar"><div class="search-wrap"><span class="icon">🔍</span><input type="text" class="search-input" id="tenantBusca" placeholder="Buscar tenants..." oninput="renderConsoleTenants()"></div></div>
-        <div class="table-wrap"><table><thead><tr><th>Tenant</th><th>Criado</th><th>Expira</th><th>Status</th><th>Ações</th></tr></thead><tbody id="consoleTenantsTbody"></tbody></table></div>
+        <div class="card-header">
+          <div><div class="card-title">Licenças</div><div class="card-sub">Todos os tenants cadastrados</div></div>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalTenant()">+ Nova Licença</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn btn-ghost btn-xs console-filtro-btn active" onclick="setConsoleFiltro(this,'')">Todos</button>
+          <button class="btn btn-ghost btn-xs console-filtro-btn" onclick="setConsoleFiltro(this,'ativos')">✅ Ativos</button>
+          <button class="btn btn-ghost btn-xs console-filtro-btn" onclick="setConsoleFiltro(this,'suspensos')">🔒 Suspensos</button>
+          <button class="btn btn-ghost btn-xs console-filtro-btn" onclick="setConsoleFiltro(this,'expirados')">❌ Expirados</button>
+          <button class="btn btn-ghost btn-xs console-filtro-btn" onclick="setConsoleFiltro(this,'vencer30')">⚠ Vencendo 30d</button>
+        </div>
+        <div class="search-bar"><div class="search-wrap"><span class="icon">🔍</span><input type="text" class="search-input" id="tenantBusca" placeholder="Buscar por nome, slug ou email..." oninput="renderConsoleTenants()"></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Tenant</th><th>Criado</th><th>Expiração</th><th>Usuários</th><th>Plano</th><th>Status</th><th>Ações</th></tr></thead><tbody id="consoleTenantsTbody"></tbody></table></div>
       </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">Usuários</div><button class="btn btn-primary btn-sm" onclick="abrirModalUsuario()">+ Novo Usuário</button></div>
-        <div class="table-wrap"><table><thead><tr><th>Nome / Email</th><th>Perfil</th><th>Tenant</th><th>Senha</th><th>Status</th><th>Ações</th></tr></thead><tbody id="consoleUsersTbody"></tbody></table></div>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Usuários</div><button class="btn btn-primary btn-sm" onclick="abrirModalUsuario()">+ Novo Usuário</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Nome / Email</th><th>Perfil</th><th>Tenant</th><th>Senha</th><th>Status</th><th>Ações</th></tr></thead><tbody id="consoleUsersTbody"></tbody></table></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card"><div class="card-header"><div class="card-title">Receita / Planos</div></div><div id="consolePlanosEl"></div></div>
+          <div class="card" style="flex:1"><div class="card-header"><div class="card-title">Atividade Recente</div></div><div id="consoleAtividadeEl" style="max-height:280px;overflow-y:auto"></div></div>
+        </div>
       </div>
     </div>
 
@@ -968,7 +1000,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div class="admin-panel active" id="adminp-acessos">
         <div class="card">
           <div class="card-header"><div class="card-title">Usuários do Sistema</div><button class="btn btn-primary btn-sm" onclick="abrirModalUsuarioAdmin()">+ Novo Usuário</button></div>
-          <div class="table-wrap"><table><thead><tr><th>Nome / E-mail</th><th>Perfil</th><th>Senha</th><th>Dispositivo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="adminUsersTbody"></tbody></table></div>
+          <div class="table-wrap"><table><thead><tr><th>Nome / E-mail</th><th>Perfil</th><th>Último Acesso</th><th>Dispositivo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="adminUsersTbody"></tbody></table></div>
         </div>
         <div class="card" style="margin-top:16px">
           <div class="card-header"><div class="card-title">Hierarquia de Permissões</div><div class="card-sub">Defina o que cada perfil pode ver e fazer</div></div>
@@ -1451,17 +1483,25 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
 
 <!-- MODAL TENANT -->
 <div class="modal-overlay" id="modalTenant">
-  <div class="modal">
-    <div class="modal-header"><div><div class="modal-title" id="tenantModalTitle">Novo Tenant</div></div><button class="modal-close" onclick="closeModal('modalTenant')">&times;</button></div>
+  <div class="modal modal-lg">
+    <div class="modal-header"><div><div class="modal-title" id="tenantModalTitle">Nova Licença</div><div class="modal-sub">Criação de tenant e conta owner</div></div><button class="modal-close" onclick="closeModal('modalTenant')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="tenantId">
-      <div class="form-group"><label>Nome da Estética <span class="req">*</span></label><input type="text" id="t_nome" placeholder="Nome da empresa"></div>
       <div class="form-row">
-        <div class="form-group"><label>Slug (URL) <span class="req">*</span></label><input type="text" id="t_slug" placeholder="minha-estetica"></div>
-        <div class="form-group"><label>Data Expiração</label><input type="date" id="t_expira"></div>
+        <div class="form-group"><label>Nome da Estética <span class="req">*</span></label><input type="text" id="t_nome" placeholder="Auto Premium Estética" oninput="autoSlug()"></div>
+        <div class="form-group"><label>Slug (URL) <span class="req">*</span></label><input type="text" id="t_slug" placeholder="auto-premium-estetica"></div>
       </div>
+      <div class="form-row">
+        <div class="form-group"><label>Email do Owner <span class="req">*</span></label><input type="email" id="t_email_owner" placeholder="dono@estetica.com" autocomplete="off"></div>
+        <div class="form-group"><label>Data de Expiração</label><input type="date" id="t_expira"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Nome do Plano</label><input type="text" id="t_plano_nome" placeholder="Ex: Mensal Pro"></div>
+        <div class="form-group"><label>Valor Mensal (R$)</label><input type="number" id="t_plano_valor" min="0" step="0.01" placeholder="0,00"></div>
+      </div>
+      <div class="info-box" style="margin-top:4px;font-size:11.5px">⚠ Ao criar um novo tenant, a senha do Owner será gerada automaticamente e exibida uma única vez. Anote-a antes de fechar.</div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTenant')">Cancelar</button><button class="btn btn-primary" onclick="salvarTenant()">Salvar</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTenant')">Cancelar</button><button class="btn btn-primary" onclick="salvarTenant()">💾 Salvar Licença</button></div>
   </div>
 </div>
 
@@ -1568,7 +1608,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       </div>
       <div class="form-row">
         <div class="form-group"><label>Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
-        <div class="form-group"><label>Senha temporária</label><input type="text" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
+        <div class="form-group"><label>Senha temporária</label><input type="password" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
       </div>
       <div class="form-group"><label>Status</label><select id="ua_status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
     </div>
@@ -1810,13 +1850,27 @@ function seedDados(saEmail, saSenha, empresaNome) {
 }
 
 // ===== AUTH =====
+// Brute force protection
+const _loginAttempts={};
 function fazerLogin(){
-  const email=document.getElementById('loginEmail').value.trim();
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const senha=document.getElementById('loginSenha').value.trim();
   if(!email||!senha){showLoginMsg('Preencha email e senha','erro');return;}
   if(DATA.users.length===0){mostrarSetupInicial();return;}
+  // Check lockout
+  const _now=Date.now();
+  if(!_loginAttempts[email])_loginAttempts[email]={count:0,lockedUntil:0};
+  if(_loginAttempts[email].lockedUntil>_now){
+    const _secs=Math.ceil((_loginAttempts[email].lockedUntil-_now)/1000);
+    showLoginMsg('Muitas tentativas. Aguarde '+_secs+'s','erro');return;
+  }
   const user=DATA.users.find(u=>u.email===email&&u.password===senha&&u.ativo);
-  if(!user){showLoginMsg('Email ou senha incorretos','erro');return;}
+  if(!user){
+    _loginAttempts[email].count++;
+    if(_loginAttempts[email].count>=5){_loginAttempts[email].lockedUntil=_now+60000;_loginAttempts[email].count=0;}
+    showLoginMsg('Email ou senha incorretos ('+_loginAttempts[email].count+'/5)','erro');return;
+  }
+  _loginAttempts[email]={count:0,lockedUntil:0};
   if(user.tenant_id){
     const t=DATA.tenants.find(t=>t.id===user.tenant_id);
     if(!t||!t.ativo){showLoginMsg('Acesso suspenso. Contate o suporte.','erro');return;}
@@ -1875,6 +1929,9 @@ function showPage(name){
   document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+name+"'"))n.classList.add('active');});
   const titles={dashboard:'Dashboard',agenda:'Agenda',agendamentos:'Agendamentos',clientes:'Clientes',servicos:'Serviços',estoque:'Estoque',fichas:'Ficha Técnica',fidelidade:'Fidelidade',caixa:'Caixa',checklist:'Checklist','agenda-semana':'Agenda Semanal',relatorios:'Relatórios',whatsapp:'WhatsApp',config:'Configurações',console:'Console Master'};
   document.getElementById('topbarTitle').textContent=titles[name]||name;
+  if(name==='console'&&(!currentUser||currentUser.role!=='superadmin')){toast('Acesso restrito.','error');return;}
+  // Route guard: console só para superadmin
+  if(name==='console'&&(!currentUser||currentUser.role!=='superadmin')){toast('Acesso restrito.','error');return;}
   const renders={dashboard:renderDashboard,agenda:renderAgenda,'agenda-semana':renderAgendaSemana,agendamentos:renderAgendamentos,clientes:renderClientes,servicos:renderServicos,estoque:renderEstoque,fichas:renderFichas,fidelidade:renderFidelidade,caixa:renderCaixa,checklist:renderChecklists,relatorios:renderRelatorios,whatsapp:renderWhatsapp,console:renderConsole};
   renders[name]?.();
   if(window.innerWidth<900)toggleSidebar();
@@ -2040,7 +2097,7 @@ function abrirModalAgendamento(){
   document.getElementById('agendCliDrop').style.display='none';
   document.getElementById('agendConflito').style.display='none';
   document.getElementById('agendDurInfo').style.display='none';
-  document.getElementById('agendData').value=new Date().toISOString().slice(0,10);
+  const _today=new Date().toISOString().slice(0,10); document.getElementById('agendData').value=_today; document.getElementById('agendData').min=_today;
   document.getElementById('agendHora').value='09:00';
   document.getElementById('agendVeiculo').value='';
   document.getElementById('agendPlaca').value='';
@@ -2152,6 +2209,13 @@ function calcTotalAgend(){
   const sid=document.getElementById('agendServico').value;
   const vs=sid?+(DATA.servicos.find(s=>s.id===sid)?.preco_base||0):0;
   const desc=+(document.getElementById('agendDesconto').value)||0;
+  // Validate discount against configured rules
+  const _cfg2=DATA.configuracoes[currentTenant?.id]||{};
+  const _maxSemSenha=_cfg2.desc_sem_senha||100;
+  if(desc>_maxSemSenha){
+    const _senhaDesc=prompt('Desconto de '+desc+'% acima do limite ('+_maxSemSenha+'%). Informe a senha admin:');
+    if(_senhaDesc!==_cfg2.senha_admin){toast('Senha incorreta. Desconto não permitido.','error');return;}
+  }
   const ltInfo=document.getElementById('ltInfo');
   const vlt=document.getElementById('agendLevaTraz').checked&&ltInfo.dataset.valor?+ltInfo.dataset.valor:0;
   const vdesc=vs*(desc/100);
@@ -2185,6 +2249,22 @@ function salvarAgendamento(){
   });
   if(conflito){toast('Conflito de horário! Escolha outro horário.','error');return;}
   const desc=+(document.getElementById('agendDesconto').value)||0;
+  // Validate discount against configured rules
+  const _cfg2=DATA.configuracoes[currentTenant?.id]||{};
+  const _maxSemSenha=_cfg2.desc_sem_senha||100;
+  if(desc>_maxSemSenha){
+    const _senhaDesc=prompt('Desconto de '+desc+'% acima do limite ('+_maxSemSenha+'%). Informe a senha admin:');
+    if(_senhaDesc!==_cfg2.senha_admin){toast('Senha incorreta. Desconto não permitido.','error');return;}
+  }
+  // Validar desconto contra regras
+  const _cfg=DATA.configuracoes&&currentTenant?DATA.configuracoes[currentTenant.id]||{}:{};
+  const _maxDesc=_cfg.desc_sem_senha||100;
+  const _maxAdm=_cfg.desc_com_senha||100;
+  if(desc>_maxAdm){toast('Desconto '+desc+'% acima do máximo permitido ('+_maxAdm+'%)','error');return;}
+  if(desc>_maxDesc&&_cfg.senha_admin){
+    const _inp=prompt('Desconto acima do limite. Digite a senha admin:');
+    if(_inp!==_cfg.senha_admin){toast('Senha incorreta. Desconto não autorizado.','error');return;}
+  }
   const vs=serv?.preco_base||0;
   const ltInfo=document.getElementById('ltInfo');
   const vlt=document.getElementById('agendLevaTraz').checked&&ltInfo.dataset.valor?+ltInfo.dataset.valor:0;
@@ -2620,6 +2700,11 @@ function calcFechamento(){
 }
 function fecharCaixa(){
   if(!currentCaixa)return;
+  const _fcReal2=+document.getElementById('fcDif').dataset.real||0;
+  const _fcEsp2=+document.getElementById('fcEsperado').dataset.val||0;
+  const _fcDif2=Math.abs(_fcReal2-_fcEsp2);
+  const _fcObs2=document.getElementById('fcObs').value.trim();
+  if(_fcDif2>0.01&&!_fcObs2){toast('⚠ Há diferença no caixa. Informe o motivo em Observações antes de fechar.','warn');document.getElementById('fcObs').focus();return;}
   const real=+document.getElementById('fcDif').dataset.real||0;
   const movs=DATA.movimentacoes.filter(m=>m.caixa_id===currentCaixa.id);
   const entradas=movs.filter(m=>m.tipo==='entrada').reduce((s,m)=>s+m.valor,0);
@@ -2821,69 +2906,363 @@ function salvarConfigEmpresa(){
 function salvarRegraDesconto(){toast('Regras de desconto salvas!');}
 
 function exportarDados(){
-  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const cfg=DATA.configuracoes&&currentTenant?DATA.configuracoes[currentTenant.id]||{}:{};
+  const senhaAdm=cfg.senha_admin;
+  if(senhaAdm){
+    const inp=prompt('Digite a senha admin para exportar o backup:');
+    if(inp!==senhaAdm){toast('Senha incorreta. Exportação cancelada.','error');return;}
+  }
+  const backup={tenants:DATA.tenants,users:DATA.users.map(u=>({...u,password:'[protegido]'})),clientes:DATA.clientes,servicos:DATA.servicos,agendamentos:DATA.agendamentos,produtos:DATA.produtos,movimentacoes:DATA.movimentacoes};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='gbr_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();
-  URL.revokeObjectURL(url);toast('Backup exportado!');
+  URL.revokeObjectURL(url);
+  if(typeof logAuditoria==='function')logAuditoria('Exportou Backup','Dados do sistema');
+  toast('Backup exportado com sucesso!');
 }
 
-// ===== CONSOLE MASTER =====
+// ╔══════════════════════════════════════════════════════════╗
+// ║           CONSOLE MASTER — v4.0 ROBUSTO                 ║
+// ║  Controle total de licenças, tenants e usuários          ║
+// ╚══════════════════════════════════════════════════════════╝
+
+// Guard: Console Master só acessível para superadmin
+function _guardConsole(){
+  if(!currentUser||currentUser.role!=='superadmin'){
+    toast('Acesso restrito ao superadmin.','error');
+    showPage('dashboard');
+    return false;
+  }
+  return true;
+}
+
+// ── Métricas globais ──────────────────────────────────────
 function renderConsole(){
+  if(!_guardConsole())return;
+  const hoje=new Date();
+  const mesAtual=hoje.getMonth();
+  const anoAtual=hoje.getFullYear();
   const ativos=DATA.tenants.filter(t=>t.ativo).length;
-  const vencer=DATA.tenants.filter(t=>{if(!t.data_expiracao)return false;const d=new Date(t.data_expiracao);const diff=(d-new Date())/86400000;return diff>0&&diff<=30;}).length;
+  const suspensos=DATA.tenants.filter(t=>!t.ativo).length;
+  const expirados=DATA.tenants.filter(t=>t.data_expiracao&&new Date(t.data_expiracao)<hoje).length;
+  const vencer30=DATA.tenants.filter(t=>{if(!t.data_expiracao)return false;const d=new Date(t.data_expiracao);const diff=(d-hoje)/86400000;return diff>0&&diff<=30;}).length;
+  const totalUsers=DATA.users.filter(u=>u.role!=='superadmin').length;
+  const novosEsteMes=DATA.tenants.filter(t=>{const d=new Date(t.created_at);return d.getMonth()===mesAtual&&d.getFullYear()===anoAtual;}).length;
+  const receitaMensal=DATA.tenants.filter(t=>t.plano_valor).reduce((s,t)=>{const d=new Date(t.created_at);const meses=Math.max(1,Math.floor((hoje-d)/2592000000));return s+(t.plano_valor||0);},0);
+
+  // Stats cards
   document.getElementById('metricTenants').textContent=ativos;
-  document.getElementById('metricVencer').textContent=vencer;
-  document.getElementById('metricUsers').textContent=DATA.users.length;
-  document.getElementById('metricNovos').textContent=DATA.tenants.filter(t=>new Date(t.created_at).getMonth()===new Date().getMonth()).length;
-  renderConsoleTenants();renderConsoleUsers();
+  document.getElementById('metricVencer').textContent=vencer30;
+  document.getElementById('metricUsers').textContent=totalUsers;
+  document.getElementById('metricNovos').textContent=novosEsteMes;
+
+  // Alertas críticos
+  const alertaEl=document.getElementById('consoleAlertas');
+  if(alertaEl){
+    let alertas='';
+    if(expirados>0)alertas+='<div class="info-box danger" style="margin-bottom:8px">⚠ <strong>'+expirados+' licença(s) expirada(s)</strong> — Renove ou suspenda para evitar acesso indevido.</div>';
+    if(vencer30>0)alertas+='<div class="info-box warn" style="margin-bottom:8px">⏰ <strong>'+vencer30+' licença(s) vencendo em 30 dias</strong> — Entre em contato com os clientes.</div>';
+    if(suspensos>0)alertas+='<div class="info-box" style="margin-bottom:8px">🔒 <strong>'+suspensos+' tenant(s) suspenso(s)</strong></div>';
+    alertaEl.innerHTML=alertas;
+  }
+
+  renderConsoleTenants();
+  renderConsoleUsers();
+  renderConsolePlanos();
+  renderConsoleAtividade();
 }
 
+// ── Tenants ───────────────────────────────────────────────
+let _consoleFiltroStatus='';
 function renderConsoleTenants(){
   const busca=(document.getElementById('tenantBusca')?.value||'').toLowerCase();
-  let lista=DATA.tenants;
-  if(busca)lista=lista.filter(t=>(t.nome+' '+t.slug).toLowerCase().includes(busca));
+  let lista=DATA.tenants.filter(t=>{
+    if(busca&&!(t.nome+' '+t.slug+(t.config_empresa?.email||'')).toLowerCase().includes(busca))return false;
+    if(_consoleFiltroStatus==='ativos'&&!t.ativo)return false;
+    if(_consoleFiltroStatus==='suspensos'&&t.ativo)return false;
+    if(_consoleFiltroStatus==='expirados'){const exp=t.data_expiracao&&new Date(t.data_expiracao)<new Date();if(!exp)return false;}
+    if(_consoleFiltroStatus==='vencer30'){if(!t.data_expiracao)return false;const d=new Date(t.data_expiracao);const diff=(d-new Date())/86400000;if(!(diff>0&&diff<=30))return false;}
+    return true;
+  }).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+
   const tb=document.getElementById('consoleTenantsTbody');
-  if(!lista.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum tenant</td></tr>';return;}
-  tb.innerHTML=lista.map(t=>{const exp=t.data_expiracao&&new Date(t.data_expiracao)<new Date();return'<tr><td><div class="td-name">'+t.nome+'</div><div class="td-sub">'+t.slug+'</div></td><td class="td-mono">'+fmtDate(t.created_at)+'</td><td class="td-mono">'+(t.data_expiracao?fmtDate(t.data_expiracao):'-')+'</td><td><span class="badge badge-'+(exp?'red':t.ativo?'green':'gray')+'">'+(exp?'Expirado':t.ativo?'Ativo':'Suspenso')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarTenant(\''+t.id+'\')">Editar</button><button class="btn btn-secondary btn-xs" onclick="acessarTenant(\''+t.id+'\')">Acessar</button><button class="btn btn-danger btn-xs" onclick="toggleTenant(\''+t.id+'\')">'+(t.ativo?'Suspender':'Ativar')+'</button></div></td></tr>';}).join('');
+  if(!lista.length){tb.innerHTML='<tr><td colspan="8" class="empty">Nenhum tenant encontrado</td></tr>';return;}
+  tb.innerHTML=lista.map(t=>{
+    const hoje=new Date();
+    const exp=t.data_expiracao&&new Date(t.data_expiracao)<hoje;
+    const vencer=t.data_expiracao&&!exp&&(new Date(t.data_expiracao)-hoje)/86400000<=30;
+    const diasRestantes=t.data_expiracao?Math.ceil((new Date(t.data_expiracao)-hoje)/86400000):null;
+    const usersCount=DATA.users.filter(u=>u.tenant_id===t.id).length;
+    const agCount=DATA.agendamentos?DATA.agendamentos.filter(a=>a.tenant_id===t.id).length:0;
+    const statusBadge=exp?'badge-red':(!t.ativo?'badge-gray':'badge-green');
+    const statusLabel=exp?'Expirado':(!t.ativo?'Suspenso':'Ativo');
+    const expInfo=t.data_expiracao?(exp?'<span style="color:var(--red);font-size:10px">Exp '+fmtDate(t.data_expiracao)+'</span>':(vencer?'<span style="color:var(--accent);font-size:10px">⚠ '+diasRestantes+'d</span>':'<span style="font-size:10px;color:var(--text3)">'+fmtDate(t.data_expiracao)+'</span>')):'<span style="font-size:10px;color:var(--text3)">Sem expiração</span>';
+    return'<tr>'+
+      '<td><div class="td-name">'+t.nome+'</div><div class="td-sub">'+t.slug+(t.config_empresa?.email?' · '+t.config_empresa.email:'')+'</div></td>'+
+      '<td><div style="font-size:12px">'+fmtDate(t.created_at)+'</div></td>'+
+      '<td>'+expInfo+'</td>'+
+      '<td><span class="badge badge-gray" style="font-size:10px">'+usersCount+' user(s)</span></td>'+
+      '<td><span class="badge '+(t.plano||'badge-gray')+'" style="font-size:10px">'+(t.plano_nome||'Free')+(t.plano_valor?' — R$'+t.plano_valor+'/mês':'')+'</span></td>'+
+      '<td><span class="badge '+statusBadge+'">'+statusLabel+'</span></td>'+
+      '<td><div class="actions-row">'+
+        '<button class="btn btn-secondary btn-xs" onclick="editarTenant(\''+t.id+'\')">✏</button>'+
+        '<button class="btn btn-secondary btn-xs" onclick="acessarTenant(\''+t.id+'\')">👁 Ver</button>'+
+        '<button class="btn btn-purple btn-xs" onclick="renovarLicenca(\''+t.id+'\')">🔄 Renovar</button>'+
+        '<button class="btn btn-danger btn-xs" onclick="toggleTenant(\''+t.id+'\')">'+(t.ativo&&!exp?'Suspender':'Ativar')+'</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
 }
 
+function setConsoleFiltro(btn,f){
+  _consoleFiltroStatus=f;
+  document.querySelectorAll('.console-filtro-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderConsoleTenants();
+}
+
+// ── Usuários (sem exibir senhas) ─────────────────────────
 function renderConsoleUsers(){
   const lista=DATA.users.filter(u=>CONFIG.SUPERADMIN_EMAIL?u.email!==CONFIG.SUPERADMIN_EMAIL:u.role!=='superadmin');
   const tb=document.getElementById('consoleUsersTbody');
   if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário</td></tr>';return;}
-  tb.innerHTML=lista.map(u=>{const t=DATA.tenants.find(x=>x.id===u.tenant_id);return'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td><td><span class="badge badge-'+(u.role==='owner'?'purple':u.role==='admin'?'blue':'gray')+'">'+u.role+'</span></td><td>'+(t?t.nome:'-')+'</td><td><span class="badge badge-'+(u.must_change_password?'amber':'green')+'">'+(u.must_change_password?'Pendente':'OK')+'</span></td><td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarUsuario(\''+u.id+'\')">Editar</button><button class="btn btn-secondary btn-xs" onclick="resetarSenha(\''+u.id+'\')">Reset Senha</button><button class="btn btn-danger btn-xs" onclick="toggleUsuario(\''+u.id+'\')">'+(u.ativo?'Desativar':'Ativar')+'</button></div></td></tr>';}).join('');
+  tb.innerHTML=lista.map(u=>{
+    const t=DATA.tenants.find(x=>x.id===u.tenant_id);
+    const senhaStatus=u.must_change_password?
+      '<span class="badge badge-amber">Deve trocar</span>':
+      '<span class="badge badge-green">Definida</span>';
+    return'<tr>'+
+      '<td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td>'+
+      '<td><span class="badge badge-'+(u.role==='owner'?'purple':u.role==='admin'?'blue':'gray')+'">'+u.role+'</span></td>'+
+      '<td><span style="font-size:12px;color:var(--text2)">'+(t?t.nome:'—')+'</span></td>'+
+      '<td>'+senhaStatus+'</td>'+
+      '<td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td>'+
+      '<td><div class="actions-row">'+
+        '<button class="btn btn-secondary btn-xs" onclick="editarUsuario(\''+u.id+'\')">✏ Editar</button>'+
+        '<button class="btn btn-secondary btn-xs" onclick="resetarSenha(\''+u.id+'\')">🔑 Reset</button>'+
+        '<button class="btn btn-danger btn-xs" onclick="toggleUsuario(\''+u.id+'\')">'+(u.ativo?'Desativar':'Ativar')+'</button>'+
+      '</div></td>'+
+    '</tr>';
+  }).join('');
 }
 
-function abrirModalTenant(){document.getElementById('tenantId').value='';document.getElementById('tenantModalTitle').textContent='Novo Tenant';document.getElementById('t_nome').value='';document.getElementById('t_slug').value='';document.getElementById('t_expira').value='';openModal('modalTenant');}
-function editarTenant(id){const t=DATA.tenants.find(x=>x.id===id);if(!t)return;document.getElementById('tenantId').value=t.id;document.getElementById('tenantModalTitle').textContent='Editar Tenant';document.getElementById('t_nome').value=t.nome;document.getElementById('t_slug').value=t.slug;document.getElementById('t_expira').value=t.data_expiracao?t.data_expiracao.slice(0,10):'';openModal('modalTenant');}
+// ── Planos / Receita ──────────────────────────────────────
+function renderConsolePlanos(){
+  const el=document.getElementById('consolePlanosEl');
+  if(!el)return;
+  const planos={free:0,basic:0,pro:0,enterprise:0};
+  DATA.tenants.forEach(t=>{const p=t.plano||'free';if(planos[p]!==undefined)planos[p]++;else planos[p]=1;});
+  const receita=DATA.tenants.filter(t=>t.ativo&&t.plano_valor).reduce((s,t)=>s+(t.plano_valor||0),0);
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px">'+
+    '<div class="stat-card green"><div class="stat-label">MRR Estimado</div><div class="stat-value">'+fmtMoney(receita)+'</div></div>'+
+    '<div class="stat-card blue"><div class="stat-label">ARR Estimado</div><div class="stat-value">'+fmtMoney(receita*12)+'</div></div>'+
+  '</div>'+
+  '<div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:600">Distribuição por plano</div>'+
+  Object.entries(planos).map(([p,n])=>
+    '<div class="chart-row"><div class="chart-lbl">'+p+'</div><div class="chart-bg"><div class="chart-bar" style="width:'+(DATA.tenants.length?((n/DATA.tenants.length)*100).toFixed(0):0)+'%;background:var(--accent)">'+n+'</div></div><div class="chart-v">'+n+' tenants</div></div>'
+  ).join('');
+}
+
+// ── Atividade recente ─────────────────────────────────────
+function renderConsoleAtividade(){
+  const el=document.getElementById('consoleAtividadeEl');
+  if(!el)return;
+  const logs=(DATA.auditoria||[]).slice(-20).reverse();
+  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-title">Nenhuma atividade</div></div>';return;}
+  el.innerHTML=logs.map(l=>'<div class="audit-item"><div class="audit-dot"></div><div class="audit-time">'+fmtDateTime(l.ts)+'</div><div class="audit-user">'+l.usuario+'</div><div class="audit-action">'+l.acao+(l.detalhes?' — <span style="color:var(--text3)">'+l.detalhes+'</span>':'')+'</div></div>').join('');
+}
+
+// ── CRUD Tenants ─────────────────────────────────────────
+function abrirModalTenant(){
+  document.getElementById('tenantId').value='';
+  document.getElementById('tenantModalTitle').textContent='Novo Tenant';
+  document.getElementById('t_nome').value='';
+  document.getElementById('t_slug').value='';
+  document.getElementById('t_expira').value='';
+  // Set plano fields if they exist
+  const pn=document.getElementById('t_plano_nome');if(pn)pn.value='';
+  const pv=document.getElementById('t_plano_valor');if(pv)pv.value='';
+  const pe=document.getElementById('t_email_owner');if(pe)pe.value='';
+  openModal('modalTenant');
+}
+
+function editarTenant(id){
+  const t=DATA.tenants.find(x=>x.id===id);if(!t)return;
+  document.getElementById('tenantId').value=t.id;
+  document.getElementById('tenantModalTitle').textContent='Editar Licença — '+t.nome;
+  document.getElementById('t_nome').value=t.nome;
+  document.getElementById('t_slug').value=t.slug;
+  document.getElementById('t_expira').value=t.data_expiracao?t.data_expiracao.slice(0,10):'';
+  const pn=document.getElementById('t_plano_nome');if(pn)pn.value=t.plano_nome||'';
+  const pv=document.getElementById('t_plano_valor');if(pv)pv.value=t.plano_valor||'';
+  const pe=document.getElementById('t_email_owner');
+  if(pe){const owner=DATA.users.find(u=>u.tenant_id===t.id&&u.role==='owner');if(owner)pe.value=owner.email;}
+  openModal('modalTenant');
+}
+
+function autoSlug(){
+  const n=document.getElementById('t_nome').value;
+  const id=document.getElementById('tenantId').value;
+  if(id)return; // só auto-preenche para novos
+  document.getElementById('t_slug').value=n.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
 function salvarTenant(){
   const id=document.getElementById('tenantId').value;
   const nome=document.getElementById('t_nome').value.trim();
   const slug=document.getElementById('t_slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
   const exp=document.getElementById('t_expira').value;
+  const planoNome=(document.getElementById('t_plano_nome')?.value||'').trim();
+  const planoValor=parseFloat(document.getElementById('t_plano_valor')?.value||0)||0;
+  const emailOwner=(document.getElementById('t_email_owner')?.value||'').trim().toLowerCase();
   if(!nome||!slug){toast('Preencha nome e slug','error');return;}
   if(!id&&DATA.tenants.find(t=>t.slug===slug)){toast('Slug já existe','error');return;}
-  if(id){const i=DATA.tenants.findIndex(t=>t.id===id);if(i>=0){DATA.tenants[i].nome=nome;DATA.tenants[i].slug=slug;DATA.tenants[i].data_expiracao=exp?new Date(exp).toISOString():null;}}
-  else{const tid=uid();DATA.tenants.push({id:tid,nome,slug,data_expiracao:exp?new Date(exp).toISOString():null,ativo:true,created_at:new Date().toISOString()});const _tmpPwd=CONFIG.genTempPwd();DATA.users.push({id:uid(),email:slug+'@'+slug+'.com',nome:'Admin '+nome,role:'owner',tenant_id:tid,password:_tmpPwd,must_change_password:true,ativo:true,created_at:new Date().toISOString()});toast('Tenant criado. Senha do Owner: '+_tmpPwd,'warn');}
+  if(id){
+    const i=DATA.tenants.findIndex(t=>t.id===id);
+    if(i>=0){
+      DATA.tenants[i].nome=nome;
+      DATA.tenants[i].slug=slug;
+      DATA.tenants[i].data_expiracao=exp?new Date(exp).toISOString():null;
+      DATA.tenants[i].plano_nome=planoNome||DATA.tenants[i].plano_nome;
+      DATA.tenants[i].plano_valor=planoValor||DATA.tenants[i].plano_valor;
+      // Update owner email if changed
+      if(emailOwner){
+        const ownerIdx=DATA.users.findIndex(u=>u.tenant_id===id&&u.role==='owner');
+        if(ownerIdx>=0)DATA.users[ownerIdx].email=emailOwner;
+      }
+    }
+    if(typeof logAuditoria==='function')logAuditoria('Console: Editou Tenant',nome);
+  }else{
+    const tid=uid();
+    const _tmpPwd=CONFIG.genTempPwd();
+    const ownerEmail=emailOwner||slug+'@'+slug+'.com';
+    if(DATA.users.find(u=>u.email===ownerEmail)){toast('Email do owner já está em uso. Escolha outro.','error');return;}
+    DATA.tenants.push({id:tid,nome,slug,data_expiracao:exp?new Date(exp).toISOString():null,plano_nome:planoNome||'Free',plano_valor:planoValor,ativo:true,created_at:new Date().toISOString()});
+    DATA.users.push({id:uid(),email:ownerEmail,nome:'Owner — '+nome,role:'owner',tenant_id:tid,password:_tmpPwd,must_change_password:true,ativo:true,created_at:new Date().toISOString()});
+    if(typeof logAuditoria==='function')logAuditoria('Console: Criou Tenant',nome+' | Owner: '+ownerEmail);
+    // Show credentials in a safe toast + modal alert
+    setTimeout(()=>{
+      alert('✅ Tenant criado com sucesso!\n\nCredenciais do Owner:\nEmail: '+ownerEmail+'\nSenha: '+_tmpPwd+'\n\n⚠ Anote estas credenciais — elas não serão exibidas novamente.');
+    },300);
+  }
   salvarDados();closeModal('modalTenant');renderConsole();toast('Tenant salvo!');
 }
-function toggleTenant(id){const i=DATA.tenants.findIndex(t=>t.id===id);if(i>=0){DATA.tenants[i].ativo=!DATA.tenants[i].ativo;salvarDados();renderConsole();toast(DATA.tenants[i].ativo?'Tenant ativado':'Tenant suspenso');}}
-function acessarTenant(id){const t=DATA.tenants.find(x=>x.id===id);if(!t)return;currentTenant=t;document.getElementById('tenantNome').textContent=t.nome;document.getElementById('tenantSub').textContent=t.slug;showPage('dashboard');toast('Acessando: '+t.nome);}
 
-function abrirModalUsuario(){document.getElementById('userId').value='';document.getElementById('userModalTitle').textContent='Novo Usuário';document.getElementById('u_nome').value='';document.getElementById('u_email').value='';document.getElementById('u_role').value='operador';openModal('modalUsuario');}
-function editarUsuario(id){const u=DATA.users.find(x=>x.id===id);if(!u)return;document.getElementById('userId').value=u.id;document.getElementById('userModalTitle').textContent='Editar Usuário';document.getElementById('u_nome').value=u.nome;document.getElementById('u_email').value=u.email;document.getElementById('u_role').value=u.role;openModal('modalUsuario');}
+function autoSlug(){
+  const nome=document.getElementById('t_nome').value;
+  const slugEl=document.getElementById('t_slug');
+  if(!slugEl.dataset.manual){
+    slugEl.value=nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  }
+}
+// Mark slug as manually edited if user types in it
+document.addEventListener('DOMContentLoaded',()=>{
+  const slugEl=document.getElementById('t_slug');
+  if(slugEl)slugEl.addEventListener('input',()=>{slugEl.dataset.manual='1';});
+});
+
+function toggleTenant(id){
+  const t=DATA.tenants.find(x=>x.id===id);if(!t)return;
+  const acao=t.ativo?'suspender':'ativar';
+  if(!confirm('Deseja '+acao+' o tenant "'+t.nome+'"?'))return;
+  const i=DATA.tenants.findIndex(x=>x.id===id);
+  if(i>=0){DATA.tenants[i].ativo=!DATA.tenants[i].ativo;}
+  if(typeof logAuditoria==='function')logAuditoria('Console: '+(DATA.tenants[i].ativo?'Ativou':'Suspendeu')+' Tenant',t.nome);
+  salvarDados();renderConsole();
+  toast(DATA.tenants[i].ativo?'Tenant ativado':'Tenant suspenso');
+}
+
+function renovarLicenca(id){
+  const t=DATA.tenants.find(x=>x.id===id);if(!t)return;
+  const meses=parseInt(prompt('Quantos meses renovar para "'+t.nome+'"? (1-24):'))||0;
+  if(meses<1||meses>24){toast('Informe entre 1 e 24 meses','error');return;}
+  const i=DATA.tenants.findIndex(x=>x.id===id);
+  if(i>=0){
+    const base=t.data_expiracao&&new Date(t.data_expiracao)>new Date()?new Date(t.data_expiracao):new Date();
+    const novaExp=new Date(base);novaExp.setMonth(novaExp.getMonth()+meses);
+    DATA.tenants[i].data_expiracao=novaExp.toISOString();
+    DATA.tenants[i].ativo=true;
+    if(typeof logAuditoria==='function')logAuditoria('Console: Renovou Licença',t.nome+' +'+meses+' meses → '+fmtDate(novaExp.toISOString()));
+    salvarDados();renderConsole();
+    toast('Licença renovada até '+fmtDate(novaExp.toISOString())+'!','success');
+  }
+}
+
+function acessarTenant(id){
+  const t=DATA.tenants.find(x=>x.id===id);if(!t)return;
+  currentTenant=t;
+  document.getElementById('tenantNome').textContent=t.nome;
+  document.getElementById('tenantSub').textContent=t.slug;
+  showPage('dashboard');
+  toast('Visualizando como: '+t.nome);
+}
+
+// ── CRUD Usuários (sem expor senha) ───────────────────────
+function abrirModalUsuario(){
+  document.getElementById('userId').value='';
+  document.getElementById('userModalTitle').textContent='Novo Usuário';
+  document.getElementById('u_nome').value='';
+  document.getElementById('u_email').value='';
+  document.getElementById('u_role').value='operador';
+  openModal('modalUsuario');
+}
+
+function editarUsuario(id){
+  const u=DATA.users.find(x=>x.id===id);if(!u)return;
+  document.getElementById('userId').value=u.id;
+  document.getElementById('userModalTitle').textContent='Editar Usuário — '+u.nome;
+  document.getElementById('u_nome').value=u.nome;
+  document.getElementById('u_email').value=u.email;
+  document.getElementById('u_role').value=u.role;
+  openModal('modalUsuario');
+}
+
 function salvarUsuario(){
   const id=document.getElementById('userId').value;
   const nome=document.getElementById('u_nome').value.trim();
-  const email=document.getElementById('u_email').value.trim();
+  const email=document.getElementById('u_email').value.trim().toLowerCase();
   const role=document.getElementById('u_role').value;
   if(!nome||!email){toast('Preencha nome e email','error');return;}
-  if(id){const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].nome=nome;DATA.users[i].email=email;DATA.users[i].role=role;}}
-  else{if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}const _tmpPwd2=CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd2,must_change_password:true,ativo:true,created_at:new Date().toISOString()});toast('Usuário criado. Senha temporária: '+_tmpPwd2,'warn');}
+  if(!email.includes('@')){toast('Email inválido','error');return;}
+  if(id){
+    const i=DATA.users.findIndex(u=>u.id===id);
+    if(i>=0){DATA.users[i].nome=nome;DATA.users[i].email=email;DATA.users[i].role=role;}
+    if(typeof logAuditoria==='function')logAuditoria('Console: Editou Usuário',nome+' ('+role+')');
+  }else{
+    if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}
+    const _tmpPwd2=CONFIG.genTempPwd();
+    DATA.users.push({id:uid(),tenant_id:null,email,nome,role,password:_tmpPwd2,must_change_password:true,ativo:true,created_at:new Date().toISOString()});
+    if(typeof logAuditoria==='function')logAuditoria('Console: Criou Usuário',nome+' ('+role+')');
+    setTimeout(()=>{alert('✅ Usuário criado!\n\nEmail: '+email+'\nSenha temporária: '+_tmpPwd2+'\n\n⚠ O usuário deverá trocar a senha no primeiro acesso.');},300);
+  }
   salvarDados();closeModal('modalUsuario');renderConsole();toast('Usuário salvo!');
 }
-function resetarSenha(id){const nova=prompt('Nova senha para o usuário (mín. 6 caracteres):');if(!nova||nova.length<6){toast('Senha inválida','error');return;}const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].password=nova;DATA.users[i].must_change_password=true;salvarDados();renderConsole();toast('Senha alterada com sucesso!');}}
-function toggleUsuario(id){const i=DATA.users.findIndex(u=>u.id===id);if(i>=0){DATA.users[i].ativo=!DATA.users[i].ativo;salvarDados();renderConsole();toast(DATA.users[i].ativo?'Usuário ativado':'Usuário desativado');}}
+
+function resetarSenha(id){
+  const u=DATA.users.find(x=>x.id===id);if(!u)return;
+  if(!confirm('Gerar nova senha temporária para "'+u.nome+'"?'))return;
+  const nova=CONFIG.genTempPwd();
+  const i=DATA.users.findIndex(x=>x.id===id);
+  if(i>=0){
+    DATA.users[i].password=nova;
+    DATA.users[i].must_change_password=true;
+    if(typeof logAuditoria==='function')logAuditoria('Console: Reset de Senha',u.nome);
+    salvarDados();renderConsole();
+    alert('🔑 Nova senha para '+u.nome+':\n\n'+nova+'\n\nO usuário deverá trocar no próximo login.');
+  }
+}
+
+function toggleUsuario(id){
+  const u=DATA.users.find(x=>x.id===id);if(!u)return;
+  const i=DATA.users.findIndex(x=>x.id===id);
+  if(i>=0){
+    DATA.users[i].ativo=!DATA.users[i].ativo;
+    if(typeof logAuditoria==='function')logAuditoria('Console: '+(DATA.users[i].ativo?'Ativou':'Desativou')+' Usuário',u.nome);
+    salvarDados();renderConsole();
+    toast(DATA.users[i].ativo?'Usuário ativado':'Usuário desativado');
+  }
+}
 
 // Fechar modais ao clicar fora
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});});
@@ -3470,7 +3849,7 @@ function renderAdminAcessos(){
   if(!users.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário cadastrado</td></tr>';return;}
   const roleLabel={owner:'Owner',admin:'Admin',operador:'Operador'};
   const roleColor={owner:'badge-purple',admin:'badge-blue',operador:'badge-gray'};
-  tb.innerHTML=users.map(u=>'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td><td><span class="badge '+roleColor[u.role]+'">'+roleLabel[u.role]+'</span></td><td><span class="badge badge-'+(u.must_change_password?'amber':'green')+'">'+(u.must_change_password?'Pendente':'Definida')+'</span></td><td><span class="badge badge-gray">Desktop</span></td><td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarUsuarioAdmin(\''+u.id+'\')">✏ Editar</button><button class="btn btn-secondary btn-xs" onclick="resetSenhaAdmin(\''+u.id+'\')">🔑 Senha</button><button class="btn btn-danger btn-xs" onclick="toggleUserAdmin(\''+u.id+'\')">⏻</button></div></td></tr>').join('');
+  tb.innerHTML=users.map(u=>'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td><td><span class="badge '+roleColor[u.role]+'">'+roleLabel[u.role]+'</span></td><td><span class="badge badge-'+(u.must_change_password?'amber':'green')+'">'+(u.must_change_password?'⚠ Deve trocar':'✓ Definida')+'</span></td><td><span class="badge badge-gray">Desktop</span></td><td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarUsuarioAdmin(\''+u.id+'\')">✏ Editar</button><button class="btn btn-secondary btn-xs" onclick="resetSenhaAdmin(\''+u.id+'\')">🔑 Reset</button><button class="btn btn-danger btn-xs" onclick="toggleUserAdmin(\''+u.id+'\')">⏻</button></div></td></tr>').join('');
   renderPermGrid();
 }
 function abrirModalUsuarioAdmin(){
@@ -3506,16 +3885,24 @@ function salvarUsuarioAdmin(){
     }
   }else{
     if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}
-    const _tmpPwd3=senha||CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd3,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});if(!senha)toast('Senha temporária gerada: '+_tmpPwd3,'warn');
+    const _tmpPwd3=senha||CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd3,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});if(!senha)setTimeout(()=>alert('🔑 Usuário criado!\n\nEmail: '+email+'\nSenha temporária: '+_tmpPwd3+'\n\nO usuário deverá trocar a senha no primeiro acesso.'),300);
     logAuditoria('Criou Usuário',nome+' — '+role);
   }
   salvarDados();closeModal('modalUsuarioAdmin');renderAdminAcessos();toast('Usuário salvo!');
 }
 function resetSenhaAdmin(id){
-  const nova=prompt('Nova senha (min 6 caracteres):');
-  if(!nova||nova.length<6){toast('Senha inválida','error');return;}
-  const i=DATA.users.findIndex(u=>u.id===id);
-  if(i>=0){DATA.users[i].password=nova;DATA.users[i].must_change_password=false;salvarDados();logAuditoria('Resetou Senha',DATA.users[i].nome);renderAdminAcessos();toast('Senha alterada!');}
+  const u=DATA.users.find(x=>x.id===id);if(!u)return;
+  if(!confirm('Gerar senha temporária para "'+u.nome+'"?'))return;
+  const nova=CONFIG.genTempPwd();
+  const i=DATA.users.findIndex(x=>x.id===id);
+  if(i>=0){
+    DATA.users[i].password=nova;
+    DATA.users[i].must_change_password=true;
+    salvarDados();
+    logAuditoria('Resetou Senha',DATA.users[i].nome);
+    renderAdminAcessos();
+    alert('🔑 Senha gerada para '+u.nome+':\n\n'+nova+'\n\nO usuário deverá trocar no próximo acesso.');
+  }
 }
 function toggleUserAdmin(id){
   const i=DATA.users.findIndex(u=>u.id===id);
@@ -3545,7 +3932,7 @@ function renderAdminRegras(){
   const cfg=DATA.configuracoes[currentTenant?.id]||{};
   document.getElementById('rDescSem').value=cfg.desc_sem_senha||10;
   document.getElementById('rDescCom').value=cfg.desc_com_senha||50;
-  document.getElementById('rSenhaAdm').value=cfg.senha_admin||'';
+  document.getElementById('rSenhaAdm').value=cfg.senha_admin?'••••••••':'';
   document.getElementById('autoFidelidade').checked=cfg.auto_fidelidade!==false;
   document.getElementById('autoCaixa').checked=cfg.auto_caixa!==false;
   document.getElementById('autoAniversario').checked=cfg.auto_aniversario!==false;
@@ -3555,7 +3942,9 @@ function salvarRegrasDesconto(){
   if(!DATA.configuracoes)DATA.configuracoes={};
   const tid=currentTenant?.id;
   if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
-  Object.assign(DATA.configuracoes[tid],{desc_sem_senha:+document.getElementById('rDescSem').value||10,desc_com_senha:+document.getElementById('rDescCom').value||50,senha_admin:document.getElementById('rSenhaAdm').value});
+  const _rSenha=document.getElementById('rSenhaAdm').value;
+  const _senhaToSave=_rSenha.startsWith('••')?(DATA.configuracoes[tid]?.senha_admin||''):_rSenha;
+  Object.assign(DATA.configuracoes[tid],{desc_sem_senha:+document.getElementById('rDescSem').value||10,desc_com_senha:+document.getElementById('rDescCom').value||50,senha_admin:_senhaToSave});
   logAuditoria('Salvou Regras de Desconto','');salvarDados();toast('Regras de desconto salvas!');
 }
 function salvarAutomacoes(){
@@ -3565,12 +3954,15 @@ function salvarAutomacoes(){
   logAuditoria('Salvou Automações','');salvarDados();toast('Automações salvas!');
 }
 function resetModulo(mod){
+  const nomesMod={agendamentos:'Agendamentos',movimentacoes:'Movimentações',checklists:'Checklists',clientes:'Clientes'};
   const senha=prompt('Digite a senha admin para confirmar:');
   const cfg=DATA.configuracoes[currentTenant?.id]||{};
+  if(!cfg.senha_admin){toast('Configure a senha admin antes de realizar resets.','error');return;}
   if(senha!==cfg.senha_admin){toast('Senha incorreta','error');return;}
-  if(!confirm('TEM CERTEZA? Esta ação é irreversível!'))return;
-  DATA[mod]=DATA[mod].filter(x=>x.tenant_id!==currentTenant?.id);
-  logAuditoria('Reset de Módulo',mod);salvarDados();toast(mod+' limpo!','warn');
+  const confirmTxt=prompt('⚠ AÇÃO IRREVERSÍVEL! Digite CONFIRMAR (em maiúsculas) para apagar '+( nomesMod[mod]||mod)+':');
+  if(confirmTxt!=='CONFIRMAR'){toast('Ação cancelada.','warn');return;}
+  if(Array.isArray(DATA[mod]))DATA[mod]=DATA[mod].filter(x=>x.tenant_id!==currentTenant?.id);
+  logAuditoria('Reset de Módulo',mod);salvarDados();toast(nomesMod[mod]||mod+': dados apagados!','warn');
 }
 function exportarExcel(){
   // Exportar principais tabelas como CSV dentro de um arquivo zip simulado
@@ -3613,8 +4005,8 @@ function renderAdminEmpresa(){
   document.getElementById('adm_uf').value=cfg.uf||'';
   document.getElementById('adm_print_titulo').value=cfg.print_titulo||'Ordem de Serviço';
   document.getElementById('adm_print_rodape').value=cfg.print_rodape||'Obrigado pela preferência!';
-  document.getElementById('adm_wa_api').value=cfg.wa_api||'';
-  document.getElementById('adm_maps_api').value=cfg.maps_api||'';
+  document.getElementById('adm_wa_api').value=cfg.wa_api?(cfg.wa_api.length>8?'••••••••'+cfg.wa_api.slice(-4):cfg.wa_api):'';
+  document.getElementById('adm_maps_api').value=cfg.maps_api?(cfg.maps_api.length>8?'••••••••'+cfg.maps_api.slice(-4):cfg.maps_api):'';
 }
 async function buscarCepAdmin(){
   const cep=document.getElementById('adm_cep').value.replace(/\D/g,'');
@@ -3624,7 +4016,8 @@ async function buscarCepAdmin(){
 function salvarEmpresaAdmin(){
   const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
   if(i<0)return;
-  const cfg={nome:document.getElementById('adm_nome').value,cnpj:document.getElementById('adm_cnpj').value,telefone:document.getElementById('adm_tel').value,email:document.getElementById('adm_email').value,cep:document.getElementById('adm_cep').value,logradouro:document.getElementById('adm_logr').value,numero:document.getElementById('adm_nnum').value,bairro:document.getElementById('adm_bairro').value,cidade:document.getElementById('adm_cidade').value,uf:document.getElementById('adm_uf').value,print_titulo:document.getElementById('adm_print_titulo').value,print_rodape:document.getElementById('adm_print_rodape').value,wa_api:document.getElementById('adm_wa_api').value,maps_api:document.getElementById('adm_maps_api').value};
+  const cfg={nome:document.getElementById('adm_nome').value,cnpj:document.getElementById('adm_cnpj').value,telefone:document.getElementById('adm_tel').value,email:document.getElementById('adm_email').value,cep:document.getElementById('adm_cep').value,logradouro:document.getElementById('adm_logr').value,numero:document.getElementById('adm_nnum').value,bairro:document.getElementById('adm_bairro').value,cidade:document.getElementById('adm_cidade').value,uf:document.getElementById('adm_uf').value,print_titulo:document.getElementById('adm_print_titulo').value,print_rodape:document.getElementById('adm_print_rodape').value,wa_api:(document.getElementById('adm_wa_api').value.startsWith('••')?(DATA.tenants.find(t=>t.id===currentTenant?.id)?.config_empresa?.wa_api||''):document.getElementById('adm_wa_api').value),
+    maps_api:(document.getElementById('adm_maps_api').value.startsWith('••')?(DATA.tenants.find(t=>t.id===currentTenant?.id)?.config_empresa?.maps_api||''):document.getElementById('adm_maps_api').value)};
   DATA.tenants[i].config_empresa=cfg;
   if(cfg.nome){DATA.tenants[i].nome=cfg.nome;document.getElementById('tenantNome').textContent=cfg.nome;}
   logAuditoria('Editou Dados da Empresa',cfg.nome);salvarDados();toast('Dados salvos!');
