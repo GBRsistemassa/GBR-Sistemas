@@ -382,6 +382,78 @@ td{padding:11px 14px;vertical-align:middle}
 .bn-icon{font-size:18px}
 @media(max-width:899px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0!important}.bottom-nav{display:block}}
 @media(min-width:900px){.sidebar-overlay{display:none!important}.menu-toggle{display:none!important}.bottom-nav{display:none!important}}
+/* ═══ PAINEL ADMIN COMPLETO ═══ */
+.admin-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;flex-wrap:wrap}
+.admin-tab{padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);border:none;background:none;border-bottom:2px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.admin-tab:hover{color:var(--text)}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-panel{display:none}.admin-panel.active{display:block}
+/* AUDITORIA */
+.audit-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.audit-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px}
+.audit-time{color:var(--text3);font-family:'DM Mono',monospace;font-size:11px;min-width:130px;flex-shrink:0}
+.audit-user{color:var(--accent);font-weight:500;min-width:100px;flex-shrink:0}
+.audit-action{flex:1;color:var(--text2)}
+/* PERMISSOES */
+.perm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:699px){.perm-grid{grid-template-columns:1fr 1fr}}
+.perm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:12.5px}
+/* CORES CUSTOM */
+.color-picker-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.color-picker-row label{width:120px;font-size:12px;color:var(--text2);flex-shrink:0}
+.color-picker-row input[type=color]{width:44px;height:32px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;background:var(--bg3)}
+.color-picker-row input[type=text]{flex:1;font-family:'DM Mono',monospace;font-size:12px}
+/* TICKETS SUPORTE */
+.ticket-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;transition:border-color .15s;cursor:pointer}
+.ticket-card:hover{border-color:var(--border2)}
+.ticket-card.aberto{border-left:3px solid var(--blue)}
+.ticket-card.em_andamento{border-left:3px solid var(--accent)}
+.ticket-card.resolvido{border-left:3px solid var(--green)}
+.ticket-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.ticket-meta{font-size:11px;color:var(--text2)}
+/* FINANCEIRO AVANCADO */
+.fin-cat-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s}
+.fin-cat-chip.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+/* LOGO UPLOAD */
+.logo-upload-zone{border:2px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all .2s}
+.logo-upload-zone:hover{border-color:var(--accent);background:var(--accent-bg)}
+.logo-preview{max-width:180px;max-height:80px;object-fit:contain;border-radius:8px}
+/* REGRAS DE DESCONTO */
+.discount-rule-row{display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);margin-bottom:8px}
+.discount-lock{font-size:18px;flex-shrink:0}
+/* MANUAL */
+.manual-section{margin-bottom:24px}
+.manual-section-title{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.manual-item{padding:10px 14px;background:var(--bg3);border-radius:8px;margin-bottom:6px;font-size:13px;line-height:1.6}
+.manual-item strong{color:var(--text)}
+/* SWITCH TOGGLE */
+.switch{position:relative;display:inline-block;width:42px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--bg4);transition:.3s;border-radius:22px;border:1px solid var(--border2)}
+.switch-slider:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;background:var(--text3);transition:.3s;border-radius:50%}
+input:checked + .switch-slider{background:var(--accent);border-color:var(--accent)}
+input:checked + .switch-slider:before{transform:translateX(20px);background:#fff}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.switch-row:last-child{border-bottom:none}
+.switch-label{font-size:13px;font-weight:500}
+.switch-sub{font-size:11px;color:var(--text2);margin-top:2px}
+/* INTEGRACOES */
+.integ-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.integ-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.integ-info{flex:1}
+.integ-name{font-size:13px;font-weight:600}
+.integ-desc{font-size:11px;color:var(--text2);margin-top:2px}
+/* ONLINE AGENDA */
+.online-slot{padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+/* FINANCEIRO */
+.fin-stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.fin-stat{flex:1;min-width:150px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.fin-stat-label{font-size:10.5px;color:var(--text2);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.fin-stat-val{font-size:22px;font-weight:700;letter-spacing:-.5px}
+/* PERMISSÃO TABS */
+.role-tab{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif}
+.role-tab.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -439,12 +511,8 @@ td{padding:11px 14px;vertical-align:middle}
       <p>Gestão para Estéticas Automotivas</p>
     </div>
     <div id="loginMsg" class="login-msg"></div>
-    <div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--blue);margin-bottom:14px;line-height:1.6">
-      <strong>Demo:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="caada8b8b9a3b9beafa7abb9b9ab8aada7aba3a6e4a9a5a7">[email&#160;protected]</a> / tenant@1234<br>
-      <strong>Tenant:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2145444c4e6144525544554842400f424e4c">[email&#160;protected]</a> / tenant@1234
-    </div>
-    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" value="demo@estetica.com"></div>
-    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password" value="tenant@1234"></div>
+    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password"></div>
     <button class="btn btn-primary btn-lg" onclick="fazerLogin()" style="margin-top:6px">Entrar no Sistema</button>
   </div>
 </div>
@@ -478,7 +546,8 @@ td{padding:11px 14px;vertical-align:middle}
     <nav class="nav" id="navMenu">
       <div class="nav-label">Principal</div>
       <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
-      <div class="nav-item" onclick="showPage('agenda')"><span class="nav-icon">📅</span>Agenda</div>
+      <div class="nav-item" onclick="showPage('agenda')"><span class="nav-icon">📅</span>Agenda Diária</div>
+      <div class="nav-item" onclick="showPage('agenda-semana')"><span class="nav-icon">🗓</span>Agenda Semanal</div>
       <div class="nav-item" onclick="showPage('agendamentos')"><span class="nav-icon">📋</span>Agendamentos</div>
       <div class="nav-label">Cadastro</div>
       <div class="nav-item" onclick="showPage('clientes')"><span class="nav-icon">👥</span>Clientes</div>
@@ -493,8 +562,13 @@ td{padding:11px 14px;vertical-align:middle}
       <div class="nav-item" onclick="showPage('checklist')"><span class="nav-icon">✅</span>Checklist</div>
       <div class="nav-label">Comunicação</div>
       <div class="nav-item" onclick="showPage('whatsapp')"><span class="nav-icon">💬</span>WhatsApp</div>
+      <div class="nav-item" onclick="showPage('financeiro')"><span class="nav-icon">📊</span>Financeiro</div>
+      <div class="nav-item" onclick="showPage('relatorios')"><span class="nav-icon">📈</span>Relatórios</div>
+      <div class="nav-label">Suporte</div>
+      <div class="nav-item" onclick="showPage('suporte')"><span class="nav-icon">🎫</span>Suporte<span class="nav-count" id="suporteCount" style="display:none">0</span></div>
       <div class="nav-label">Sistema</div>
       <div class="nav-item" onclick="showPage('config')"><span class="nav-icon">⚙</span>Configurações</div>
+      <div class="nav-item" onclick="showPage('admin')"><span class="nav-icon">🛡</span>Painel Admin</div>
       <div class="nav-item console-only" onclick="showPage('console')"><span class="nav-icon">🔑</span>Console Master</div>
     </nav>
     <div class="sidebar-footer">
@@ -810,6 +884,240 @@ td{padding:11px 14px;vertical-align:middle}
 
   </div><!-- /main -->
 </div><!-- /app -->
+
+
+    <!-- FINANCEIRO -->
+    <div class="page" id="pg-financeiro">
+      <div class="section-header">
+        <div><div class="section-title">Financeiro</div><div class="section-sub">Controle completo de entradas e saídas</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success btn-sm" onclick="abrirMovFinanceiro('entrada')">+ Entrada</button>
+          <button class="btn btn-danger btn-sm" onclick="abrirMovFinanceiro('saida')">− Saída</button>
+        </div>
+      </div>
+      <div id="finStats" class="fin-stat-row"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Filtros</div></div>
+          <div class="form-row">
+            <div class="form-group"><label>De</label><input type="date" id="finDe"></div>
+            <div class="form-group"><label>Até</label><input type="date" id="finAte"></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="finCatChips"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="renderFinanceiro()">Filtrar</button>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Saldo do Período</div></div>
+          <div id="finSaldoChart"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Movimentações</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Forma</th><th>Valor</th><th>Usuário</th><th>Ações</th></tr></thead><tbody id="finTbody"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- SUPORTE -->
+    <div class="page" id="pg-suporte">
+      <div class="section-header">
+        <div><div class="section-title">Central de Suporte</div><div class="section-sub">Abertura e acompanhamento de chamados</div></div>
+        <button class="btn btn-primary" onclick="abrirModalTicket()">+ Novo Chamado</button>
+      </div>
+      <div class="search-bar">
+        <div class="search-wrap"><span class="icon">🔍</span><input type="text" class="search-input" id="ticketBusca" placeholder="Buscar chamados..." oninput="renderTickets()"></div>
+        <select id="ticketStatus" onchange="renderTickets()" style="width:160px">
+          <option value="">Todos</option><option value="aberto">Aberto</option>
+          <option value="em_andamento">Em Andamento</option><option value="resolvido">Resolvido</option>
+        </select>
+      </div>
+      <div id="ticketLista"></div>
+    </div>
+
+    <!-- ADMIN COMPLETO -->
+    <div class="page" id="pg-admin">
+      <div class="section-header"><div><div class="section-title">Painel Administrativo</div><div class="section-sub">Controle total do sistema</div></div></div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="setAdminTab('acessos')">👤 Acessos</button>
+        <button class="admin-tab" onclick="setAdminTab('regras')">⚖ Regras</button>
+        <button class="admin-tab" onclick="setAdminTab('empresa')">🏢 Empresa</button>
+        <button class="admin-tab" onclick="setAdminTab('aparencia')">🎨 Aparência</button>
+        <button class="admin-tab" onclick="setAdminTab('integracoes')">🔌 Integrações</button>
+        <button class="admin-tab" onclick="setAdminTab('auditoria')">🔍 Auditoria</button>
+        <button class="admin-tab" onclick="setAdminTab('agenda-online')">🌐 Agenda Online</button>
+        <button class="admin-tab" onclick="setAdminTab('manual')">📖 Manual</button>
+      </div>
+
+      <!-- ABA ACESSOS -->
+      <div class="admin-panel active" id="adminp-acessos">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Usuários do Sistema</div><button class="btn btn-primary btn-sm" onclick="abrirModalUsuarioAdmin()">+ Novo Usuário</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Nome / E-mail</th><th>Perfil</th><th>Senha</th><th>Dispositivo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="adminUsersTbody"></tbody></table></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title">Hierarquia de Permissões</div><div class="card-sub">Defina o que cada perfil pode ver e fazer</div></div>
+          <div style="display:flex;gap:8px;margin-bottom:14px" id="roleTabsWrap">
+            <button class="role-tab active" onclick="setRoleTab('operador')">Operador</button>
+            <button class="role-tab" onclick="setRoleTab('admin')">Admin</button>
+            <button class="role-tab" onclick="setRoleTab('owner')">Owner</button>
+          </div>
+          <div id="permGrid"></div>
+          <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="salvarPermissoes()">💾 Salvar Permissões</button>
+        </div>
+      </div>
+
+      <!-- ABA REGRAS -->
+      <div class="admin-panel" id="adminp-regras">
+        <div class="admin-grid">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">💸 Regras de Desconto</div>
+            <div class="form-group"><label>Desconto máx. sem senha (%)</label><input type="number" id="rDescSem" min="0" max="100" placeholder="10"></div>
+            <div class="form-group"><label>Desconto máx. com senha admin (%)</label><input type="number" id="rDescCom" min="0" max="100" placeholder="50"></div>
+            <div class="form-group"><label>Senha administrativa</label><input type="password" id="rSenhaAdm" placeholder="Senha do owner"></div>
+            <button class="btn btn-primary" onclick="salvarRegrasDesconto()">Salvar</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">⚙ Automações</div>
+            <div class="switch-row"><div><div class="switch-label">Pontos Automáticos (Fidelidade)</div><div class="switch-sub">Adiciona pontos ao concluir serviço</div></div><label class="switch"><input type="checkbox" id="autoFidelidade" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Lançamento Auto no Caixa</div><div class="switch-sub">Registra valor ao concluir agendamento</div></div><label class="switch"><input type="checkbox" id="autoCaixa" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Alertas de Aniversário</div><div class="switch-sub">Notifica no dashboard</div></div><label class="switch"><input type="checkbox" id="autoAniversario" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Alerta de Estoque Mínimo</div><div class="switch-sub">Avisa quando produto abaixo do mínimo</div></div><label class="switch"><input type="checkbox" id="autoEstoque" checked><span class="switch-slider"></span></label></div>
+            <button class="btn btn-primary" style="margin-top:14px" onclick="salvarAutomacoes()">Salvar Automações</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🔄 Importar / Exportar</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="btn btn-secondary" onclick="exportarDados()">📥 Exportar Backup (JSON)</button>
+              <button class="btn btn-secondary" onclick="exportarExcel()">📊 Exportar para Excel</button>
+              <label class="btn btn-secondary" style="cursor:pointer">📤 Importar Dados (JSON)<input type="file" accept=".json" style="display:none" onchange="importarDados(this)"></label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🗑 Reset Seletivo</div>
+            <div class="info-box warn" style="margin-bottom:12px">Atenção: ações irreversíveis. Confirme a senha admin antes.</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button class="btn btn-danger btn-sm" onclick="resetModulo('agendamentos')">Limpar Agendamentos</button>
+              <button class="btn btn-danger btn-sm" onclick="resetModulo('movimentacoes')">Limpar Movimentações</button>
+              <button class="btn btn-danger btn-sm" onclick="resetModulo('checklists')">Limpar Checklists</button>
+              <button class="btn btn-danger btn-sm" onclick="resetModulo('clientes')">Limpar Clientes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA EMPRESA -->
+      <div class="admin-panel" id="adminp-empresa">
+        <div class="admin-grid">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🏢 Dados da Empresa</div>
+            <div class="form-group"><label>Nome da empresa</label><input type="text" id="adm_nome" placeholder="Nome da estética"></div>
+            <div class="form-group"><label>CNPJ</label><input type="text" id="adm_cnpj" placeholder="00.000.000/0001-00"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Telefone</label><input type="tel" id="adm_tel" oninput="maskTel(this)" placeholder="(00) 00000-0000"></div>
+              <div class="form-group"><label>E-mail</label><input type="email" id="adm_email" placeholder="contato@estetica.com"></div>
+            </div>
+            <div class="form-group"><label>CEP</label><div class="cep-row"><input type="text" id="adm_cep" placeholder="00000-000" oninput="maskCep(this)" onblur="buscarCepAdmin()"><button class="cep-btn" onclick="buscarCepAdmin()">🔍 Buscar</button></div></div>
+            <div class="form-row">
+              <div class="form-group"><label>Logradouro</label><input type="text" id="adm_logr" placeholder="Rua, Av..."></div>
+              <div class="form-group"><label>Número</label><input type="text" id="adm_nnum"></div>
+            </div>
+            <div class="form-row-3">
+              <div class="form-group"><label>Bairro</label><input type="text" id="adm_bairro"></div>
+              <div class="form-group"><label>Cidade</label><input type="text" id="adm_cidade"></div>
+              <div class="form-group"><label>UF</label><input type="text" id="adm_uf" maxlength="2"></div>
+            </div>
+            <button class="btn btn-primary" onclick="salvarEmpresaAdmin()">💾 Salvar Dados</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🖨 Configuração de Impressão</div>
+            <div class="form-group"><label>Título do documento</label><input type="text" id="adm_print_titulo" placeholder="Ex: Ordem de Serviço"></div>
+            <div class="form-group"><label>Rodapé</label><input type="text" id="adm_print_rodape" placeholder="Obrigado pela preferência!"></div>
+            <div class="form-group"><label>Chaves de API WhatsApp</label><textarea id="adm_wa_api" placeholder="Cole aqui sua chave de API do WhatsApp Business..." style="min-height:80px"></textarea></div>
+            <div class="form-group"><label>Chave API Maps / Distância</label><input type="text" id="adm_maps_api" placeholder="Google Maps API Key"></div>
+            <button class="btn btn-primary" onclick="salvarIntegAdmin()">💾 Salvar Integrações</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA APARENCIA -->
+      <div class="admin-panel" id="adminp-aparencia">
+        <div class="admin-grid">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🎨 Personalização de Marca (White Label)</div>
+            <div class="form-group"><label>Nome do Sistema</label><input type="text" id="adm_sys_nome" placeholder="GBR Pro"></div>
+            <div class="form-group"><label>Subtítulo</label><input type="text" id="adm_sys_sub" placeholder="Gestão para Estéticas Automotivas"></div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label>Logo da Empresa</label>
+              <div class="logo-upload-zone" id="logoUploadZone" onclick="document.getElementById('logoInput').click()">
+                <div id="logoPreviewWrap"><div style="font-size:28px;margin-bottom:8px">🖼</div><div style="font-size:12px;color:var(--text2)">Clique para enviar logo (PNG/SVG)</div></div>
+                <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="carregarLogo(this)">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="salvarMarca()">💾 Aplicar Marca</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🖌 Paleta de Cores Customizada</div>
+            <div class="color-picker-row"><label>Cor de Destaque</label><input type="color" id="cp_accent" value="#f59e0b" oninput="previewCores()"><input type="text" id="cp_accent_hex" value="#f59e0b" oninput="syncColor('accent',this.value)"></div>
+            <div class="color-picker-row"><label>Fundo Principal</label><input type="color" id="cp_bg" value="#0b0b12" oninput="previewCores()"><input type="text" id="cp_bg_hex" value="#0b0b12" oninput="syncColor('bg',this.value)"></div>
+            <div class="color-picker-row"><label>Fundo Secundário</label><input type="color" id="cp_bg2" value="#12121a" oninput="previewCores()"><input type="text" id="cp_bg2_hex" value="#12121a" oninput="syncColor('bg2',this.value)"></div>
+            <div class="color-picker-row"><label>Texto Principal</label><input type="color" id="cp_text" value="#eaeaf2" oninput="previewCores()"><input type="text" id="cp_text_hex" value="#eaeaf2" oninput="syncColor('text',this.value)"></div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-primary" onclick="aplicarCoresCustom()">✓ Aplicar Cores</button>
+              <button class="btn btn-secondary" onclick="resetCoresCustom()">↺ Resetar</button>
+            </div>
+            <div class="info-box" style="margin-top:12px;font-size:11px">As cores são salvas por tenant e aplicadas automaticamente a cada login.</div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">📝 Tipografia</div>
+            <div class="form-group"><label>Tamanho base da fonte</label><select id="adm_font_size" onchange="aplicarFontSize()"><option value="13.5">Normal (13.5px)</option><option value="14.5">Maior (14.5px)</option><option value="12.5">Menor (12.5px)</option></select></div>
+            <div class="form-group"><label>Módulos ativos (visibilidade no menu)</label></div>
+            <div id="modulosToggle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA INTEGRACOES -->
+      <div class="admin-panel" id="adminp-integracoes">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">🔌 Chaves de Integrações</div>
+          <div id="integsLista"></div>
+        </div>
+      </div>
+
+      <!-- ABA AUDITORIA -->
+      <div class="admin-panel" id="adminp-auditoria">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Log de Auditoria</div><button class="btn btn-ghost btn-sm" onclick="limparAuditoria()">Limpar</button></div>
+          <div class="search-bar"><div class="search-wrap"><span class="icon">🔍</span><input type="text" class="search-input" id="auditBusca" placeholder="Buscar ação, usuário..." oninput="renderAuditoria()"></div></div>
+          <div id="auditLista" style="max-height:500px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- ABA AGENDA ONLINE -->
+      <div class="admin-panel" id="adminp-agenda-online">
+        <div class="admin-grid">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">🌐 Agenda Online</div>
+            <div class="switch-row"><div><div class="switch-label">Habilitar Agenda Online</div><div class="switch-sub">Gera link público de agendamento</div></div><label class="switch"><input type="checkbox" id="aoAtivo" checked><span class="switch-slider"></span></label></div>
+            <div style="margin-top:14px">
+              <label class="form-group"><div style="font-size:11.5px;font-weight:500;color:var(--text2);margin-bottom:5px">Link público</div><div style="display:flex;gap:8px"><input type="text" id="aoLink" readonly style="font-size:12px;font-family:'DM Mono',monospace"><button class="btn btn-secondary btn-sm" onclick="copiarLinkOnline()">Copiar</button></div></label>
+            </div>
+            <hr class="divider">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">Horários de Funcionamento</div>
+            <div id="aoHorarios"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="salvarAgendaOnline()">💾 Salvar</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px">📋 Serviços Disponíveis Online</div>
+            <div id="aoServicos"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA MANUAL -->
+      <div class="admin-panel" id="adminp-manual">
+        <div id="manualConteudo"></div>
+      </div>
+    </div>
 
 <!-- BOTTOM NAV MOBILE -->
 <div class="bottom-nav" id="bottomNav">
@@ -1190,9 +1498,70 @@ td{padding:11px 14px;vertical-align:middle}
   </div>
 </div>
 
+
+<!-- MODAL TICKET SUPORTE -->
+<div class="modal-overlay" id="modalTicket">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div><div class="modal-title" id="ticketModalTitle">Novo Chamado</div></div><button class="modal-close" onclick="closeModal('modalTicket')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ticketId">
+      <div class="form-group"><label>Título <span class="req">*</span></label><input type="text" id="tk_titulo" placeholder="Descreva brevemente o problema"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Prioridade</label><select id="tk_prio"><option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option><option value="critica">🚨 Crítica</option></select></div>
+        <div class="form-group"><label>Status</label><select id="tk_status"><option value="aberto">Aberto</option><option value="em_andamento">Em Andamento</option><option value="resolvido">Resolvido</option></select></div>
+      </div>
+      <div class="form-group"><label>Descrição <span class="req">*</span></label><textarea id="tk_desc" placeholder="Detalhe o problema, incluindo passos para reproduzir..." style="min-height:100px"></textarea></div>
+      <div class="form-group"><label>Módulo afetado</label><select id="tk_modulo"><option value="">— Geral —</option><option>Agendamento</option><option>Caixa</option><option>Clientes</option><option>Checklist</option><option>Estoque</option><option>Fidelidade</option><option>Financeiro</option><option>Relatórios</option><option>WhatsApp</option><option>Outros</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTicket')">Cancelar</button><button class="btn btn-primary" onclick="salvarTicket()">Abrir Chamado</button></div>
+  </div>
+</div>
+
+<!-- MODAL MOV FINANCEIRO -->
+<div class="modal-overlay" id="modalMovFinanceiro">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div><div class="modal-title" id="finMovTitle">Nova Movimentação</div></div><button class="modal-close" onclick="closeModal('modalMovFinanceiro')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="finMovId">
+      <input type="hidden" id="finMovTipoHid">
+      <div class="form-row">
+        <div class="form-group"><label>Valor (R$) <span class="req">*</span></label><input type="number" id="fin_valor" min="0.01" step="0.01" placeholder="0,00"></div>
+        <div class="form-group"><label>Data <span class="req">*</span></label><input type="date" id="fin_data"></div>
+      </div>
+      <div class="form-group"><label>Descrição <span class="req">*</span></label><input type="text" id="fin_desc" placeholder="Descrição da movimentação"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Categoria</label><select id="fin_cat"><option value="servico">Serviço</option><option value="produto">Produto</option><option value="aluguel">Aluguel</option><option value="salario">Salário/Pro-labore</option><option value="marketing">Marketing</option><option value="manutencao">Manutenção</option><option value="impostos">Impostos</option><option value="outros">Outros</option></select></div>
+        <div class="form-group"><label>Forma de Pagamento</label><select id="fin_forma"><option value="pix">Pix</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="outros">Outros</option></select></div>
+      </div>
+      <div class="form-group"><label>Observação</label><textarea id="fin_obs" placeholder="Notas adicionais..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalMovFinanceiro')">Cancelar</button><button class="btn btn-primary" onclick="salvarMovFinanceiro()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO ADMIN -->
+<div class="modal-overlay" id="modalUsuarioAdmin">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div><div class="modal-title" id="uaModalTitle">Novo Usuário</div></div><button class="modal-close" onclick="closeModal('modalUsuarioAdmin')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="uaId">
+      <div class="form-row">
+        <div class="form-group"><label>Nome completo <span class="req">*</span></label><input type="text" id="ua_nome" placeholder="Nome do usuário"></div>
+        <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="ua_email" placeholder="email@empresa.com"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
+        <div class="form-group"><label>Senha temporária</label><input type="text" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
+      </div>
+      <div class="form-group"><label>Status</label><select id="ua_status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalUsuarioAdmin')">Cancelar</button><button class="btn btn-primary" onclick="salvarUsuarioAdmin()">Salvar Usuário</button></div>
+  </div>
+</div>
+
 <div class="toast-box" id="toastBox"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ===== CONFIG =====
 const CONFIG={SUPERADMIN_EMAIL:'gbrsistemassa@gmail.com',DEFAULT_PASSWORD:'tenant@1234'};
 
@@ -1209,41 +1578,140 @@ let _waTplSelecionado=null;
 
 // ===== INIT =====
 (function init(){
-  carregarDados();
-  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin();});
-  document.getElementById('confirmaSenha').addEventListener('keydown',e=>{if(e.key==='Enter')trocarSenha();});
-  initCanvas();
-  // Carregar aparência salva
-  const tema=localStorage.getItem('gbr_tema')||'dark';
-  const accent=localStorage.getItem('gbr_accent')||'amber';
-  setTheme(tema,true);setAccent(accent,true);
-  // Keyboard shortcuts
-  document.addEventListener('keydown',e=>{
-    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();abrirBuscaGlobal();}
-    if(e.key==='Escape'){fecharBuscaGlobal();fecharAparencia();}
-  });
-  // Loader
-  setTimeout(()=>{const l=document.getElementById('gbr-loader');if(l){l.classList.add('out');setTimeout(()=>l.remove(),500);}},800);
-  // Click fora fecha aparência
-  document.addEventListener('click',e=>{
-    const p=document.getElementById('aparenciaPanel');
-    if(p&&p.classList.contains('open')&&!p.contains(e.target)&&!e.target.closest('.topbar-btn')){p.classList.remove('open');}
-  });
+
+  // ── Núcleo: se qualquer coisa aqui falhar, o loader já mostra o botão de reload ──
+  try { carregarDados(); } catch(e) { console.error('[GBR] carregarDados falhou:', e); }
+
+  // ── Aparência (antes de qualquer render para evitar flash) ──
+  try {
+    const tema = localStorage.getItem('gbr_tema') || 'dark';
+    const accent = localStorage.getItem('gbr_accent') || 'amber';
+    setTheme(tema, true);
+    setAccent(accent, true);
+  } catch(e) { console.warn('[GBR] Aparência não carregada:', e); }
+
+  // ── Elementos do DOM que precisam existir antes de serem vinculados ──
+  try {
+    const topbarDate = document.getElementById('topbarDate');
+    if (topbarDate) topbarDate.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+
+    const loginSenha = document.getElementById('loginSenha');
+    if (loginSenha) loginSenha.addEventListener('keydown', e => { if(e.key==='Enter') fazerLogin(); });
+
+    const confirmaSenha = document.getElementById('confirmaSenha');
+    if (confirmaSenha) confirmaSenha.addEventListener('keydown', e => { if(e.key==='Enter') trocarSenha(); });
+  } catch(e) { console.warn('[GBR] Listeners de login:', e); }
+
+  // ── initCanvas: LAZY — só executa quando o modal do checklist abrir ──
+  // Não chamamos initCanvas() aqui pois o canvas (#canvasAssin) fica dentro
+  // de um modal oculto e pode não estar renderizado no momento do init.
+  // A função openModalChecklist() chama initCanvasLazy() no momento certo.
+
+  // ── Keyboard shortcuts ──
+  try {
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); abrirBuscaGlobal(); }
+      if (e.key==='Escape') { fecharBuscaGlobal(); fecharAparencia(); }
+    });
+  } catch(e) { console.warn('[GBR] Shortcuts:', e); }
+
+  // ── Click fora fecha painel de aparência ──
+  try {
+    document.addEventListener('click', e => {
+      const p = document.getElementById('aparenciaPanel');
+      if (p && p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('.topbar-btn')) {
+        p.classList.remove('open');
+      }
+    });
+  } catch(e) {}
+
+  // ── Loader: remove após 800ms; exibe botão reload se demorar > 5s ──
+  const loaderTimeout = setTimeout(() => {
+    const l = document.getElementById('gbr-loader');
+    if (l) {
+      const reloadBtn = document.createElement('button');
+      reloadBtn.textContent = '⟳ Recarregar';
+      reloadBtn.style.cssText = 'margin-top:8px;padding:10px 24px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit';
+      reloadBtn.onclick = () => location.reload();
+      const sub = l.querySelector('.ld-sub');
+      if (sub) { sub.textContent = 'Algo demorou demais...'; sub.after(reloadBtn); }
+      else l.appendChild(reloadBtn);
+    }
+  }, 5000);
+
+  setTimeout(() => {
+    clearTimeout(loaderTimeout);
+    const l = document.getElementById('gbr-loader');
+    if (l) { l.classList.add('out'); setTimeout(() => l.remove(), 500); }
+  }, 800);
+
 })();
 
+// ─── Persistência: localStorage como fallback ───────────────────────────────
+// Para migrar para Supabase/API, implemente GBR_API_ADAPTER com os métodos
+// load(key) → Promise<any> e save(key, value) → Promise<void>, e defina
+// window.GBR_API_ADAPTER antes de este script carregar.
+// Enquanto não houver adapter, o sistema opera 100% offline via localStorage.
+
+const _storage = {
+  get(key) {
+    if (window.GBR_API_ADAPTER?.load) return window.GBR_API_ADAPTER.load(key);
+    try { const d = localStorage.getItem('gbr_' + key); return Promise.resolve(d ? JSON.parse(d) : null); }
+    catch(e) { return Promise.resolve(null); }
+  },
+  set(key, value) {
+    if (window.GBR_API_ADAPTER?.save) return window.GBR_API_ADAPTER.save(key, value);
+    try { localStorage.setItem('gbr_' + key, JSON.stringify(value)); } catch(e) { console.warn('[GBR] localStorage cheio?', e); }
+    return Promise.resolve();
+  }
+};
+
 function carregarDados(){
-  Object.keys(DATA).forEach(k=>{try{const d=localStorage.getItem('gbr_'+k);if(d)DATA[k]=JSON.parse(d);}catch(e){}});
-  if(DATA.tenants.length===0||DATA.users.length===0){
-    Object.keys(localStorage).filter(k=>k.startsWith('gbr_')).forEach(k=>localStorage.removeItem(k));
-    Object.keys(DATA).forEach(k=>DATA[k]=[]);
+  // Carregamento síncrono via localStorage (compatibilidade total)
+  // Ao integrar API async, troque por carregarDadosAsync()
+  Object.keys(DATA).forEach(k => {
+    try { const d = localStorage.getItem('gbr_' + k); if (d) DATA[k] = JSON.parse(d); }
+    catch(e) { console.warn('[GBR] Erro ao carregar chave:', k, e); }
+  });
+  if (DATA.tenants.length === 0 || DATA.users.length === 0) {
+    Object.keys(localStorage).filter(k => k.startsWith('gbr_')).forEach(k => localStorage.removeItem(k));
+    Object.keys(DATA).forEach(k => DATA[k] = []);
     seedDados();
   }
-  const sessao=localStorage.getItem('gbr_sessao');
-  if(sessao){try{const s=JSON.parse(sessao);const u=DATA.users.find(x=>x.id===s.userId);if(u&&u.ativo){loginSucesso(u);return;}}catch(e){}}
+  const sessao = localStorage.getItem('gbr_sessao');
+  if (sessao) {
+    try {
+      const s = JSON.parse(sessao);
+      const u = DATA.users.find(x => x.id === s.userId);
+      if (u && u.ativo) { loginSucesso(u); return; }
+    } catch(e) { localStorage.removeItem('gbr_sessao'); }
+  }
 }
 
-function salvarDados(){Object.keys(DATA).forEach(k=>localStorage.setItem('gbr_'+k,JSON.stringify(DATA[k])));}
+// Versão async pronta para API (use quando GBR_API_ADAPTER estiver disponível)
+async function carregarDadosAsync(){
+  for (const k of Object.keys(DATA)) {
+    try { const val = await _storage.get(k); if (val) DATA[k] = val; }
+    catch(e) { console.warn('[GBR] Erro async ao carregar:', k, e); }
+  }
+  if (DATA.tenants.length === 0 || DATA.users.length === 0) seedDados();
+  const sessao = localStorage.getItem('gbr_sessao');
+  if (sessao) {
+    try { const s = JSON.parse(sessao); const u = DATA.users.find(x => x.id === s.userId); if (u && u.ativo) loginSucesso(u); }
+    catch(e) { localStorage.removeItem('gbr_sessao'); }
+  }
+}
+
+function salvarDados(){
+  Object.keys(DATA).forEach(k => {
+    try { localStorage.setItem('gbr_' + k, JSON.stringify(DATA[k])); }
+    catch(e) { console.warn('[GBR] Erro ao salvar chave:', k, e); }
+  });
+  // Flush async para API se adapter presente
+  if (window.GBR_API_ADAPTER?.save) {
+    Object.keys(DATA).forEach(k => _storage.set(k, DATA[k]).catch(console.warn));
+  }
+}
 
 function seedDados(){
   const tid=uid();
@@ -2136,6 +2604,8 @@ function renderChecklists(){
 const ITENS_PADRAO=['Arranhões e amassados na carroceria','Estado dos faróis e lanternas','Para-choques e frisos','Vidros — trincas ou riscos','Espelhos retrovisores','Estado dos pneus e rodas','Bancos e estofados','Tapetes e carpetes','Painel e console central','Porta-malas e compartimentos','Rodas e aros','Itens de valor declarados pelo cliente'];
 
 function abrirModalChecklist(){
+  // Garante que o canvas só é inicializado quando o modal estiver visível no DOM
+  initCanvasLazy();
   chkItens=ITENS_PADRAO.map((d,i)=>({id:String(i+1),descricao:d,status:'pendente'}));
   fotosChk=[];assinOk=false;assinData=null;
   const sel=document.getElementById('chkAgend');
@@ -2191,20 +2661,46 @@ function adicionarFotos(input){
   input.value='';
 }
 
-// Canvas de assinatura
+// Canvas de assinatura — LAZY (inicializado apenas quando o modal do checklist abre)
 let assinCanvas,assinCtx,desenhando=false,ultimoPonto=null;
-function initCanvas(){
-  assinCanvas=document.getElementById('canvasAssin');
-  assinCtx=assinCanvas.getContext('2d');
-  assinCtx.strokeStyle='#eaeaf2';assinCtx.lineWidth=2.5;assinCtx.lineCap='round';assinCtx.lineJoin='round';
-  const getPos=e=>{const r=assinCanvas.getBoundingClientRect();const src=e.touches?e.touches[0]:e;return{x:(src.clientX-r.left)*(assinCanvas.width/r.width),y:(src.clientY-r.top)*(assinCanvas.height/r.height)};};
-  assinCanvas.addEventListener('mousedown',e=>{desenhando=true;ultimoPonto=getPos(e);});
-  assinCanvas.addEventListener('mousemove',e=>{if(!desenhando)return;const p=getPos(e);assinCtx.beginPath();assinCtx.moveTo(ultimoPonto.x,ultimoPonto.y);assinCtx.lineTo(p.x,p.y);assinCtx.stroke();ultimoPonto=p;});
-  assinCanvas.addEventListener('mouseup',()=>{desenhando=false;ultimoPonto=null;});
-  assinCanvas.addEventListener('touchstart',e=>{e.preventDefault();desenhando=true;ultimoPonto=getPos(e);},{passive:false});
-  assinCanvas.addEventListener('touchmove',e=>{e.preventDefault();if(!desenhando)return;const p=getPos(e);assinCtx.beginPath();assinCtx.moveTo(ultimoPonto.x,ultimoPonto.y);assinCtx.lineTo(p.x,p.y);assinCtx.stroke();ultimoPonto=p;},{passive:false});
-  assinCanvas.addEventListener('touchend',()=>{desenhando=false;});
+let _canvasInitialized = false;
+
+function initCanvasLazy(){
+  if (_canvasInitialized) return; // já inicializado, não duplicar listeners
+  assinCanvas = document.getElementById('canvasAssin');
+  if (!assinCanvas) { console.warn('[GBR] #canvasAssin não encontrado'); return; }
+  try {
+    assinCtx = assinCanvas.getContext('2d');
+    assinCtx.strokeStyle = '#eaeaf2'; assinCtx.lineWidth = 2.5;
+    assinCtx.lineCap = 'round'; assinCtx.lineJoin = 'round';
+    const getPos = e => {
+      const r = assinCanvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return { x:(src.clientX-r.left)*(assinCanvas.width/r.width), y:(src.clientY-r.top)*(assinCanvas.height/r.height) };
+    };
+    assinCanvas.addEventListener('mousedown', e => { desenhando=true; ultimoPonto=getPos(e); });
+    assinCanvas.addEventListener('mousemove', e => {
+      if (!desenhando) return;
+      const p = getPos(e);
+      assinCtx.beginPath(); assinCtx.moveTo(ultimoPonto.x,ultimoPonto.y);
+      assinCtx.lineTo(p.x,p.y); assinCtx.stroke(); ultimoPonto = p;
+    });
+    assinCanvas.addEventListener('mouseup', () => { desenhando=false; ultimoPonto=null; });
+    assinCanvas.addEventListener('touchstart', e => { e.preventDefault(); desenhando=true; ultimoPonto=getPos(e); }, {passive:false});
+    assinCanvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (!desenhando) return;
+      const p = getPos(e);
+      assinCtx.beginPath(); assinCtx.moveTo(ultimoPonto.x,ultimoPonto.y);
+      assinCtx.lineTo(p.x,p.y); assinCtx.stroke(); ultimoPonto = p;
+    }, {passive:false});
+    assinCanvas.addEventListener('touchend', () => { desenhando=false; });
+    _canvasInitialized = true;
+  } catch(e) { console.error('[GBR] initCanvasLazy falhou:', e); }
 }
+
+// Manter compatibilidade com chamadas legadas (não usada no init, mas pode ser chamada manualmente)
+function initCanvas(){ initCanvasLazy(); }
 function limparCanvas(){
   if(!assinCtx)return;
   assinCtx.clearRect(0,0,assinCanvas?.width||600,assinCanvas?.height||140);
@@ -2702,3 +3198,590 @@ function setBNActive(page){
 </script>
 </body>
 </html>
+<script>
+// ══════════════════════════════════════════════════════════
+// GBR SISTEMAS — MÓDULOS ADICIONAIS v3.5
+// Financeiro · Admin Completo · Suporte · Auditoria · White Label
+// ══════════════════════════════════════════════════════════
+
+// ── Estender DATA com novas entidades ──────────────────────
+if(!DATA.movimentacoes_fin) DATA.movimentacoes_fin=[];
+if(!DATA.tickets) DATA.tickets=[];
+if(!DATA.auditoria) DATA.auditoria=[];
+if(!DATA.configuracoes) DATA.configuracoes={};
+if(!DATA.permissoes) DATA.permissoes={};
+
+// ── Estender carregarDados e salvarDados para novas chaves ──
+const _origCarregarDados=carregarDados;
+function carregarDados(){
+  _origCarregarDados();
+  ['movimentacoes_fin','tickets','auditoria','configuracoes','permissoes'].forEach(k=>{
+    try{const d=localStorage.getItem('gbr_'+k);if(d)DATA[k]=JSON.parse(d);}catch(e){}
+  });
+  // Carregar aparência customizada do tenant
+  carregarAparenciaTenant();
+}
+const _origSalvarDados=salvarDados;
+function salvarDados(){
+  _origSalvarDados();
+  ['movimentacoes_fin','tickets','auditoria','configuracoes','permissoes'].forEach(k=>{
+    try{localStorage.setItem('gbr_'+k,JSON.stringify(DATA[k]));}catch(e){}
+  });
+}
+
+// ── Auditoria ────────────────────────────────────────────
+function logAuditoria(acao,detalhes){
+  if(!DATA.auditoria)DATA.auditoria=[];
+  DATA.auditoria.push({
+    id:uid(),
+    tenant_id:currentTenant?.id,
+    usuario:currentUser?.nome||'Sistema',
+    usuario_id:currentUser?.id,
+    acao,detalhes,
+    ts:new Date().toISOString()
+  });
+  // Manter últimos 500 registros
+  if(DATA.auditoria.length>500)DATA.auditoria=DATA.auditoria.slice(-500);
+  salvarDados();
+}
+
+// Interceptar showPage para módulos adicionais
+const _origShowPage=showPage;
+function showPage(name){
+  _origShowPage(name);
+  const renders2={financeiro:renderFinanceiro,suporte:renderTickets,admin:renderAdmin};
+  renders2[name]?.();
+  if(name==='admin')renderAdminPage();
+  const titlesExtra={financeiro:'Financeiro',suporte:'Suporte',admin:'Painel Administrativo'};
+  if(titlesExtra[name]){const el=document.getElementById('topbarTitle');if(el)el.textContent=titlesExtra[name];}
+}
+
+// ══ FINANCEIRO ════════════════════════════════════════════
+function renderFinanceiro(){
+  if(!currentTenant)return;
+  const hoje=new Date();
+  const de=document.getElementById('finDe');
+  const ate=document.getElementById('finAte');
+  if(!de.value){const ini=new Date(hoje.getFullYear(),hoje.getMonth(),1);de.value=ini.toISOString().slice(0,10);}
+  if(!ate.value){ate.value=hoje.toISOString().slice(0,10);}
+  const deFiltro=new Date(de.value+'T00:00:00');
+  const ateFiltro=new Date(ate.value+'T23:59:59');
+  const lista=DATA.movimentacoes_fin.filter(m=>m.tenant_id===currentTenant.id&&new Date(m.data)>=deFiltro&&new Date(m.data)<=ateFiltro);
+  const entradas=lista.filter(m=>m.tipo==='entrada').reduce((s,m)=>s+(m.valor||0),0);
+  const saidas=lista.filter(m=>m.tipo==='saida').reduce((s,m)=>s+(m.valor||0),0);
+  const saldo=entradas-saidas;
+  document.getElementById('finStats').innerHTML=[
+    {label:'Entradas',val:fmtMoney(entradas),color:'var(--green)'},
+    {label:'Saídas',val:fmtMoney(saidas),color:'var(--red)'},
+    {label:'Saldo',val:fmtMoney(saldo),color:saldo>=0?'var(--green)':'var(--red)'},
+    {label:'Transações',val:lista.length,color:'var(--text)'}
+  ].map(s=>'<div class="fin-stat"><div class="fin-stat-label">'+s.label+'</div><div class="fin-stat-val" style="color:'+s.color+'">'+s.val+'</div></div>').join('');
+  // Chips categorias
+  const cats=[...new Set(lista.map(m=>m.categoria).filter(Boolean))];
+  document.getElementById('finCatChips').innerHTML=cats.map(c=>'<span class="fin-cat-chip" onclick="toggleFinCat(this,\''+c+'\')">'+c+'</span>').join('');
+  // Tabela
+  const tb=document.getElementById('finTbody');
+  if(!lista.length){tb.innerHTML='<tr><td colspan="8" class="empty">Nenhuma movimentação no período</td></tr>';return;}
+  tb.innerHTML=lista.sort((a,b)=>new Date(b.data)-new Date(a.data)).map(m=>'<tr><td class="td-mono">'+fmtDate(m.data)+'</td><td><div class="td-name">'+m.descricao+'</div></td><td><span class="badge badge-gray">'+( m.categoria||'-')+'</span></td><td><span class="badge badge-'+(m.tipo==='entrada'?'green':'red')+'">'+(m.tipo==='entrada'?'Entrada':'Saída')+'</span></td><td>'+(m.forma||'-')+'</td><td style="font-weight:600;color:'+(m.tipo==='entrada'?'var(--green)':'var(--red)')+'">'+(m.tipo==='entrada'?'+ ':'− ')+fmtMoney(m.valor)+'</td><td style="font-size:11px;color:var(--text3)">'+(m.usuario||'-')+'</td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarMovFin(\''+m.id+'\')">✏</button><button class="btn btn-danger btn-xs" onclick="excluirMovFin(\''+m.id+'\')">✕</button></div></td></tr>').join('');
+}
+function abrirMovFinanceiro(tipo){
+  document.getElementById('finMovId').value='';
+  document.getElementById('finMovTipoHid').value=tipo;
+  document.getElementById('finMovTitle').textContent=tipo==='entrada'?'+ Nova Entrada':'− Nova Saída';
+  document.getElementById('fin_valor').value='';
+  document.getElementById('fin_data').value=new Date().toISOString().slice(0,10);
+  document.getElementById('fin_desc').value='';
+  document.getElementById('fin_obs').value='';
+  document.getElementById('fin_cat').value='outros';
+  document.getElementById('fin_forma').value='pix';
+  openModal('modalMovFinanceiro');
+}
+function editarMovFin(id){
+  const m=DATA.movimentacoes_fin.find(x=>x.id===id);if(!m)return;
+  document.getElementById('finMovId').value=m.id;
+  document.getElementById('finMovTipoHid').value=m.tipo;
+  document.getElementById('finMovTitle').textContent='Editar Movimentação';
+  document.getElementById('fin_valor').value=m.valor;
+  document.getElementById('fin_data').value=m.data?.slice(0,10)||'';
+  document.getElementById('fin_desc').value=m.descricao||'';
+  document.getElementById('fin_obs').value=m.observacao||'';
+  document.getElementById('fin_cat').value=m.categoria||'outros';
+  document.getElementById('fin_forma').value=m.forma||'pix';
+  openModal('modalMovFinanceiro');
+}
+function salvarMovFinanceiro(){
+  const id=document.getElementById('finMovId').value;
+  const tipo=document.getElementById('finMovTipoHid').value;
+  const valor=parseFloat(document.getElementById('fin_valor').value)||0;
+  const desc=document.getElementById('fin_desc').value.trim();
+  if(!valor||!desc){toast('Preencha valor e descrição','error');return;}
+  const dados={tipo,valor,descricao:desc,data:document.getElementById('fin_data').value,categoria:document.getElementById('fin_cat').value,forma:document.getElementById('fin_forma').value,observacao:document.getElementById('fin_obs').value,usuario:currentUser?.nome,usuario_id:currentUser?.id,tenant_id:currentTenant?.id};
+  if(id){
+    const i=DATA.movimentacoes_fin.findIndex(m=>m.id===id);
+    if(i>=0){const antigo=DATA.movimentacoes_fin[i];logAuditoria('Editou Movimentação','De: '+fmtMoney(antigo.valor)+' → '+fmtMoney(valor));Object.assign(DATA.movimentacoes_fin[i],dados);}
+  }else{DATA.movimentacoes_fin.push({id:uid(),...dados,created_at:new Date().toISOString()});logAuditoria('Registrou '+tipo,'R$ '+valor+' — '+desc);}
+  salvarDados();closeModal('modalMovFinanceiro');renderFinanceiro();toast('Movimentação salva!');
+}
+function excluirMovFin(id){
+  const m=DATA.movimentacoes_fin.find(x=>x.id===id);
+  if(!confirm('Excluir esta movimentação?'))return;
+  logAuditoria('Excluiu Movimentação',m?.descricao+' — '+fmtMoney(m?.valor||0));
+  DATA.movimentacoes_fin=DATA.movimentacoes_fin.filter(x=>x.id!==id);
+  salvarDados();renderFinanceiro();toast('Movimentação excluída');
+}
+
+// ══ SUPORTE / TICKETS ════════════════════════════════════
+function renderTickets(){
+  const busca=(document.getElementById('ticketBusca')?.value||'').toLowerCase();
+  const status=document.getElementById('ticketStatus')?.value||'';
+  const lista=(DATA.tickets||[]).filter(t=>{
+    if(currentTenant&&t.tenant_id!==currentTenant.id)return false;
+    if(status&&t.status!==status)return false;
+    if(busca&&!(t.titulo+' '+t.descricao).toLowerCase().includes(busca))return false;
+    return true;
+  }).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const prioColor={baixa:'var(--green)',media:'var(--accent)',alta:'var(--orange)',critica:'var(--red)'};
+  const el=document.getElementById('ticketLista');
+  const abertos=(DATA.tickets||[]).filter(t=>t.tenant_id===currentTenant?.id&&t.status!=='resolvido').length;
+  const countEl=document.getElementById('suporteCount');
+  if(countEl){if(abertos>0){countEl.textContent=abertos;countEl.style.display='';}else countEl.style.display='none';}
+  if(!lista.length){el.innerHTML='<div class="empty"><div class="empty-icon">🎫</div><div class="empty-title">Nenhum chamado</div></div>';return;}
+  el.innerHTML=lista.map(t=>'<div class="ticket-card '+t.status+'" onclick="verTicket(\''+t.id+'\')"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ticket-title">'+(prioColor[t.prioridade]?'<span style="color:'+prioColor[t.prioridade]+';margin-right:5px">●</span>':'')+'#'+t.numero+' — '+t.titulo+'</div><div class="ticket-meta">'+(t.modulo||'Geral')+' · '+fmtDateTime(t.created_at)+' · '+t.usuario+'</div></div><div style="display:flex;align-items:center;gap:8px"><span class="badge badge-'+(t.status==='aberto'?'blue':t.status==='em_andamento'?'amber':'green')+'">'+{aberto:'Aberto',em_andamento:'Em Andamento',resolvido:'Resolvido'}[t.status]+'</span><button class="btn btn-secondary btn-xs" onclick="event.stopPropagation();editarTicket(\''+t.id+'\')">Editar</button><button class="btn btn-danger btn-xs" onclick="event.stopPropagation();excluirTicket(\''+t.id+'\')">✕</button></div></div><div style="font-size:12px;color:var(--text2);margin-top:6px">'+t.descricao.slice(0,100)+(t.descricao.length>100?'...':'')+'</div></div>').join('');
+}
+function abrirModalTicket(){
+  document.getElementById('ticketId').value='';document.getElementById('ticketModalTitle').textContent='Novo Chamado';
+  ['tk_titulo','tk_desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tk_prio').value='media';document.getElementById('tk_status').value='aberto';
+  document.getElementById('tk_modulo').value='';
+  openModal('modalTicket');
+}
+function editarTicket(id){
+  const t=DATA.tickets.find(x=>x.id===id);if(!t)return;
+  document.getElementById('ticketId').value=t.id;document.getElementById('ticketModalTitle').textContent='Editar Chamado';
+  document.getElementById('tk_titulo').value=t.titulo;document.getElementById('tk_desc').value=t.descricao;
+  document.getElementById('tk_prio').value=t.prioridade;document.getElementById('tk_status').value=t.status;
+  document.getElementById('tk_modulo').value=t.modulo||'';
+  openModal('modalTicket');
+}
+function salvarTicket(){
+  const id=document.getElementById('ticketId').value;
+  const titulo=document.getElementById('tk_titulo').value.trim();
+  const desc=document.getElementById('tk_desc').value.trim();
+  if(!titulo||!desc){toast('Preencha título e descrição','error');return;}
+  const todos=DATA.tickets||[];
+  const novoNum=todos.length?Math.max(...todos.map(t=>t.numero||0))+1:1001;
+  const dados={titulo,descricao:desc,prioridade:document.getElementById('tk_prio').value,status:document.getElementById('tk_status').value,modulo:document.getElementById('tk_modulo').value||null,usuario:currentUser?.nome,tenant_id:currentTenant?.id};
+  if(id){const i=DATA.tickets.findIndex(t=>t.id===id);if(i>=0){logAuditoria('Editou Ticket','#'+DATA.tickets[i].numero+' → Status: '+dados.status);Object.assign(DATA.tickets[i],dados);}}
+  else{DATA.tickets.push({id:uid(),numero:novoNum,...dados,created_at:new Date().toISOString()});logAuditoria('Abriu Chamado','#'+novoNum+' — '+titulo);}
+  salvarDados();closeModal('modalTicket');renderTickets();toast('Chamado salvo!');
+}
+function excluirTicket(id){if(!confirm('Excluir este chamado?'))return;const t=DATA.tickets.find(x=>x.id===id);logAuditoria('Excluiu Ticket','#'+t?.numero+' — '+t?.titulo);DATA.tickets=DATA.tickets.filter(x=>x.id!==id);salvarDados();renderTickets();toast('Chamado excluído');}
+function verTicket(id){editarTicket(id);}
+
+// ══ ADMIN COMPLETO ════════════════════════════════════════
+let _adminTab='acessos';
+let _roleTab='operador';
+const MODULOS_SISTEMA=['dashboard','agenda','agendamentos','clientes','servicos','estoque','fichas','fidelidade','caixa','checklist','financeiro','relatorios','whatsapp','suporte'];
+const PERMISSOES_LISTA=['ver_dashboard','ver_agenda','editar_agendamento','cancelar_agendamento','ver_clientes','editar_clientes','ver_caixa','abrir_fechar_caixa','ver_financeiro','editar_financeiro','ver_relatorios','ver_estoque','editar_estoque','ver_checklist','editar_checklist','ver_whatsapp','ver_fidelidade','dar_desconto','ver_admin'];
+
+function renderAdmin(){renderAdminPage();}
+function setAdminTab(tab){
+  _adminTab=tab;
+  document.querySelectorAll('.admin-tab').forEach((b,i)=>b.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+tab+"'"))b.classList.add('active');});
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  const panel=document.getElementById('adminp-'+tab);if(panel)panel.classList.add('active');
+  const renders={acessos:renderAdminAcessos,regras:renderAdminRegras,empresa:renderAdminEmpresa,aparencia:renderAdminAparencia,integracoes:renderAdminIntegracoes,auditoria:renderAuditoria,'agenda-online':renderAgendaOnline,manual:renderManual};
+  renders[tab]?.();
+}
+
+function renderAdminPage(){
+  setAdminTab(_adminTab);
+}
+
+// ── Acessos ──────────────────────────────────────────────
+function renderAdminAcessos(){
+  if(!currentTenant)return;
+  const users=DATA.users.filter(u=>u.tenant_id===currentTenant.id&&u.email!==CONFIG.SUPERADMIN_EMAIL);
+  const tb=document.getElementById('adminUsersTbody');
+  if(!tb)return;
+  if(!users.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário cadastrado</td></tr>';return;}
+  const roleLabel={owner:'Owner',admin:'Admin',operador:'Operador'};
+  const roleColor={owner:'badge-purple',admin:'badge-blue',operador:'badge-gray'};
+  tb.innerHTML=users.map(u=>'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td><td><span class="badge '+roleColor[u.role]+'">'+roleLabel[u.role]+'</span></td><td><span class="badge badge-'+(u.must_change_password?'amber':'green')+'">'+(u.must_change_password?'Pendente':'Definida')+'</span></td><td><span class="badge badge-gray">Desktop</span></td><td><span class="badge badge-'+(u.ativo?'green':'gray')+'">'+(u.ativo?'Ativo':'Inativo')+'</span></td><td><div class="actions-row"><button class="btn btn-secondary btn-xs" onclick="editarUsuarioAdmin(\''+u.id+'\')">✏ Editar</button><button class="btn btn-secondary btn-xs" onclick="resetSenhaAdmin(\''+u.id+'\')">🔑 Senha</button><button class="btn btn-danger btn-xs" onclick="toggleUserAdmin(\''+u.id+'\')">⏻</button></div></td></tr>').join('');
+  renderPermGrid();
+}
+function abrirModalUsuarioAdmin(){
+  document.getElementById('uaId').value='';document.getElementById('uaModalTitle').textContent='Novo Usuário';
+  document.getElementById('ua_nome').value='';document.getElementById('ua_email').value='';
+  document.getElementById('ua_role').value='operador';document.getElementById('ua_senha').value='';
+  document.getElementById('ua_status').value='ativo';
+  openModal('modalUsuarioAdmin');
+}
+function editarUsuarioAdmin(id){
+  const u=DATA.users.find(x=>x.id===id);if(!u)return;
+  document.getElementById('uaId').value=u.id;document.getElementById('uaModalTitle').textContent='Editar Usuário';
+  document.getElementById('ua_nome').value=u.nome;document.getElementById('ua_email').value=u.email;
+  document.getElementById('ua_role').value=u.role;document.getElementById('ua_senha').value='';
+  document.getElementById('ua_status').value=u.ativo?'ativo':'inativo';
+  openModal('modalUsuarioAdmin');
+}
+function salvarUsuarioAdmin(){
+  const id=document.getElementById('uaId').value;
+  const nome=document.getElementById('ua_nome').value.trim();
+  const email=document.getElementById('ua_email').value.trim();
+  const role=document.getElementById('ua_role').value;
+  const senha=document.getElementById('ua_senha').value.trim();
+  const ativo=document.getElementById('ua_status').value==='ativo';
+  if(!nome||!email){toast('Preencha nome e email','error');return;}
+  if(id){
+    const i=DATA.users.findIndex(u=>u.id===id);
+    if(i>=0){
+      const antigo=DATA.users[i];
+      if(senha)DATA.users[i].password=senha;
+      Object.assign(DATA.users[i],{nome,email,role,ativo});
+      logAuditoria('Editou Usuário',nome+' — Perfil: '+role);
+    }
+  }else{
+    if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}
+    DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:senha||CONFIG.DEFAULT_PASSWORD,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});
+    logAuditoria('Criou Usuário',nome+' — '+role);
+  }
+  salvarDados();closeModal('modalUsuarioAdmin');renderAdminAcessos();toast('Usuário salvo!');
+}
+function resetSenhaAdmin(id){
+  const nova=prompt('Nova senha (min 6 caracteres):');
+  if(!nova||nova.length<6){toast('Senha inválida','error');return;}
+  const i=DATA.users.findIndex(u=>u.id===id);
+  if(i>=0){DATA.users[i].password=nova;DATA.users[i].must_change_password=false;salvarDados();logAuditoria('Resetou Senha',DATA.users[i].nome);renderAdminAcessos();toast('Senha alterada!');}
+}
+function toggleUserAdmin(id){
+  const i=DATA.users.findIndex(u=>u.id===id);
+  if(i>=0){DATA.users[i].ativo=!DATA.users[i].ativo;logAuditoria(DATA.users[i].ativo?'Ativou':'Desativou'+' Usuário',DATA.users[i].nome);salvarDados();renderAdminAcessos();toast(DATA.users[i].ativo?'Usuário ativado':'Usuário desativado');}
+}
+
+// Permissões
+function setRoleTab(role){
+  _roleTab=role;
+  document.querySelectorAll('.role-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.role-tab').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+role+"'"))b.classList.add('active');});
+  renderPermGrid();
+}
+function renderPermGrid(){
+  const el=document.getElementById('permGrid');if(!el)return;
+  if(!DATA.permissoes[_roleTab])DATA.permissoes[_roleTab]={};
+  const perms=DATA.permissoes[_roleTab];
+  const defaults={owner:PERMISSOES_LISTA,admin:PERMISSOES_LISTA.filter(p=>p!=='ver_admin'),operador:['ver_dashboard','ver_agenda','ver_agendamentos','editar_agendamento','ver_clientes','ver_caixa','ver_checklist','editar_checklist','ver_whatsapp','ver_fidelidade']};
+  PERMISSOES_LISTA.forEach(p=>{if(perms[p]===undefined)perms[p]=defaults[_roleTab]?.includes(p)||false;});
+  const labels={'ver_dashboard':'Ver Dashboard','ver_agenda':'Ver Agenda','editar_agendamento':'Editar Agendamento','cancelar_agendamento':'Cancelar Agendamento','ver_clientes':'Ver Clientes','editar_clientes':'Editar Clientes','ver_caixa':'Ver Caixa','abrir_fechar_caixa':'Abrir/Fechar Caixa','ver_financeiro':'Ver Financeiro','editar_financeiro':'Editar Financeiro','ver_relatorios':'Ver Relatórios','ver_estoque':'Ver Estoque','editar_estoque':'Editar Estoque','ver_checklist':'Ver Checklist','editar_checklist':'Editar Checklist','ver_whatsapp':'Ver WhatsApp','ver_fidelidade':'Ver Fidelidade','dar_desconto':'Aplicar Descontos','ver_admin':'Ver Painel Admin'};
+  el.innerHTML='<div class="perm-grid">'+PERMISSOES_LISTA.map(p=>'<div class="perm-item"><input type="checkbox" id="perm_'+p+'" '+(perms[p]?'checked':'')+' onchange="DATA.permissoes[\''+_roleTab+'\'][\''+p+'\']=this.checked"><label for="perm_'+p+'" style="cursor:pointer">'+labels[p]+'</label></div>').join('')+'</div>';
+}
+function salvarPermissoes(){logAuditoria('Salvou Permissões','Perfil: '+_roleTab);salvarDados();toast('Permissões salvas!');}
+
+// ── Regras Admin ──────────────────────────────────────────
+function renderAdminRegras(){
+  const cfg=DATA.configuracoes[currentTenant?.id]||{};
+  document.getElementById('rDescSem').value=cfg.desc_sem_senha||10;
+  document.getElementById('rDescCom').value=cfg.desc_com_senha||50;
+  document.getElementById('rSenhaAdm').value=cfg.senha_admin||'';
+  document.getElementById('autoFidelidade').checked=cfg.auto_fidelidade!==false;
+  document.getElementById('autoCaixa').checked=cfg.auto_caixa!==false;
+  document.getElementById('autoAniversario').checked=cfg.auto_aniversario!==false;
+  document.getElementById('autoEstoque').checked=cfg.auto_estoque!==false;
+}
+function salvarRegrasDesconto(){
+  if(!DATA.configuracoes)DATA.configuracoes={};
+  const tid=currentTenant?.id;
+  if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
+  Object.assign(DATA.configuracoes[tid],{desc_sem_senha:+document.getElementById('rDescSem').value||10,desc_com_senha:+document.getElementById('rDescCom').value||50,senha_admin:document.getElementById('rSenhaAdm').value});
+  logAuditoria('Salvou Regras de Desconto','');salvarDados();toast('Regras de desconto salvas!');
+}
+function salvarAutomacoes(){
+  const tid=currentTenant?.id;
+  if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
+  Object.assign(DATA.configuracoes[tid],{auto_fidelidade:document.getElementById('autoFidelidade').checked,auto_caixa:document.getElementById('autoCaixa').checked,auto_aniversario:document.getElementById('autoAniversario').checked,auto_estoque:document.getElementById('autoEstoque').checked});
+  logAuditoria('Salvou Automações','');salvarDados();toast('Automações salvas!');
+}
+function resetModulo(mod){
+  const senha=prompt('Digite a senha admin para confirmar:');
+  const cfg=DATA.configuracoes[currentTenant?.id]||{};
+  if(senha!==cfg.senha_admin&&senha!==CONFIG.DEFAULT_PASSWORD){toast('Senha incorreta','error');return;}
+  if(!confirm('TEM CERTEZA? Esta ação é irreversível!'))return;
+  DATA[mod]=DATA[mod].filter(x=>x.tenant_id!==currentTenant?.id);
+  logAuditoria('Reset de Módulo',mod);salvarDados();toast(mod+' limpo!','warn');
+}
+function exportarExcel(){
+  // Exportar principais tabelas como CSV dentro de um arquivo zip simulado
+  const clientes=DATA.clientes.filter(c=>c.tenant_id===currentTenant?.id);
+  const linhas=[['Nome','Telefone','CPF/CNPJ','Email','Cidade','Pontos']];
+  clientes.forEach(c=>linhas.push([c.nome_completo,c.telefone||'',c.cpf_cnpj||'',c.email||'',c.endereco?.cidade||'',c.pontos_fidelidade||0]));
+  const csv=linhas.map(l=>l.map(x=>'"'+String(x)+'"').join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='clientes_gbr.csv';a.click();URL.revokeObjectURL(url);
+  logAuditoria('Exportou Excel','Clientes');toast('Exportado!');
+}
+function importarDados(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const backup=JSON.parse(e.target.result);
+      if(!backup.clientes&&!backup.servicos){toast('Arquivo inválido','error');return;}
+      if(!confirm('Isso irá mesclar os dados. Continuar?'))return;
+      Object.keys(backup).forEach(k=>{if(Array.isArray(DATA[k]))DATA[k]=[...DATA[k],...(backup[k]||[]).filter(x=>!DATA[k].find(y=>y.id===x.id))];});
+      logAuditoria('Importou Dados',file.name);salvarDados();toast('Dados importados!','success');
+    }catch(err){toast('Erro ao importar: '+err.message,'error');}
+  };
+  reader.readAsText(file);input.value='';
+}
+
+// ── Empresa Admin ─────────────────────────────────────────
+function renderAdminEmpresa(){
+  if(!currentTenant)return;
+  const cfg=currentTenant.config_empresa||{};
+  document.getElementById('adm_nome').value=cfg.nome||currentTenant.nome||'';
+  document.getElementById('adm_cnpj').value=cfg.cnpj||'';
+  document.getElementById('adm_tel').value=cfg.telefone||'';
+  document.getElementById('adm_email').value=cfg.email||'';
+  document.getElementById('adm_cep').value=cfg.cep||'';
+  document.getElementById('adm_logr').value=cfg.logradouro||'';
+  document.getElementById('adm_nnum').value=cfg.numero||'';
+  document.getElementById('adm_bairro').value=cfg.bairro||'';
+  document.getElementById('adm_cidade').value=cfg.cidade||'';
+  document.getElementById('adm_uf').value=cfg.uf||'';
+  document.getElementById('adm_print_titulo').value=cfg.print_titulo||'Ordem de Serviço';
+  document.getElementById('adm_print_rodape').value=cfg.print_rodape||'Obrigado pela preferência!';
+  document.getElementById('adm_wa_api').value=cfg.wa_api||'';
+  document.getElementById('adm_maps_api').value=cfg.maps_api||'';
+}
+async function buscarCepAdmin(){
+  const cep=document.getElementById('adm_cep').value.replace(/\D/g,'');
+  if(cep.length!==8)return;
+  try{const r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');const d=await r.json();if(d.erro)return;document.getElementById('adm_logr').value=d.logradouro||'';document.getElementById('adm_bairro').value=d.bairro||'';document.getElementById('adm_cidade').value=d.localidade||'';document.getElementById('adm_uf').value=d.uf||'';}catch(e){}
+}
+function salvarEmpresaAdmin(){
+  const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+  if(i<0)return;
+  const cfg={nome:document.getElementById('adm_nome').value,cnpj:document.getElementById('adm_cnpj').value,telefone:document.getElementById('adm_tel').value,email:document.getElementById('adm_email').value,cep:document.getElementById('adm_cep').value,logradouro:document.getElementById('adm_logr').value,numero:document.getElementById('adm_nnum').value,bairro:document.getElementById('adm_bairro').value,cidade:document.getElementById('adm_cidade').value,uf:document.getElementById('adm_uf').value,print_titulo:document.getElementById('adm_print_titulo').value,print_rodape:document.getElementById('adm_print_rodape').value,wa_api:document.getElementById('adm_wa_api').value,maps_api:document.getElementById('adm_maps_api').value};
+  DATA.tenants[i].config_empresa=cfg;
+  if(cfg.nome){DATA.tenants[i].nome=cfg.nome;document.getElementById('tenantNome').textContent=cfg.nome;}
+  logAuditoria('Editou Dados da Empresa',cfg.nome);salvarDados();toast('Dados salvos!');
+}
+function salvarIntegAdmin(){salvarEmpresaAdmin();}
+
+// ── Aparência Admin / White Label ────────────────────────
+function renderAdminAparencia(){
+  if(!currentTenant)return;
+  const cfg=currentTenant.aparencia||{};
+  document.getElementById('adm_sys_nome').value=cfg.sys_nome||'GBR Sistemas';
+  document.getElementById('adm_sys_sub').value=cfg.sys_sub||'Gestão para Estéticas Automotivas';
+  document.getElementById('cp_accent').value=cfg.accent||'#f59e0b';
+  document.getElementById('cp_accent_hex').value=cfg.accent||'#f59e0b';
+  document.getElementById('cp_bg').value=cfg.bg||'#0b0b12';
+  document.getElementById('cp_bg_hex').value=cfg.bg||'#0b0b12';
+  document.getElementById('cp_bg2').value=cfg.bg2||'#12121a';
+  document.getElementById('cp_bg2_hex').value=cfg.bg2||'#12121a';
+  document.getElementById('cp_text').value=cfg.textColor||'#eaeaf2';
+  document.getElementById('cp_text_hex').value=cfg.textColor||'#eaeaf2';
+  // Logo
+  if(cfg.logo){document.getElementById('logoPreviewWrap').innerHTML='<img src="'+cfg.logo+'" class="logo-preview"><br><div style="font-size:11px;color:var(--text2);margin-top:6px">Clique para trocar</div>';}
+  // Módulos toggle
+  const modNames={dashboard:'Dashboard',agenda:'Agenda',agendamentos:'Agendamentos',clientes:'Clientes',servicos:'Serviços',estoque:'Estoque',fichas:'Ficha Técnica',fidelidade:'Fidelidade',caixa:'Caixa',checklist:'Checklist',financeiro:'Financeiro',relatorios:'Relatórios',whatsapp:'WhatsApp',suporte:'Suporte'};
+  const modAtivos=cfg.modulos_ativos||MODULOS_SISTEMA;
+  document.getElementById('modulosToggle').innerHTML=MODULOS_SISTEMA.map(m=>'<div class="switch-row"><div><div class="switch-label">'+(modNames[m]||m)+'</div></div><label class="switch"><input type="checkbox" id="mod_'+m+'" '+(modAtivos.includes(m)?'checked':'')+' onchange="atualizarMenuModulos()"><span class="switch-slider"></span></label></div>').join('');
+}
+function carregarLogo(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('logoPreviewWrap').innerHTML='<img src="'+e.target.result+'" class="logo-preview"><br><div style="font-size:11px;color:var(--text2);margin-top:6px">Clique para trocar</div>';
+    const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+    if(i>=0){if(!DATA.tenants[i].aparencia)DATA.tenants[i].aparencia={};DATA.tenants[i].aparencia.logo=e.target.result;salvarDados();}
+    // Aplicar no logo-box
+    const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+e.target.result+'" style="max-width:30px;max-height:30px;object-fit:contain">';
+    toast('Logo carregado!');
+  };
+  reader.readAsDataURL(file);
+}
+function previewCores(){
+  const acc=document.getElementById('cp_accent').value;
+  document.getElementById('cp_accent_hex').value=acc;
+  document.root?.style.setProperty('--accent',acc);
+}
+function syncColor(key,hex){
+  if(/^#[0-9a-f]{6}$/i.test(hex)){
+    const cpMap={accent:'cp_accent',bg:'cp_bg',bg2:'cp_bg2',text:'cp_text'};
+    const el=document.getElementById(cpMap[key]);if(el)el.value=hex;
+  }
+}
+function aplicarCoresCustom(){
+  const accent=document.getElementById('cp_accent').value;
+  const bg=document.getElementById('cp_bg').value;
+  const bg2=document.getElementById('cp_bg2').value;
+  const textColor=document.getElementById('cp_text').value;
+  const r=document.documentElement;
+  r.style.setProperty('--accent',accent);r.style.setProperty('--accent2',accent);
+  r.style.setProperty('--bg',bg);r.style.setProperty('--bg2',bg2);
+  r.style.setProperty('--text',textColor);
+  r.style.setProperty('--accent-bg',accent+'22');
+  // Salvar no tenant
+  const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+  if(i>=0){if(!DATA.tenants[i].aparencia)DATA.tenants[i].aparencia={};Object.assign(DATA.tenants[i].aparencia,{accent,bg,bg2,textColor});}
+  logAuditoria('Alterou Cores do Sistema','Accent: '+accent);salvarDados();toast('Cores aplicadas!');
+}
+function resetCoresCustom(){
+  const r=document.documentElement;
+  r.style.removeProperty('--accent');r.style.removeProperty('--accent2');r.style.removeProperty('--bg');r.style.removeProperty('--bg2');r.style.removeProperty('--text');r.style.removeProperty('--accent-bg');
+  const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+  if(i>=0&&DATA.tenants[i].aparencia)delete DATA.tenants[i].aparencia.accent;
+  salvarDados();toast('Cores resetadas!');
+}
+function salvarMarca(){
+  const nome=document.getElementById('adm_sys_nome').value;
+  const sub=document.getElementById('adm_sys_sub').value;
+  const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+  if(i>=0){if(!DATA.tenants[i].aparencia)DATA.tenants[i].aparencia={};Object.assign(DATA.tenants[i].aparencia,{sys_nome:nome,sys_sub:sub});}
+  // Aplicar
+  const lb=document.querySelector('.logo-name');if(lb&&nome)lb.textContent=nome;
+  const ver=document.querySelector('.logo-ver');if(ver&&sub)ver.textContent=sub;
+  const ttl=document.querySelector('.login-logo h2');if(ttl&&nome)ttl.textContent=nome;
+  document.title=nome||'GBR Sistemas';
+  logAuditoria('Editou Marca do Sistema',nome);salvarDados();toast('Marca aplicada!');
+}
+function aplicarFontSize(){
+  const sz=document.getElementById('adm_font_size').value;
+  document.body.style.fontSize=sz+'px';
+}
+function atualizarMenuModulos(){
+  const ativos=MODULOS_SISTEMA.filter(m=>{const el=document.getElementById('mod_'+m);return el?el.checked:true;});
+  const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
+  if(i>=0){if(!DATA.tenants[i].aparencia)DATA.tenants[i].aparencia={};DATA.tenants[i].aparencia.modulos_ativos=ativos;}
+  salvarDados();
+}
+function carregarAparenciaTenant(){
+  if(!currentTenant?.aparencia)return;
+  const ap=currentTenant.aparencia;
+  const r=document.documentElement;
+  if(ap.accent){r.style.setProperty('--accent',ap.accent);r.style.setProperty('--accent2',ap.accent);r.style.setProperty('--accent-bg',ap.accent+'22');}
+  if(ap.bg)r.style.setProperty('--bg',ap.bg);
+  if(ap.bg2)r.style.setProperty('--bg2',ap.bg2);
+  if(ap.textColor)r.style.setProperty('--text',ap.textColor);
+  if(ap.sys_nome){const lb=document.querySelector('.logo-name');if(lb)lb.textContent=ap.sys_nome;document.title=ap.sys_nome;}
+  if(ap.logo){const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+ap.logo+'" style="max-width:30px;max-height:30px;object-fit:contain">';}
+}
+
+// ── Integrações ────────────────────────────────────────────
+function renderAdminIntegracoes(){
+  const integ=[
+    {ico:'📍',nome:'Via CEP',desc:'Busca automática de endereço por CEP',key:'viacep',ativo:true},
+    {ico:'💬',nome:'WhatsApp API',desc:'Envio direto via API (BusinessAPI)',key:'wa_api',ativo:false},
+    {ico:'🗺',nome:'Google Maps',desc:'Cálculo de distância leva e traz',key:'maps',ativo:false},
+    {ico:'📊',nome:'Google Analytics',desc:'Rastreamento de uso do sistema',key:'analytics',ativo:false},
+    {ico:'📧',nome:'E-mail SMTP',desc:'Envio de confirmações por email',key:'smtp',ativo:false}
+  ];
+  const cfg=DATA.configuracoes[currentTenant?.id]||{};
+  document.getElementById('integsLista').innerHTML=integ.map(ig=>{
+    const isAtivo=cfg['integ_'+ig.key]!==false&&ig.ativo||cfg['integ_'+ig.key]===true;
+    return'<div class="integ-card"><div class="integ-icon" style="background:var(--bg4)">'+ig.ico+'</div><div class="integ-info"><div class="integ-name">'+ig.nome+'</div><div class="integ-desc">'+ig.desc+'</div></div><label class="switch"><input type="checkbox" '+(isAtivo?'checked':'')+' onchange="toggleInteg(\''+ig.key+'\',this.checked)"><span class="switch-slider"></span></label></div>';
+  }).join('');
+}
+function toggleInteg(key,val){
+  const tid=currentTenant?.id;
+  if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
+  DATA.configuracoes[tid]['integ_'+key]=val;
+  logAuditoria((val?'Ativou':'Desativou')+' Integração',key);salvarDados();toast((val?'Ativado':'Desativado')+': '+key);
+}
+
+// ── Auditoria ─────────────────────────────────────────────
+function renderAuditoria(){
+  const busca=(document.getElementById('auditBusca')?.value||'').toLowerCase();
+  const lista=(DATA.auditoria||[]).filter(a=>{if(a.tenant_id&&currentTenant&&a.tenant_id!==currentTenant.id)return false;if(busca&&!(a.acao+' '+a.detalhes+' '+a.usuario).toLowerCase().includes(busca))return false;return true;}).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const el=document.getElementById('auditLista');if(!el)return;
+  if(!lista.length){el.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">🔍</div><div class="empty-title">Nenhum registro</div></div>';return;}
+  el.innerHTML=lista.slice(0,100).map(a=>'<div class="audit-item"><div class="audit-dot"></div><div class="audit-time">'+fmtDateTime(a.ts)+'</div><div class="audit-user">'+( a.usuario||'Sistema')+'</div><div class="audit-action"><strong>'+a.acao+'</strong>'+(a.detalhes?' — '+a.detalhes:'')+'</div></div>').join('');
+}
+function limparAuditoria(){if(!confirm('Limpar todos os logs?'))return;DATA.auditoria=[];salvarDados();renderAuditoria();toast('Logs limpos');}
+
+// ── Agenda Online ──────────────────────────────────────────
+const DIAS_SEMANA=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+function renderAgendaOnline(){
+  if(!currentTenant)return;
+  const cfg=DATA.configuracoes[currentTenant.id]||{};
+  const link='https://gbrsistemas.com.br/agendar/'+( currentTenant.slug||'minha-estetica');
+  document.getElementById('aoLink').value=link;
+  document.getElementById('aoAtivo').checked=cfg.ao_ativo!==false;
+  // Horários
+  const horarios=cfg.ao_horarios||DIAS_SEMANA.map((d,i)=>({dia:i,nome:d,ativo:i<5,inicio:'08:00',fim:'18:00'}));
+  document.getElementById('aoHorarios').innerHTML=horarios.map((h,i)=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aodia_'+i+'" '+(h.ativo?'checked':'')+' onchange=""><span class="switch-slider"></span></label><span style="font-size:13px;min-width:70px">'+h.nome+'</span></div><div style="display:flex;gap:8px;align-items:center"><input type="time" value="'+h.inicio+'" id="aoinicio_'+i+'" style="width:90px;font-size:12px"> às <input type="time" value="'+h.fim+'" id="aofim_'+i+'" style="width:90px;font-size:12px"></div></div>').join('');
+  // Serviços disponíveis online
+  const servs=DATA.servicos.filter(s=>s.tenant_id===currentTenant.id&&s.ativo);
+  const servOnline=cfg.ao_servicos||servs.map(s=>s.id);
+  document.getElementById('aoServicos').innerHTML=servs.map(s=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aoserv_'+s.id+'" '+(servOnline.includes(s.id)?'checked':'')+' ><span class="switch-slider"></span></label><span style="font-size:13px">'+s.nome+'</span></div><span style="font-size:12px;color:var(--accent)">'+fmtMoney(s.preco_base)+'</span></div>').join('');
+}
+function copiarLinkOnline(){const el=document.getElementById('aoLink');navigator.clipboard?.writeText(el.value).then(()=>toast('Link copiado!'));}
+function salvarAgendaOnline(){
+  const tid=currentTenant?.id;if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
+  const horarios=DIAS_SEMANA.map((d,i)=>({dia:i,nome:d,ativo:document.getElementById('aodia_'+i)?.checked||false,inicio:document.getElementById('aoinicio_'+i)?.value||'08:00',fim:document.getElementById('aofim_'+i)?.value||'18:00'}));
+  const servOnline=DATA.servicos.filter(s=>s.tenant_id===currentTenant.id&&s.ativo&&document.getElementById('aoserv_'+s.id)?.checked).map(s=>s.id);
+  Object.assign(DATA.configuracoes[tid],{ao_ativo:document.getElementById('aoAtivo').checked,ao_horarios:horarios,ao_servicos:servOnline});
+  logAuditoria('Salvou Agenda Online','');salvarDados();toast('Agenda online salva!');
+}
+
+// ── Manual ─────────────────────────────────────────────────
+function renderManual(){
+  const secoes=[
+    {ico:'🏠',titulo:'Dashboard',conteudo:'O Dashboard é a tela inicial do sistema. Exibe um resumo do dia: receita, agendamentos, clientes ativos e serviços do mês. Os <strong>alertas inteligentes</strong> mostram aniversários, clientes inativos e estoque crítico.'},
+    {ico:'📅',titulo:'Agenda',conteudo:'Visualize os agendamentos do dia em formato de grade de horários. Clique em um horário vazio para criar um novo agendamento rapidamente. Use os botões de navegação para mudar o dia visualizado.'},
+    {ico:'📋',titulo:'Agendamentos',conteudo:'Lista completa de todos os agendamentos. Use a busca para encontrar por cliente, veículo ou placa. Altere o status (Iniciar, Concluir, Cancelar) diretamente na lista. Ao concluir, o valor entra automaticamente no caixa.'},
+    {ico:'👥',titulo:'Clientes',conteudo:'Cadastre e gerencie clientes com todos seus dados. A busca inteligente funciona por nome, telefone ou CPF. O endereço é preenchido automaticamente via CEP. Todo cliente cadastrado entra automaticamente no programa de fidelidade.'},
+    {ico:'⚙',titulo:'Serviços',conteudo:'Catálogo de serviços oferecidos. Cada serviço tem: nome, descrição, tempo estimado, valor, pontos de fidelidade e opção leva e traz. O tempo estimado é usado para bloqueio automático na agenda.'},
+    {ico:'📦',titulo:'Estoque',conteudo:'Controle de produtos e insumos. O sistema alerta quando um produto atinge o estoque mínimo. Use o botão "± Mover" para fazer entradas, sangrias e ajustes de inventário.'},
+    {ico:'🧪',titulo:'Ficha Técnica',conteudo:'Monte a ficha técnica de cada serviço com insumos utilizados e outros custos (mão de obra, desgaste, custo fixo). O sistema calcula automaticamente o custo total, lucro e margem. Se alterar o preço de um insumo no estoque, a ficha é recalculada.'},
+    {ico:'⭐',titulo:'Fidelidade',conteudo:'Programa de pontos: crie regras (ex: 500 pontos = desconto 20%). O cliente acumula pontos a cada serviço concluído. Quando atingir a meta, aparece um alerta para resgate. Ao resgatar, os pontos são zerados automaticamente.'},
+    {ico:'💵',titulo:'Caixa',conteudo:'Abra o caixa informando o saldo inicial. Todos os serviços concluídos entram automaticamente. Faça movimentações manuais (entrada, saída, sangria). No fechamento, compare o valor esperado com o contado fisicamente.'},
+    {ico:'✅',titulo:'Checklist',conteudo:'Vistoria de entrada/saída do veículo. Vincule ao agendamento, marque cada item (OK, Não OK, N/A), adicione fotos e colete a assinatura digital do cliente. Ao aprovar com assinatura, os dados são salvos permanentemente.'},
+    {ico:'📊',titulo:'Financeiro',conteudo:'Controle completo de entradas e saídas, separado do caixa diário. Registre despesas fixas, salários, aluguel. Filtre por período e categoria. Todas as edições são registradas no log de auditoria.'},
+    {ico:'📈',titulo:'Relatórios',conteudo:'Análises do negócio: faturamento, ticket médio, formas de pagamento, receita por serviço. Exporte para CSV. Registre avaliações NPS dos clientes para medir satisfação.'},
+    {ico:'💬',titulo:'WhatsApp',conteudo:'Envie mensagens usando templates com variáveis dinâmicas ({nome}, {data}, {servico}...). Crie seus próprios templates. O botão "Abrir WhatsApp" abre a conversa no WhatsApp Web com a mensagem já preenchida.'},
+    {ico:'🎫',titulo:'Suporte',conteudo:'Abra chamados de suporte com título, descrição, prioridade e módulo afetado. Acompanhe o status (Aberto, Em Andamento, Resolvido). O contador no menu indica chamados abertos.'},
+    {ico:'🛡',titulo:'Painel Admin',conteudo:'<strong>Acessos:</strong> Gerencie usuários e permissões por perfil. <strong>Regras:</strong> Configure descontos, automações e backup. <strong>Empresa:</strong> Dados, logo e chaves de API. <strong>Aparência:</strong> White label com cores e logo customizados. <strong>Integrações:</strong> Ative/desative integrações. <strong>Auditoria:</strong> Log de todas as ações do sistema. <strong>Agenda Online:</strong> Configure o link público de agendamento.'}
+  ];
+  const el=document.getElementById('manualConteudo');if(!el)return;
+  el.innerHTML=secoes.map(s=>'<div class="manual-section"><div class="manual-section-title">'+s.ico+' '+s.titulo+'</div><div class="manual-item">'+s.conteudo+'</div></div>').join('');
+}
+
+// ══ SALVAR AGENDAMENTO — Log de Auditoria ══════════════════
+// Sobrescrever para adicionar log de auditoria
+const _origMudarStatus=mudarStatus;
+function mudarStatus(id,novoSt){
+  const ag=DATA.agendamentos.find(a=>a.id===id);
+  if(ag)logAuditoria('Mudou Status Agendamento',cliNome(ag.cliente_id)+' → '+statusLabel(novoSt));
+  _origMudarStatus(id,novoSt);
+}
+const _origSalvarCliente=salvarCliente;
+function salvarCliente(){
+  const nome=document.getElementById('c_nome').value;
+  const isNovo=!document.getElementById('clienteId').value;
+  _origSalvarCliente();
+  logAuditoria(isNovo?'Cadastrou Cliente':'Editou Cliente',nome);
+}
+const _origSalvarServico=salvarServico;
+function salvarServico(){
+  const nome=document.getElementById('s_nome').value;
+  const valor=document.getElementById('s_valor').value;
+  const isNovo=!document.getElementById('servicoId').value;
+  const antigo=DATA.servicos.find(s=>s.id===document.getElementById('servicoId').value);
+  _origSalvarServico();
+  if(!isNovo&&antigo)logAuditoria('Editou Valor Serviço',nome+' — R$ '+antigo.preco_base+' → R$ '+valor);
+  else logAuditoria('Cadastrou Serviço',nome+' — R$ '+valor);
+}
+
+// ══ Títulos adicionais para showPage ══════════════════════
+// Já definido acima no override de showPage — sem duplicação
+
+// Carregamento inicial dos novos módulos
+document.addEventListener('DOMContentLoaded',()=>{
+  // Verificar se usuário logado
+  setTimeout(()=>{if(currentTenant)carregarAparenciaTenant();},200);
+});
+</script>
