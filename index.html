@@ -1941,17 +1941,47 @@ function showMsg(id,msg,tipo){const el=document.getElementById(id);el.className=
 
 // ===== NAVEGAÇÃO =====
 function showPage(name){
+  // Route guard
+  if(name==='console'&&(!currentUser||currentUser.role!=='superadmin')){toast('Acesso restrito.','error');return;}
+
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('pg-'+name);if(pg)pg.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+name+"'"))n.classList.add('active');});
-  const titles={dashboard:'Dashboard',agenda:'Agenda',agendamentos:'Agendamentos',clientes:'Clientes',servicos:'Serviços',estoque:'Estoque',fichas:'Ficha Técnica',fidelidade:'Fidelidade',caixa:'Caixa',checklist:'Checklist','agenda-semana':'Agenda Semanal',relatorios:'Relatórios',whatsapp:'WhatsApp',config:'Configurações',console:'Console Master'};
-  document.getElementById('topbarTitle').textContent=titles[name]||name;
-  if(name==='console'&&(!currentUser||currentUser.role!=='superadmin')){toast('Acesso restrito.','error');return;}
-  // Route guard: console só para superadmin
-  if(name==='console'&&(!currentUser||currentUser.role!=='superadmin')){toast('Acesso restrito.','error');return;}
-  const renders={dashboard:renderDashboard,agenda:renderAgenda,'agenda-semana':renderAgendaSemana,agendamentos:renderAgendamentos,clientes:renderClientes,servicos:renderServicos,estoque:renderEstoque,fichas:renderFichas,fidelidade:renderFidelidade,caixa:renderCaixa,checklist:renderChecklists,relatorios:renderRelatorios,whatsapp:renderWhatsapp,console:renderConsole};
+
+  const titles={
+    dashboard:'Dashboard',agenda:'Agenda','agenda-semana':'Agenda Semanal',
+    agendamentos:'Agendamentos',clientes:'Clientes',servicos:'Serviços',
+    estoque:'Estoque',fichas:'Ficha Técnica',fidelidade:'Fidelidade',
+    caixa:'Caixa',checklist:'Checklist',relatorios:'Relatórios',
+    whatsapp:'WhatsApp',config:'Configurações',console:'Console Master',
+    financeiro:'Financeiro',suporte:'Suporte',admin:'Painel Administrativo'
+  };
+  const el=document.getElementById('topbarTitle');
+  if(el)el.textContent=titles[name]||name;
+
+  // Render map — ALL pages unified, no chained overrides
+  const renders={
+    dashboard:renderDashboard,
+    agenda:renderAgenda,
+    'agenda-semana':renderAgendaSemana,
+    agendamentos:renderAgendamentos,
+    clientes:renderClientes,
+    servicos:renderServicos,
+    estoque:renderEstoque,
+    fichas:renderFichas,
+    fidelidade:renderFidelidade,
+    caixa:renderCaixa,
+    checklist:renderChecklists,
+    relatorios:renderRelatorios,
+    whatsapp:renderWhatsapp,
+    console:renderConsole,
+    financeiro:()=>{ if(typeof renderFinanceiro==='function')renderFinanceiro(); },
+    suporte:()=>{ if(typeof renderTickets==='function')renderTickets(); },
+    admin:()=>{ if(typeof renderAdminPage==='function')renderAdminPage(); }
+  };
   renders[name]?.();
+
   if(window.innerWidth<900)toggleSidebar();
 }
 
@@ -2041,6 +2071,10 @@ function renderDashboard(){
   const prontos=DATA.clientes.filter(c=>c.tenant_id===currentTenant.id&&c.ativo&&regras.some(r=>c.pontos_fidelidade>=r.pontos));
   if(!prontos.length){fidEl.innerHTML='<div class="empty"><div class="empty-title">Nenhum cliente com pontos para resgate</div></div>';}
   else fidEl.innerHTML=prontos.slice(0,5).map(c=>{const reg=regras.filter(r=>c.pontos_fidelidade>=r.pontos);return'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div class="td-name">'+c.nome_completo+'</div><div class="td-sub">'+reg.map(r=>r.nome).join(', ')+'</div></div><span class="points-pill">⭐ '+c.pontos_fidelidade+'</span></div>';}).join('');
+  // Extras (alertas inteligentes + data no subtítulo)
+  if(typeof renderAlertasInteligentes==='function')renderAlertasInteligentes();
+  const sub=document.getElementById('dashDataSub');
+  if(sub)sub.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 }
 
 // ===== AGENDA =====
@@ -3382,13 +3416,8 @@ function renderAlertasInteligentes(){
   el.innerHTML='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">'+alertas.slice(0,4).map((a,idx)=>'<div class="alert-smart" style="border-left-color:'+a.cor+'"><span style="font-size:20px">'+a.ico+'</span><div style="flex:1"><div style="font-size:13px;font-weight:600;color:'+a.cor+'">'+a.titulo+'</div><div style="font-size:11.5px;color:var(--text2);margin-top:2px">'+a.desc+'</div></div><button class="btn btn-ghost btn-xs" onclick="window._alertFns['+idx+']()">'+a.cta+'</button></div>').join('')+'</div>';
 }
 
-const _origRenderDash=typeof renderDashboard==='function'?renderDashboard:null;
-function renderDashboard(){
-  if(_origRenderDash)_origRenderDash();
-  renderAlertasInteligentes();
-  const sub=document.getElementById('dashDataSub');
-  if(sub)sub.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-}
+// renderDashboard extendida — sem override recursivo
+// As chamadas extras (alertas, data) são adicionadas diretamente ao final da renderDashboard original abaixo.
 
 // ═══════════════════════════════════════════════
 // ===== AGENDA SEMANAL =====
@@ -3704,16 +3733,7 @@ function logAuditoria(acao,detalhes){
   salvarDados();
 }
 
-// Interceptar showPage para módulos adicionais
-const _origShowPage=showPage;
-function showPage(name){
-  _origShowPage(name);
-  const renders2={financeiro:renderFinanceiro,suporte:renderTickets,admin:renderAdmin};
-  renders2[name]?.();
-  if(name==='admin')renderAdminPage();
-  const titlesExtra={financeiro:'Financeiro',suporte:'Suporte',admin:'Painel Administrativo'};
-  if(titlesExtra[name]){const el=document.getElementById('topbarTitle');if(el)el.textContent=titlesExtra[name];}
-}
+// showPage unificado — overrides removidos para evitar recursão
 
 // ══ FINANCEIRO ════════════════════════════════════════════
 function renderFinanceiro(){
