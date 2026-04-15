@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="GBR Pro">
 <meta name="mobile-web-app-capable" content="yes">
 <title>GBR Sistemas v5.0 — Gestão para Estéticas Automotivas</title>
+<!-- ══ Firebase SDK — Integração com Console de Licenciamento ══ -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&family=Bebas+Neue&display=swap');
 
@@ -1684,6 +1688,240 @@ const CONFIG = {
 // ===== ESTADO =====
 let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[]};
 let currentUser=null,currentTenant=null,currentCaixa=null;
+
+// ════════════════════════════════════════════════════════
+//  GBR LICENSE BRIDGE — Integração Firebase ↔ Console
+// ════════════════════════════════════════════════════════
+var _gbrFbDb = null, _gbrFbAuth = null, _gbrLicMonitor = null;
+(function _gbrFirebaseInit(){
+  try {
+    var GBR_FB = {
+      apiKey:        "AIzaSyAg-UvkLSkZdnYZz1a_JySU_tbHrHkLeVI",
+      authDomain:    "gbr-sistemas-admin-964c5.firebaseapp.com",
+      databaseURL:   "https://gbr-sistemas-admin-964c5-default-rtdb.firebaseio.com",
+      projectId:     "gbr-sistemas-admin-964c5",
+      storageBucket: "gbr-sistemas-admin-964c5.firebasestorage.app",
+      appId:         "1:713445653786:web:89104a17c993b3a40f40a3"
+    };
+    var app = firebase.apps.find(a=>a.name==='gbr-lic') || firebase.initializeApp(GBR_FB,'gbr-lic');
+    _gbrFbDb   = firebase.database(app);
+    _gbrFbAuth = firebase.auth(app);
+    console.log('[GBR] Firebase de licenciamento conectado.');
+  } catch(e) {
+    console.warn('[GBR] Firebase de licenciamento indisponível:', e.message);
+  }
+})();
+
+/* ── Carrega personalizações CMS do Firebase para este tenant ── */
+function _gbrCarregarPersonalizacoes(tenantId, tenantData) {
+  if (!tenantData) return;
+  var r = document.documentElement;
+
+  // Estilo / White-label
+  var stl = tenantData.style || {};
+  if (stl.ac)  r.style.setProperty('--accent',  stl.ac);
+  if (stl.ac2) r.style.setProperty('--accent2', stl.ac2);
+  if (stl.bg)  r.style.setProperty('--bg',      stl.bg);
+  if (stl.name) {
+    var lb = document.querySelector('.logo-name');
+    if (lb) lb.textContent = stl.name;
+    document.title = stl.name;
+  }
+
+  // CSS customizado
+  if (tenantData.cms_css) {
+    var el = document.getElementById('gbr-cms-css') || document.createElement('style');
+    el.id = 'gbr-cms-css'; el.textContent = tenantData.cms_css;
+    if (!el.parentNode) document.head.appendChild(el);
+  }
+
+  // JS customizado (executado com segurança)
+  if (tenantData.cms_js) {
+    try { (new Function(tenantData.cms_js))(); }
+    catch(e) { console.warn('[GBR CMS JS]', e); }
+  }
+
+  // Notificação do admin pendente
+  if (tenantData.cms_notif && !tenantData.cms_notif.lido) {
+    var n = tenantData.cms_notif;
+    setTimeout(function(){ toast(n.msg, n.tipo || 'info'); }, 2500);
+    try { _gbrFbDb.ref('tenants/'+tenantId+'/cms_notif/lido').set(true); } catch(e){}
+  }
+
+  // Injeções HTML/JS
+  if (tenantData.cms_injecoes) {
+    Object.entries(tenantData.cms_injecoes).forEach(function(kv){
+      if (!kv[1] || kv[1].ativo === false) return;
+      _gbrAplicarInjecao(kv[0], kv[1]);
+    });
+  }
+}
+
+/* ── Injeta um bloco HTML/JS na posição correta ── */
+function _gbrAplicarInjecao(id, inj) {
+  var old = document.getElementById('gbr-inj-'+id);
+  if (old) old.remove();
+  var wrap = document.createElement('div');
+  wrap.id = 'gbr-inj-'+id;
+  wrap.innerHTML = inj.code || '';
+  var pos = inj.pos || 'bottom';
+  if (pos === 'top') {
+    var app = document.getElementById('appShell') || document.body.firstElementChild;
+    document.body.insertBefore(wrap, app);
+  } else if (pos === 'sidebar') {
+    var nav = document.querySelector('.sidebar');
+    if (nav) nav.appendChild(wrap); else document.body.appendChild(wrap);
+  } else if (pos === 'global') {
+    document.head.appendChild(wrap);
+  } else {
+    document.body.appendChild(wrap);
+  }
+  wrap.querySelectorAll('script').forEach(function(s){
+    try { (new Function(s.textContent))(); } catch(e){ console.warn('[GBR Inject]',e); }
+  });
+}
+
+/* ── Monitor em tempo real: kill switch + expiração de licença ── */
+function _gbrMonitorarLicenca(tenantId) {
+  if (!_gbrFbDb || !tenantId) return;
+  if (_gbrLicMonitor) { try { _gbrLicMonitor(); } catch(e){} }
+  var ref = _gbrFbDb.ref('tenants/'+tenantId+'/licenca');
+  ref.on('value', function(snap){
+    var lic = snap.val();
+    if (!lic) return;
+    var bloqueado = lic.killSwitch === true
+      || lic.status === 'inativo'
+      || (lic.expiracao && new Date(lic.expiracao) < new Date());
+    if (bloqueado && currentUser && currentUser._gbrFromFB) {
+      toast('⛔ Seu acesso foi suspenso. Entre em contato com o suporte.','err');
+      setTimeout(function(){ fazerLogout(); }, 3500);
+    }
+  });
+  _gbrLicMonitor = function(){ ref.off(); };
+}
+
+/* ── Login via Firebase Auth + validação de licença em tempo real ── */
+async function _gbrLoginFirebase(email, senha) {
+  if (!_gbrFbAuth || !_gbrFbDb) return false;
+  try {
+    await _gbrFbAuth.signInWithEmailAndPassword(email, senha);
+  } catch(e) {
+    // Erros esperados: credencial inválida → fallback para auth local
+    if (['auth/wrong-password','auth/user-not-found','auth/invalid-credential',
+         'auth/invalid-email','auth/too-many-requests'].includes(e.code)) {
+      return false; // deixa o login local tentar
+    }
+    // Erros de rede / configuração → logar mas não bloquear o local
+    console.warn('[GBR Firebase Auth]', e.code, e.message);
+    return false;
+  }
+
+  // Buscar mapeamento tenant
+  var emailKey = email.toLowerCase().replace(/\./g,'_').replace(/@/g,'__');
+  var userTenantSnap = await _gbrFbDb.ref('userTenants/'+emailKey).once('value');
+  var userTenant = userTenantSnap.val();
+  if (!userTenant) return false; // usuário Firebase sem tenant → fallback local
+
+  var tenantId = userTenant.tenantId;
+  var tenantSnap = await _gbrFbDb.ref('tenants/'+tenantId).once('value');
+  var tenantData = tenantSnap.val();
+  if (!tenantData) { showLoginMsg('Estética não encontrada. Contate o suporte.','erro'); return true; }
+
+  var lic  = tenantData.licenca || {};
+  var info = tenantData.info    || {};
+
+  // Validações de licença
+  if (lic.killSwitch === true) {
+    showLoginMsg('⛔ Acesso bloqueado pelo administrador. Contate o suporte.','erro'); return true;
+  }
+  if (lic.status === 'inativo') {
+    showLoginMsg('Conta inativa. Contate o suporte.','erro'); return true;
+  }
+  if (lic.expiracao && new Date(lic.expiracao) < new Date()) {
+    var expFmt = new Date(lic.expiracao).toLocaleDateString('pt-BR');
+    showLoginMsg('Licença expirada em '+expFmt+'. Contate o suporte.','erro'); return true;
+  }
+  if (userTenant.authStatus && userTenant.authStatus !== 'ativo') {
+    showLoginMsg('Usuário inativo. Contate o suporte.','erro'); return true;
+  }
+
+  // Montar objetos compatíveis com o sistema
+  var fbTenant = {
+    id: tenantId,
+    nome: info.nome || tenantId,
+    slug: (info.nome||tenantId).toLowerCase().replace(/[^a-z0-9]/g,'-'),
+    data_expiracao: lic.expiracao || null,
+    ativo: lic.status !== 'inativo',
+    plano_nome: lic.plano || 'basico',
+    plano_valor: 0,
+    created_at: info.criadoEm || new Date().toISOString(),
+    aparencia: tenantData.style ? {
+      accent: tenantData.style.ac,
+      bg:     tenantData.style.bg,
+      sys_nome: tenantData.style.name
+    } : null,
+    _gbrFbData: tenantData
+  };
+
+  var fbUser = {
+    id: tenantId + '__' + emailKey,
+    email: email.toLowerCase(),
+    nome: userTenant.nome || info.responsavel || email.split('@')[0],
+    role: userTenant.role || 'owner',
+    tenant_id: tenantId,
+    password: '__firebase__',
+    must_change_password: false,
+    ativo: true,
+    created_at: userTenant.criadoEm || new Date().toISOString(),
+    _gbrFromFB: true
+  };
+
+  // Sincronizar com DATA (sem duplicar)
+  var tIdx = DATA.tenants.findIndex(function(t){ return t.id === tenantId; });
+  if (tIdx >= 0) DATA.tenants[tIdx] = fbTenant; else DATA.tenants.push(fbTenant);
+  var uIdx = DATA.users.findIndex(function(u){ return u.id === fbUser.id; });
+  if (uIdx >= 0) DATA.users[uIdx] = fbUser; else DATA.users.push(fbUser);
+
+  // Login
+  loginSucesso(fbUser);
+
+  // Personalizações CMS (estilo, CSS, JS, notificações, injeções)
+  _gbrCarregarPersonalizacoes(tenantId, tenantData);
+
+  // Monitoramento em tempo real de licença
+  _gbrMonitorarLicenca(tenantId);
+
+  return true; // login tratado pelo Firebase
+}
+
+/* ── Listener postMessage: recebe comandos CMS do Console ── */
+window.addEventListener('message', function(evt) {
+  var d = evt.data;
+  if (!d || d.gbr) return; // mensagens GBR_API já tratadas em outro listener
+  switch(d.type) {
+    case 'cms_style_preview': {
+      var r = document.documentElement;
+      if (d.ac)   r.style.setProperty('--accent',  d.ac);
+      if (d.ac2)  r.style.setProperty('--accent2', d.ac2);
+      if (d.bg)   r.style.setProperty('--bg',      d.bg);
+      if (d.name) { var lb=document.querySelector('.logo-name'); if(lb) lb.textContent=d.name; }
+      break;
+    }
+    case 'cms_css_preview': {
+      var el = document.getElementById('gbr-cms-css-preview') || document.createElement('style');
+      el.id = 'gbr-cms-css-preview'; el.textContent = d.css || '';
+      if (!el.parentNode) document.head.appendChild(el);
+      break;
+    }
+    case 'cms_js_exec':
+      try { (new Function(d.js))(); } catch(e){ console.warn('[GBR CMS JS Preview]',e); }
+      break;
+    case 'cms_inject_preview':
+      if (d.code) _gbrAplicarInjecao('preview-tmp', {pos: d.pos||'bottom', code: d.code, ativo: true});
+      break;
+  }
+});
+// ════════════════════════════════════════════════════════
 let diaAgenda=new Date();
 let semanaAgenda=new Date();
 let chkItens=[],fotosChk=[],assinOk=false,assinData=null;
@@ -1903,12 +2141,39 @@ function seedDados(saEmail, saSenha, empresaNome) {
 // ===== AUTH =====
 // Brute force protection
 const _loginAttempts={};
-function fazerLogin(){
+
+/* ── Login principal: Firebase Auth primeiro, fallback local ── */
+async function fazerLogin(){
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const senha=document.getElementById('loginSenha').value.trim();
   if(!email||!senha){showLoginMsg('Preencha email e senha','erro');return;}
+
+  // Desabilitar botão durante o processo
+  var btn = document.querySelector('#loginPage button[onclick*="fazerLogin"]') ||
+            document.querySelector('#loginPage .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='Verificando...'; }
+  var _reativarBtn = function(){
+    if(btn){ btn.disabled=false; btn.textContent='Entrar'; }
+  };
+
+  try {
+    // 1) Tentar Firebase Auth (usuários cadastrados pelo Console)
+    var fbHandled = await _gbrLoginFirebase(email, senha);
+    if(fbHandled){ _reativarBtn(); return; } // Firebase tratou (sucesso ou erro de licença)
+
+    // 2) Fallback: auth local (superadmin e usuários criados dentro do sistema)
+    _fazerLoginLocal(email, senha);
+  } catch(e) {
+    console.error('[GBR Login]', e);
+    _fazerLoginLocal(email, senha); // em caso de exceção inesperada, tenta local
+  } finally {
+    _reativarBtn();
+  }
+}
+
+/* ── Auth local (localStorage) — mantido para retrocompatibilidade ── */
+function _fazerLoginLocal(email, senha){
   if(DATA.users.length===0){mostrarSetupInicial();return;}
-  // Check lockout
   const _now=Date.now();
   if(!_loginAttempts[email])_loginAttempts[email]={count:0,lockedUntil:0};
   if(_loginAttempts[email].lockedUntil>_now){
@@ -4890,6 +5155,21 @@ window.GBR_API = (function() {
         case 'toggleUser':         return reply(true, API.toggleUser(payload.userId));
         case 'getSessions':        return reply(true, API.getSessions());
         case 'exportTenantsCSV':   return reply(true, API.exportTenantsCSV());
+        case 'getLicenseInfo': {
+          // Retorna info de licença do tenant atual (para o Console exibir no CMS)
+          const t = currentTenant;
+          if (!t) return reply(false, null, 'Nenhum tenant ativo');
+          return reply(true, {
+            tenantId: t.id,
+            nome: t.nome,
+            plano: t.plano_nome || 'free',
+            expiracao: t.data_expiracao || null,
+            ativo: t.ativo,
+            diasRestantes: t.data_expiracao
+              ? Math.ceil((new Date(t.data_expiracao)-new Date())/86400000)
+              : null
+          });
+        }
         default:                   return reply(false, null, 'Ação desconhecida: ' + action);
       }
     } catch(err) {
