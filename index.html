@@ -324,9 +324,28 @@ td{padding:11px 14px;vertical-align:middle}
 .toggle-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:8px 0}
 .toggle-row input[type=checkbox]{width:16px;height:16px}
 
-/* ADMIN GRID */
+/* ═══ ADMIN GRID ═══ */
 .admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:699px){.admin-grid{grid-template-columns:1fr}}
+
+/* ═══ BADGE PLANO DINÂMICO — sem classe hardcoded .free/.pro ═══ */
+.badge-plano{
+  display:inline-block;padding:2px 10px;border-radius:20px;
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  background:var(--accent-bg);color:var(--accent);
+  border:1px solid rgba(245,158,11,.3)
+}
+
+/* ═══ MÓDULO BLOQUEADO (paywall) ═══ */
+.nav-item.locked-module{
+  opacity:.55;
+  position:relative
+}
+.nav-item.locked-module:hover{
+  background:rgba(239,68,68,.05)!important;
+  color:var(--text2)!important;
+  cursor:not-allowed
+}
 
 /* MISC */
 .divider{border:none;border-top:1px solid var(--border);margin:16px 0}
@@ -489,7 +508,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
 .role-tab.active{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
 /* ═══ CONSOLE MASTER ESTILOS ═══ */
 .license-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600}
-.license-chip.free{background:rgba(255,255,255,.06);color:var(--text2)}
+/* license-chip: usa badge-plano dinâmico — classes .free e .pro removidas */
 .license-chip.basic{background:rgba(59,130,246,.1);color:var(--blue)}
 .license-chip.pro{background:rgba(139,92,246,.1);color:var(--purple)}
 .license-chip.enterprise{background:rgba(245,158,11,.1);color:var(--accent)}
@@ -1053,8 +1072,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
           <div class="card-header"><div class="card-title">Hierarquia de Permissões</div><div class="card-sub">Defina o que cada perfil pode ver e fazer</div></div>
           <div style="display:flex;gap:8px;margin-bottom:14px" id="roleTabsWrap">
             <button class="role-tab active" onclick="setRoleTab('operador')">Operador</button>
-            <button class="role-tab" onclick="setRoleTab('admin')">Admin</button>
-            <button class="role-tab" onclick="setRoleTab('owner')">Owner</button>
+            <button class="role-tab" onclick="setRoleTab('admin')">Admin/Supervisor</button>
+            <button class="role-tab" onclick="setRoleTab('woner')">Woner</button>
           </div>
           <div id="permGrid"></div>
           <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="salvarPermissoes()">💾 Salvar Permissões</button>
@@ -1601,7 +1620,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div class="form-group"><label>Nome <span class="req">*</span></label><input type="text" id="u_nome" placeholder="Nome completo"></div>
       <div class="form-row">
         <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="u_email" placeholder="email@empresa.com"></div>
-        <div class="form-group"><label>Perfil</label><select id="u_role"><option value="operador">Operador</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
+        <div class="form-group"><label>Perfil</label><select id="u_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalUsuario')">Cancelar</button><button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button></div>
@@ -1696,7 +1715,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="ua_email" placeholder="email@empresa.com"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
+        <div class="form-group"><label>Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
         <div class="form-group"><label>Senha temporária</label><input type="password" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
       </div>
       <div class="form-group"><label>Status</label><select id="ua_status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
@@ -1723,6 +1742,103 @@ const CONFIG = {
 // ===== ESTADO =====
 let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[]};
 let currentUser=null,currentTenant=null,currentCaixa=null;
+
+// ════════════════════════════════════════════════════════
+//  GBR PAYWALL ENGINE — Paywall dinâmico baseado em módulos
+// ════════════════════════════════════════════════════════
+// Mapeamento: pageId (usado em showPage) → slug do módulo no plano
+var _GBR_MODULO_MAP = {
+  'agenda':        'agenda',
+  'agenda-semana': 'agenda',
+  'agendamentos':  'agendamento',
+  'clientes':      'cadastro',
+  'servicos':      'servicos',
+  'estoque':       'estoque',
+  'fichas':        'fichatecnica',
+  'fidelidade':    'fidelidade',
+  'caixa':         'caixa',
+  'checklist':     'checklist',
+  'relatorios':    'relatorios',
+  'whatsapp':      'whatsapp',
+  'financeiro':    'financeiro',
+  // Sempre liberados (independe do plano)
+  'dashboard':     null,
+  'config':        null,
+  'admin':         null,
+  'suporte':       null
+};
+
+// Verifica se um módulo está liberado para o usuário atual
+function _gbrModuloLiberado(pageId) {
+  var modSlug = _GBR_MODULO_MAP[pageId];
+  if (modSlug === null || modSlug === undefined) return true; // sem restrição
+  var libs = window._gbrModulosLiberados;
+  if (!libs || !Array.isArray(libs) || libs.length === 0) return true; // sem lista = tudo liberado
+  return libs.indexOf(modSlug) !== -1;
+}
+
+// Aplica/remove cadeados na sidebar conforme plano atual
+function _gbrAplicarPaywall() {
+  var libs = window._gbrModulosLiberados;
+  if (!libs || !Array.isArray(libs)) return;
+
+  document.querySelectorAll('.nav-item[onclick]').forEach(function(item) {
+    var onclick = item.getAttribute('onclick') || '';
+    var match = onclick.match(/showPage\(['"]([^'"]+)['"]\)/);
+    if (!match) return;
+    var pageId = match[1];
+    var modSlug = _GBR_MODULO_MAP[pageId];
+    if (!modSlug) return; // página livre
+
+    // Remove cadeado anterior
+    var oldLock = item.querySelector('.gbr-lock-icon');
+    if (oldLock) oldLock.remove();
+    item.classList.remove('locked-module');
+
+    var liberado = libs.indexOf(modSlug) !== -1;
+    if (!liberado) {
+      item.classList.add('locked-module');
+      var lock = document.createElement('span');
+      lock.className = 'gbr-lock-icon';
+      lock.style.cssText = 'margin-left:auto;font-size:12px;opacity:.7;flex-shrink:0';
+      lock.textContent = '🔒';
+      item.appendChild(lock);
+    }
+  });
+}
+
+// Exibe modal de upgrade quando módulo bloqueado é clicado
+function _gbrModalUpgrade(pageId) {
+  var modSlug = _GBR_MODULO_MAP[pageId] || pageId;
+  var nomePlano = window._gbrNomePlano || 'seu plano atual';
+  var nomes = {
+    agenda:'Agenda', agendamento:'Agendamentos', cadastro:'Clientes',
+    servicos:'Serviços', estoque:'Estoque', fichatecnica:'Ficha Técnica',
+    fidelidade:'Fidelidade', caixa:'Caixa do Dia', checklist:'Checklist',
+    relatorios:'Relatórios', whatsapp:'WhatsApp Automático', financeiro:'Financeiro'
+  };
+  var nomeModulo = nomes[modSlug] || modSlug;
+
+  // Remove modal anterior
+  var old = document.getElementById('gbr-upgrade-modal');
+  if (old) old.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'gbr-upgrade-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)';
+  modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:32px;max-width:400px;width:100%;text-align:center;animation:modalIn .2s ease">'
+    + '<div style="font-size:40px;margin-bottom:12px">🔒</div>'
+    + '<div style="font-size:18px;font-weight:700;margin-bottom:8px">Recurso indisponível</div>'
+    + '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px">'
+    + '<b>' + nomeModulo + '</b> não está incluído no plano <b>' + nomePlano + '</b>.<br>'
+    + 'Entre em contato com o suporte para fazer upgrade e liberar este módulo.</div>'
+    + '<div style="display:flex;gap:10px;justify-content:center">'
+    + '<button onclick="document.getElementById(\'gbr-upgrade-modal\').remove()" style="padding:10px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;font-family:inherit;font-size:13px">Fechar</button>'
+    + '<button onclick="document.getElementById(\'gbr-upgrade-modal\').remove();showPage(\'suporte\')" style="padding:10px 20px;background:var(--accent);border:none;border-radius:8px;color:#000;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600">📩 Falar com Suporte</button>'
+    + '</div></div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+}
 
 // ════════════════════════════════════════════════════════
 //  GBR LICENSE BRIDGE — Integração Firebase ↔ Console
@@ -1829,12 +1945,39 @@ function _gbrMonitorarLicenca(tenantId) {
   ref.on('value', function(snap){
     var lic = snap.val();
     if (!lic) return;
-    var bloqueado = lic.killSwitch === true
-      || lic.status === 'inativo'
-      || (lic.expiracao && new Date(lic.expiracao) < new Date());
-    if (bloqueado && currentUser && currentUser._gbrFromFB) {
-      toast('⛔ Seu acesso foi suspenso. Entre em contato com o suporte.','err');
-      setTimeout(function(){ fazerLogout(); }, 3500);
+
+    var killAtivo   = lic.killSwitch === true;
+    var inativo     = lic.status === 'inativo' || lic.ativo === false;
+    var expirado    = lic.expiracao && new Date(lic.expiracao) < new Date();
+
+    if ((killAtivo || inativo || expirado) && currentUser && currentUser._gbrFromFB) {
+      var motivo = killAtivo
+        ? '🔒 Licença Suspensa/Bloqueada pelo administrador.'
+        : expirado
+          ? '⏰ Sua licença expirou. Contate o suporte para renovar.'
+          : '⛔ Conta inativa. Entre em contato com o suporte.';
+
+      // Bloquear UI imediatamente com overlay
+      var overlay = document.createElement('div');
+      overlay.id = 'gbr-kill-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px';
+      overlay.innerHTML = '<div style="font-size:48px">🔒</div>'
+        + '<div style="font-family:\'DM Sans\',sans-serif;font-size:18px;font-weight:700;color:#fff;text-align:center;max-width:420px;line-height:1.5">' + motivo + '</div>'
+        + '<div style="font-size:13px;color:#aaa;text-align:center">Você será desconectado em instantes...</div>';
+      if (!document.getElementById('gbr-kill-overlay')) document.body.appendChild(overlay);
+
+      setTimeout(function(){
+        fazerLogout();
+        var ol = document.getElementById('gbr-kill-overlay');
+        if (ol) ol.remove();
+      }, 3500);
+    }
+
+    // Atualizar modulos_liberados em tempo real sem desconectar
+    if (lic.modulos_liberados && Array.isArray(lic.modulos_liberados)) {
+      window._gbrModulosLiberados = lic.modulos_liberados;
+      window._gbrMaxColaboradores = lic.max_colaboradores || 2;
+      _gbrAplicarPaywall();
     }
   });
   _gbrLicMonitor = function(){ ref.off(); };
@@ -1892,7 +2035,7 @@ async function _gbrLoginFirebase(email, senha) {
     slug: (info.nome||tenantId).toLowerCase().replace(/[^a-z0-9]/g,'-'),
     data_expiracao: lic.expiracao || null,
     ativo: lic.status !== 'inativo',
-    plano_nome: lic.plano || 'basico',
+    plano_nome: lic.nome_exibicao || lic.plano || 'basico',
     plano_valor: 0,
     created_at: info.criadoEm || new Date().toISOString(),
     aparencia: tenantData.style ? {
@@ -1903,11 +2046,42 @@ async function _gbrLoginFirebase(email, senha) {
     _gbrFbData: tenantData
   };
 
+  // ── Carregar módulos liberados dinamicamente do Firebase ──
+  // Prioridade: licença do tenant (override) → plano base → sem restrição
+  var modLibsPromise;
+  if (lic.modulos_liberados && Array.isArray(lic.modulos_liberados) && lic.modulos_liberados.length > 0) {
+    // Tenant tem override direto na licença
+    modLibsPromise = Promise.resolve(lic.modulos_liberados);
+    window._gbrMaxColaboradores = lic.max_colaboradores || 2;
+  } else {
+    // Busca do plano base no Firebase
+    modLibsPromise = _gbrFbDb.ref('planos/' + (lic.plano || 'basico')).once('value').then(function(pSnap){
+      var p = pSnap.val() || {};
+      window._gbrMaxColaboradores = p.max_colaboradores || p.colaboradores_max || 2;
+      if (p.modulos_liberados && Array.isArray(p.modulos_liberados)) return p.modulos_liberados;
+      // Fallback: converter objeto bool→array
+      return Object.entries(p.modulos||{}).filter(function(kv){return kv[1];}).map(function(kv){return kv[0];});
+    }).catch(function(){ return []; });
+  }
+
+  modLibsPromise.then(function(modLibs) {
+    window._gbrModulosLiberados = modLibs;
+    window._gbrNomePlano = lic.nome_exibicao || lic.plano || 'basico';
+    // Aplica cadeados após login
+    setTimeout(_gbrAplicarPaywall, 400);
+  });
+
+  // Normalizar role para padrão woner > admin > operador
+  var rawRole = userTenant.role || 'operador';
+  var normalizedRole = rawRole;
+  if (rawRole === 'dono' || rawRole === 'owner' || rawRole === 'superadmin') normalizedRole = 'woner';
+  if (rawRole === 'gerente') normalizedRole = 'admin';
+
   var fbUser = {
     id: tenantId + '__' + emailKey,
     email: email.toLowerCase(),
     nome: userTenant.nome || info.responsavel || email.split('@')[0],
-    role: userTenant.role || 'owner',
+    role: normalizedRole,
     tenant_id: tenantId,
     password: '__firebase__',
     must_change_password: false,
@@ -2342,12 +2516,31 @@ function loginSucesso(user){
   document.getElementById('trocaSenhaPage').style.display='none';
   document.getElementById('appShell').style.display='flex';
   document.getElementById('userName').textContent=user.nome;
-  document.getElementById('userRole').textContent={superadmin:'Superadmin',owner:'Owner',admin:'Admin',operador:'Operador'}[user.role]||user.role;
+
+  // Badge de role: mapeia woner/owner→Woner, admin→Admin, operador→Operador
+  var roleLabels = {woner:'Woner',owner:'Woner',superadmin:'Superadmin',admin:'Admin',operador:'Operador'};
+  document.getElementById('userRole').textContent = roleLabels[user.role] || user.role;
+
   document.getElementById('userAvatar').textContent=user.nome.charAt(0).toUpperCase();
-  if(currentTenant){document.getElementById('tenantNome').textContent=currentTenant.nome;document.getElementById('tenantSub').textContent=currentTenant.slug;}
+  if(currentTenant){
+    document.getElementById('tenantNome').textContent=currentTenant.nome;
+    document.getElementById('tenantSub').textContent=currentTenant.slug;
+
+    // Badge de plano dinâmico — usa nome_exibicao do plano, sem classe hardcoded
+    var nomePlanoDisplay = window._gbrNomePlano
+      || currentTenant.plano_nome
+      || (currentTenant._gbrFbData?.licenca?.nome_exibicao)
+      || (currentTenant._gbrFbData?.licenca?.plano)
+      || 'Plano';
+    var planoBadgeEl = document.getElementById('tenantPlanoBadge');
+    if (planoBadgeEl) {
+      planoBadgeEl.textContent = nomePlanoDisplay;
+      planoBadgeEl.className = 'badge-plano'; // classe única, sem .free/.pro etc.
+    }
+  }
   var navAdmin=document.getElementById('navItemAdmin');
   if(navAdmin){
-    if(['owner','admin','superadmin'].includes(user.role)){
+    if(['woner','owner','admin','superadmin'].includes(user.role)){
       navAdmin.removeAttribute('style');
       navAdmin.style.display='flex';
     } else {
@@ -2458,7 +2651,14 @@ function showMsg(id,msg,tipo){const el=document.getElementById(id);el.className=
 
 // ===== NAVEGAÇÃO =====
 function showPage(name){
-  if(name==='admin'&&currentUser&&!['owner','admin','superadmin'].includes(currentUser.role)){
+  // ── Paywall: intercepta módulos bloqueados ──
+  if (name !== 'admin' && name !== 'dashboard' && name !== 'config' && name !== 'suporte') {
+    if (!_gbrModuloLiberado(name)) {
+      _gbrModalUpgrade(name);
+      return false;
+    }
+  }
+  if(name==='admin'&&currentUser&&!['woner','owner','admin','superadmin'].includes(currentUser.role)){
     toast('Acesso restrito ao Painel Administrativo','error');return;
   }  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const pg=document.getElementById('pg-'+name);if(pg)pg.classList.add('active');
@@ -4608,15 +4808,46 @@ function renderAdminAcessos(){
   const tb=document.getElementById('adminUsersTbody');
   if(!tb)return;
   if(!users.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum usuário cadastrado</td></tr>';return;}
-  const roleLabel={owner:'Owner',admin:'Admin',operador:'Operador'};
-  const roleColor={owner:'badge-purple',admin:'badge-blue',operador:'badge-gray'};
+
+  // Nova hierarquia: woner > admin > operador (com legado mapeado)
+  const roleLabel={
+    woner:'👑 Woner', owner:'👑 Woner',
+    admin:'🔧 Admin', gerente:'🔧 Admin',
+    operador:'👤 Operador'
+  };
+  const roleColor={
+    woner:'badge-purple', owner:'badge-purple',
+    admin:'badge-blue', gerente:'badge-blue',
+    operador:'badge-gray'
+  };
+
+  // Exibir contador de colaboradores vs limite do plano
+  const maxColab = window._gbrMaxColaboradores || null;
+  const totalAtivos = users.filter(u=>u.ativo && u.role!=='woner' && u.role!=='owner').length;
+  if (maxColab) {
+    const headerCard = tb.closest('.card');
+    let counterEl = document.getElementById('colabCounter');
+    if (!counterEl && headerCard) {
+      counterEl = document.createElement('div');
+      counterEl.id = 'colabCounter';
+      counterEl.style.cssText = 'font-size:11px;color:var(--text2);margin-bottom:10px;padding:6px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border)';
+      headerCard.insertBefore(counterEl, tb.parentElement);
+    }
+    if (counterEl) {
+      const cor = totalAtivos >= maxColab ? 'var(--red)' : 'var(--green)';
+      counterEl.innerHTML = '👥 Colaboradores: <b style="color:'+cor+'">'+totalAtivos+'/'+maxColab+'</b> permitidos no plano <b>'+( window._gbrNomePlano||'atual')+'</b>';
+    }
+  }
+
   tb.innerHTML=users.map(u=>{
     const sessao=(DATA._sessoes||[]).find(s=>s.userId===u.id);
     const online=sessao&&(new Date()-new Date(sessao.ultima_atividade))<300000;
     const dev=sessao?(sessao.dispositivo==='mobile'?'📱 Mobile':'🖥️ Desktop'):'—';
     const onlineBadge=sessao?`<span class="badge ${online?'badge-green':'badge-gray'}"><span class="${online?'online-dot':'offline-dot'}"></span>${online?'Online':'Offline'}</span>`:'<span class="badge badge-gray">Sem sessão</span>';
+    const lbl = roleLabel[u.role] || u.role;
+    const cor = roleColor[u.role] || 'badge-gray';
     return'<tr><td><div class="td-name">'+u.nome+'</div><div class="td-sub">'+u.email+'</div></td>'+
-      '<td><span class="badge '+roleColor[u.role]+'">'+roleLabel[u.role]+'</span></td>'+
+      '<td><span class="badge '+cor+'">'+lbl+'</span></td>'+
       '<td><span style="font-size:11px;color:var(--text2)">'+(sessao?fmtDateTime(sessao.ultima_atividade):'Nunca')+'</span></td>'+
       '<td><span style="font-size:12px">'+dev+'</span></td>'+
       '<td>'+onlineBadge+'</td>'+
@@ -4647,17 +4878,44 @@ function salvarUsuarioAdmin(){
   const senha=document.getElementById('ua_senha').value.trim();
   const ativo=document.getElementById('ua_status').value==='ativo';
   if(!nome||!email){toast('Preencha nome e email','error');return;}
+
+  // ── Restrição: cliente não pode criar woner/owner ──
+  if(role==='woner'||role==='owner'){
+    toast('⛔ O perfil Woner/Owner só pode ser criado pelo Console GBR.','error');
+    return;
+  }
+
   if(id){
+    // Edição
     const i=DATA.users.findIndex(u=>u.id===id);
     if(i>=0){
-      const antigo=DATA.users[i];
       if(senha)DATA.users[i].password=senha;
       Object.assign(DATA.users[i],{nome,email,role,ativo});
       logAuditoria('Editou Usuário',nome+' — Perfil: '+role);
     }
   }else{
+    // ── Correção 4B: Verificar limite de colaboradores do plano ──
+    const maxColab = window._gbrMaxColaboradores || 999;
+    const usuariosAtivos = DATA.users.filter(function(u){
+      return u.tenant_id === (currentTenant&&currentTenant.id)
+          && u.ativo
+          && u.role !== 'superadmin'
+          && u.role !== 'woner'
+          && u.role !== 'owner';
+    });
+    if(usuariosAtivos.length >= maxColab){
+      toast('⛔ Limite de '+maxColab+' colaborador(es) atingido no seu plano. Faça upgrade para adicionar mais.','error');
+      return;
+    }
+
     if(DATA.users.find(u=>u.email===email)){toast('Email já cadastrado','error');return;}
-    const _tmpPwd3=senha||CONFIG.genTempPwd();DATA.users.push({id:uid(),tenant_id:currentTenant?.id,email,nome,role,password:_tmpPwd3,must_change_password:!senha,ativo:true,created_at:new Date().toISOString()});if(!senha)setTimeout(()=>alert('🔑 Usuário criado!\n\nEmail: '+email+'\nSenha temporária: '+_tmpPwd3+'\n\nO usuário deverá trocar a senha no primeiro acesso.'),300);
+    const _tmpPwd3=senha||CONFIG.genTempPwd();
+    DATA.users.push({
+      id:uid(),tenant_id:currentTenant?.id,email,nome,role,
+      password:_tmpPwd3,must_change_password:!senha,
+      ativo:true,created_at:new Date().toISOString()
+    });
+    if(!senha)setTimeout(()=>alert('🔑 Usuário criado!\n\nEmail: '+email+'\nSenha temporária: '+_tmpPwd3+'\n\nO usuário deverá trocar a senha no primeiro acesso.'),300);
     logAuditoria('Criou Usuário',nome+' — '+role);
   }
   salvarDados();closeModal('modalUsuarioAdmin');renderAdminAcessos();toast('Usuário salvo!');
@@ -4692,7 +4950,13 @@ function renderPermGrid(){
   const el=document.getElementById('permGrid');if(!el)return;
   if(!DATA.permissoes[_roleTab])DATA.permissoes[_roleTab]={};
   const perms=DATA.permissoes[_roleTab];
-  const defaults={owner:PERMISSOES_LISTA,admin:PERMISSOES_LISTA.filter(p=>p!=='ver_admin'),operador:['ver_dashboard','ver_agenda','ver_agendamentos','editar_agendamento','ver_clientes','ver_caixa','ver_checklist','editar_checklist','ver_whatsapp','ver_fidelidade']};
+  const defaults={
+    woner:  PERMISSOES_LISTA,
+    owner:  PERMISSOES_LISTA,
+    admin:  PERMISSOES_LISTA.filter(p=>p!=='ver_admin'),
+    gerente:PERMISSOES_LISTA.filter(p=>p!=='ver_admin'),
+    operador:['ver_dashboard','ver_agenda','ver_agendamentos','editar_agendamento','ver_clientes','ver_caixa','ver_checklist','editar_checklist','ver_whatsapp','ver_fidelidade']
+  };
   PERMISSOES_LISTA.forEach(p=>{if(perms[p]===undefined)perms[p]=defaults[_roleTab]?.includes(p)||false;});
   const labels={'ver_dashboard':'Ver Dashboard','ver_agenda':'Ver Agenda','editar_agendamento':'Editar Agendamento','cancelar_agendamento':'Cancelar Agendamento','ver_clientes':'Ver Clientes','editar_clientes':'Editar Clientes','ver_caixa':'Ver Caixa','abrir_fechar_caixa':'Abrir/Fechar Caixa','ver_financeiro':'Ver Financeiro','editar_financeiro':'Editar Financeiro','ver_relatorios':'Ver Relatórios','ver_estoque':'Ver Estoque','editar_estoque':'Editar Estoque','ver_checklist':'Ver Checklist','editar_checklist':'Editar Checklist','ver_whatsapp':'Ver WhatsApp','ver_fidelidade':'Ver Fidelidade','dar_desconto':'Aplicar Descontos','ver_admin':'Ver Painel Admin'};
   el.innerHTML='<div class="perm-grid">'+PERMISSOES_LISTA.map(p=>'<div class="perm-item"><input type="checkbox" id="perm_'+p+'" '+(perms[p]?'checked':'')+' onchange="DATA.permissoes[\''+_roleTab+'\'][\''+p+'\']=this.checked"><label for="perm_'+p+'" style="cursor:pointer">'+labels[p]+'</label></div>').join('')+'</div>';
@@ -5311,15 +5575,15 @@ window.GBR_API = (function() {
 
   // ── Helpers internos ─────────────────────────────────────────────────────
   function _requireSA() {
-    if (!currentUser || currentUser.role !== 'superadmin')
-      throw new Error('Acesso restrito ao superadmin');
+    if (!currentUser || !['superadmin','woner','owner'].includes(currentUser.role))
+      throw new Error('Acesso restrito ao Woner/Superadmin');
   }
 
   function _tenantSnapshot(t) {
     const hoje = new Date();
     const exp  = t.data_expiracao && new Date(t.data_expiracao) < hoje;
     const users = DATA.users.filter(u => u.tenant_id === t.id);
-    const owner = users.find(u => u.role === 'owner');
+    const owner = users.find(u => u.role === 'woner' || u.role === 'owner');
     const ags   = (DATA.agendamentos || []).filter(a => a.tenant_id === t.id).length;
     const dias  = t.data_expiracao
       ? Math.ceil((new Date(t.data_expiracao) - hoje) / 86400000) : null;
