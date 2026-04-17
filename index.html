@@ -1822,6 +1822,11 @@ const CONFIG = {
 };
 
 // ===== ESTADO =====
+// ── Stubs de compatibilidade (Firebase removido) ──
+var _gbrFbDb_REMOVED = null;
+var _gbrSyncAtivo_REMOVED = false;
+var _gbrSyncListeners_REMOVED = {_main:null};
+var _GBR_SYNC_KEYS = [];
 let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[]};
 let currentUser=null,currentTenant=null,currentCaixa=null;
 
@@ -1929,8 +1934,8 @@ function _gbrModalUpgrade(pageId) {
 //  Firebase 100% removido. Fonte única de verdade: Supabase.
 // ══════════════════════════════════════════════════════════════════════
 
-var GBR_SB_URL  = 'https://pyakgvnvpsssjdewkgci.supabase.co';
-var GBR_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5YWtndm52cHNzc2pkZXdrZ2NpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjM1OTk1OSwiZXhwIjoyMDkxOTM1OTU5fQ.YifIUfhJPatRieNIaK3-Xt5SjqXBUWP_S3hjVqIpYUk';
+var GBR_SB_URL  = 'https://ogzqgnatdtxyeytrdizb.supabase.co';
+var GBR_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nenFnbmF0ZHR4eWV5dHJkaXpiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjA2ODQ3MiwiZXhwIjoyMDkxNjQ0NDcyfQ.HO1_qYF5aoPQ58nUkgU3ZkTXYuaXJide7zJGPSn3-d8';
 
 var _sb          = null;
 var _sbTenantId  = null;
@@ -2022,20 +2027,9 @@ async function _sbCarregarTudo(tenantId) {
     if (t.modulos_liberados)   window._gbrModulosLiberados = t.modulos_liberados;
     if (t.nome_exibicao_plano) window._gbrNomePlano        = t.nome_exibicao_plano;
 
-    var tabelas = [
-      ['clientes','clientes'], ['servicos','servicos'],
-      ['agendamentos','agendamentos'], ['produtos','produtos'],
-      ['caixas','caixas'], ['movimentacoes_financeiras','movimentacoes_fin'],
-      ['regras_fidelidade','regras_fidelidade'], ['fichas_tecnicas','fichas'],
-      ['checklists','checklists'], ['movimentacoes_estoque','movimentacoes']
-    ];
-    await Promise.all(tabelas.map(async function(cfg) {
-      var r = await _sb.from(cfg[0]).select('*').eq('tenant_id', tenantId).order('criado_em', { ascending: true });
-      if (r.error) { console.warn('[GBR SB] ' + cfg[0] + ':', r.error.message); return; }
-      DATA[cfg[1]] = r.data || [];
-      try { localStorage.setItem('gbr_' + cfg[1], JSON.stringify(DATA[cfg[1]])); } catch(e) {}
-    }));
-    _gbrAtualizarIndicadorSync('ok', 'Sincronizado');
+    // Dados operacionais (agendamentos, clientes, etc.) ficam no localStorage
+    // Carregados por carregarDados() - não precisam de Supabase
+    _gbrAtualizarIndicadorSync('ok', 'Conectado');
     console.log('[GBR SB] Dados carregados.');
     return t;
   } catch(e) {
@@ -2420,35 +2414,7 @@ async function carregarDadosAsync(){
   }
 }
 
-function salvarDados(){
-  const allKeys=[...Object.keys(DATA),'movimentacoes_fin','tickets','auditoria','configuracoes','permissoes'];
-  allKeys.forEach(k => {
-    if(DATA[k]===undefined)return;
-    try { localStorage.setItem('gbr_' + k, JSON.stringify(DATA[k])); }
-    catch(e) { console.warn('[GBR] Erro ao salvar chave:', k, e); }
-  });
-  if (window.GBR_API_ADAPTER?.save) {
-    allKeys.forEach(k => { if(DATA[k]!==undefined)_storage.set(k, DATA[k]).catch(console.warn); });
-  }
-  // ── Firebase Sync: propaga mudanças para todos os devices ──
-  if (_gbrSyncAtivo && currentTenant?.id) {
-    var tid = currentTenant.id;
-    _gbrAtualizarIndicadorSync('saving', 'Salvando...');
-    // Salva apenas as chaves operacionais (não metadados de sessão)
-    var promises = [];
-    _GBR_SYNC_KEYS.forEach(function(k) {
-      if (DATA[k] !== undefined) {
-        promises.push(_gbrFbDb.ref('dados_operacionais/' + tid + '/' + k).set(DATA[k]));
-      }
-    });
-    Promise.all(promises)
-      .then(function() { _gbrAtualizarIndicadorSync('ok', 'Sincronizado'); })
-      .catch(function(e) {
-        console.warn('[GBR Sync] Erro ao salvar dados:', e.message);
-        _gbrAtualizarIndicadorSync('off', 'Erro sync');
-      });
-  }
-}
+// salvarDados: implementada acima (localStorage)
 
 function mostrarLogin() {
   const sp = document.getElementById('setupPage');
@@ -2479,9 +2445,15 @@ async function enviarSolicitacaoAcesso() {
   if(!email||!email.includes('@')){showErr('Informe um e-mail válido.');return;}
   if(btn){btn.disabled=true;btn.textContent='Enviando...';}
   try {
-    if(_gbrFbDb){
-      var id=Date.now().toString(36)+Math.random().toString(36).substr(2,5);
-      await _gbrFbDb.ref('solicitacoes/'+id).set({empresa,nome,whatsapp:whats,email,ts:Date.now(),status:'pendente',origem:window.location.hostname});
+    var solId = Date.now().toString(36)+Math.random().toString(36).substr(2,5);
+    var solData = {empresa:empresa,nome:nome,whatsapp:whats,email:email,
+      ts:Date.now(),status:'pendente',origem:window.location.hostname,criado_em:new Date().toISOString()};
+    if(_sbReady){
+      // Salva no Supabase para o console ver em Pendências
+      var gsRes2 = await _sb.from('global_settings').select('value').eq('key','solicitacoes').maybeSingle();
+      var sols = (gsRes2.data&&gsRes2.data.value) ? gsRes2.data.value : {};
+      sols[solId] = solData;
+      await _sb.from('global_settings').upsert({key:'solicitacoes',value:sols,updated_at:new Date().toISOString()},{onConflict:'key'});
       showOk('✅ Solicitação enviada! Entraremos em contato em até 48h pelo WhatsApp ou e-mail.');
     } else {
       var msg=encodeURIComponent('Olá! Gostaria de solicitar acesso ao GBR Sistemas.\n\nEmpresa: '+empresa+'\nResponsável: '+nome+'\nWhatsApp: '+whats+'\nE-mail: '+email);
@@ -2536,7 +2508,7 @@ function seedDados(saEmail, saSenha, empresaNome) {
 // Brute force protection
 const _loginAttempts={};
 
-/* ── fazerLogin: implementado acima via Supabase Auth ── */
+// fazerLogin implementada acima via Supabase Auth
 
 /* ── Auth local (localStorage) — mantido para retrocompatibilidade ── */
 function _fazerLoginLocal(email, senha){
@@ -2656,19 +2628,33 @@ document.addEventListener('click', function(e){
   }
 });
 
-function carregarNotificacoes(){
+async function carregarNotificacoes(){
   var lista = document.getElementById('notifLista');
-  if(!_gbrFbDb || !currentTenant) {
+  if(!_sbReady || !currentTenant) {
     lista.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:12px">Conecte-se para ver notificações</div>';
     return;
   }
-  _gbrFbDb.ref('notifications/'+currentTenant.id).orderByChild('ts').limitToLast(20).once('value', function(snap){
-    var notifs = [];
-    snap.forEach(function(child){ notifs.unshift({id:child.key, ...child.val()}); });
-    _notifCache = notifs;
+  try {
+    var r = await _sb.from('notifications')
+      .select('*')
+      .eq('tenant_id', currentTenant.id)
+      .eq('ativo', true)
+      .order('created_at', {ascending: false})
+      .limit(20);
+    if (r.error) throw r.error;
+    _notifCache = (r.data||[]).map(function(n){
+      return {
+        id: n.id, titulo: n.titulo||'', mensagem: n.mensagem||'',
+        tipo: n.tipo||'info', lida: n.lido||n.lida||false,
+        ts: n.created_at ? new Date(n.created_at).getTime() : Date.now()
+      };
+    });
     renderNotifLista();
     atualizarBadgeNotif();
-  });
+  } catch(e) {
+    lista.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:12px">Erro ao carregar notificações</div>';
+    console.warn('[GBR] carregarNotificacoes:', e.message);
+  }
 }
 
 function renderNotifLista(){
@@ -2693,25 +2679,26 @@ function renderNotifLista(){
   }).join('');
 }
 
-function marcarLida(notifId){
-  if(!_gbrFbDb||!currentTenant) return;
-  _gbrFbDb.ref('notifications/'+currentTenant.id+'/'+notifId+'/lida').set(true).then(function(){
-    var n = _notifCache.find(function(x){return x.id===notifId;});
-    if(n) n.lida = true;
-    renderNotifLista();
-    atualizarBadgeNotif();
-  });
+async function marcarLida(notifId){
+  if(!_sbReady||!currentTenant) return;
+  try {
+    await _sb.from('notifications').update({lido:true,lida:true}).eq('id',notifId);
+  } catch(e) { console.warn('[GBR] marcarLida:', e.message); }
+  var n = _notifCache.find(function(x){return x.id===notifId;});
+  if(n) n.lida = true;
+  renderNotifLista();
+  atualizarBadgeNotif();
 }
 
-function marcarTodasLidas(){
-  if(!_gbrFbDb||!currentTenant) return;
-  var updates = {};
-  _notifCache.forEach(function(n){ if(!n.lida) updates['notifications/'+currentTenant.id+'/'+n.id+'/lida']=true; });
-  if(Object.keys(updates).length) _gbrFbDb.ref().update(updates).then(function(){
-    _notifCache.forEach(function(n){n.lida=true;});
-    renderNotifLista();
-    atualizarBadgeNotif();
-  });
+async function marcarTodasLidas(){
+  if(!_sbReady||!currentTenant) return;
+  try {
+    await _sb.from('notifications').update({lido:true,lida:true})
+      .eq('tenant_id',currentTenant.id).eq('lido',false);
+  } catch(e) { console.warn('[GBR] marcarTodasLidas:', e.message); }
+  _notifCache.forEach(function(n){n.lida=true;});
+  renderNotifLista();
+  atualizarBadgeNotif();
 }
 
 function atualizarBadgeNotif(){
@@ -5072,16 +5059,20 @@ function salvarTicket(){
   if(id){
     const i=DATA.tickets.findIndex(t=>t.id===id);
     if(i>=0){logAuditoria('Editou Ticket','#'+DATA.tickets[i].numero+' → Status: '+dados.status);Object.assign(DATA.tickets[i],dados);}
-    // Sincronizar edição no Firebase
-    if(_gbrFbDb&&tenantId) try{_gbrFbDb.ref('tickets/'+tenantId+'/'+id).update(dados);}catch(e){}
+    // Ticket salvo em localStorage via salvarDados()
   } else {
     const novoId=uid();
     const novoTicket={id:novoId,numero:novoNum,...dados,created_at:new Date().toISOString()};
     DATA.tickets.push(novoTicket);
     logAuditoria('Abriu Chamado','#'+novoNum+' — '+titulo);
-    // Enviar para Firebase para o console ver
-    if(_gbrFbDb&&tenantId){
-      try{_gbrFbDb.ref('tickets/'+tenantId+'/'+novoId).set(novoTicket);}catch(e){}
+    // Sincronizar ticket no Supabase para o console ver
+    if(_sbReady&&tenantId){
+      try{
+        var gsRes = await _sb.from('global_settings').select('value').eq('key','tickets_'+tenantId).maybeSingle();
+        var tks = (gsRes.data&&gsRes.data.value) ? gsRes.data.value : {};
+        tks[novoId] = novoTicket;
+        await _sb.from('global_settings').upsert({key:'tickets_'+tenantId, value:tks, updated_at:new Date().toISOString()},{onConflict:'key'});
+      }catch(e){ console.warn('[GBR] ticket sync:', e.message); }
     }
   }
   salvarDados();closeModal('modalTicket');renderTickets();toast('Chamado salvo!');
@@ -5125,7 +5116,7 @@ function renderStatusSync() {
   // Renderiza card de status de sync no painel admin
   var el = document.getElementById('syncStatusCard');
   if (!el) return;
-  var ativo = _gbrSyncAtivo;
+  var ativo = _sbReady;
   var tid = currentTenant?.id || '—';
   el.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
@@ -5135,7 +5126,7 @@ function renderStatusSync() {
     '</div>' +
     '<div style="background:var(--bg3);border-radius:8px;padding:10px 14px;font-size:11px;font-family:monospace;color:var(--text2);margin-bottom:12px">' +
       'Nó: <b style="color:var(--text)">dados_operacionais/' + tid + '</b><br>' +
-      'Firebase: <b style="color:' + (_gbrFbDb ? 'var(--green)' : 'var(--red)') + '">' + (_gbrFbDb ? 'Conectado' : 'Desconectado') + '</b><br>' +
+      'Supabase: <b style="color:' + (_sbReady ? 'var(--green)' : 'var(--red)') + '">' + (_sbReady ? 'Conectado' : 'Desconectado') + '</b><br>' +
       'Status: <b>' + (ativo ? '✅ Ativo' : '❌ Inativo') + '</b>' +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
@@ -5152,18 +5143,12 @@ function renderStatusSync() {
 function _gbrForceSyncNow() {
   var tid = currentTenant?.id;
   if (!tid) return toast('Nenhuma estética logada', 'error');
-  if (_gbrSyncAtivo) {
-    // Já ativo — apenas forçar re-leitura
-    _gbrSyncAtivo = false;
-    if (_gbrSyncListeners._main) {
-      try { _gbrSyncListeners._main.off(); } catch(e) {}
-    }
+  // Reconectar Supabase realtime
+  if (typeof _sbAtivarRealtime === 'function') {
+    _sbAtivarRealtime(tid);
   }
-  toast('🔄 Reconectando sync...', 'success');
-  setTimeout(function() {
-    _gbrAtivarSync(tid);
-    setTimeout(function() { renderStatusSync(); }, 1500);
-  }, 300);
+  toast('🔄 Reconectando...', 'success');
+  setTimeout(function() { renderStatusSync(); }, 1500);
 }
 
 function renderSessoesAdmin(){
@@ -5677,8 +5662,8 @@ function gerarNovoTokenOnline(){
   if(!DATA.configuracoes[tid])DATA.configuracoes[tid]={};
   DATA.configuracoes[tid].ao_token=novoToken;
   // Salvar no Firebase para persistência
-  if(_gbrFbDb){
-    try{_gbrFbDb.ref('tenants/'+tid+'/ao_token').set(novoToken);}catch(e){}
+  if(_sbReady&&tid){
+    try{ await _sb.from('tenants').update({ao_token:novoToken}).eq('id',tid); }catch(e){ console.warn('[GBR] ao_token:',e.message); }
   }
   salvarDados();
   renderAgendaOnline();
