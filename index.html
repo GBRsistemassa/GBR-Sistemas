@@ -2143,7 +2143,31 @@ function _sbAtivarRealtime(tenantId) {
       _gbrAplicarPaywall();
     }).subscribe();
   _sbChannels.push(tenantCh);
-  console.log('[GBR RT] ' + tabelas.length + ' subscriptions ativas.');
+
+  // Canal de notificações — escuta novos INSERT em tempo real
+  var notifCh = _sb.channel('gbr_notif_' + tenantId)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'notifications',
+      filter: 'tenant_id=eq.' + tenantId
+    }, function(payload) {
+      var n = payload.new; if (!n) return;
+      var notif = {
+        id: n.id, titulo: n.titulo||'', mensagem: n.mensagem||'',
+        tipo: n.tipo||'info', lida: false,
+        ts: n.created_at ? new Date(n.created_at).getTime() : Date.now()
+      };
+      // Adicionar no topo do cache sem duplicar
+      if (!_notifCache.find(function(x){ return x.id === notif.id; })) {
+        _notifCache.unshift(notif);
+        renderNotifLista();
+        atualizarBadgeNotif();
+        // Mostrar toast de nova notificação
+        toast('🔔 ' + notif.titulo, 'info');
+      }
+    }).subscribe();
+  _sbChannels.push(notifCh);
+
+  console.log('[GBR RT] ' + (tabelas.length + 2) + ' subscriptions ativas.');
 }
 
 function _sbHandleChange(chave, payload) {
