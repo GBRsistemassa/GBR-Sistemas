@@ -700,6 +700,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     </div>
     <nav class="nav" id="navMenu">
       <div class="nav-label">Principal</div>
+      <div class="nav-item" id="navItemDashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
       <div class="nav-item active" onclick="showPage('agendamentos')"><span class="nav-icon">📅</span>Agendamentos</div>
       <div class="nav-label">Cadastro</div>
       <div class="nav-item" onclick="showPage('clientes')"><span class="nav-icon">👥</span>Clientes</div>
@@ -2043,8 +2044,29 @@ async function _sbCarregarTudo(tenantId) {
     if (t.modulos_liberados)   window._gbrModulosLiberados = t.modulos_liberados;
     if (t.nome_exibicao_plano) window._gbrNomePlano        = t.nome_exibicao_plano;
 
-    // Dados operacionais (agendamentos, clientes, etc.) ficam no localStorage
-    // Carregados por carregarDados() - não precisam de Supabase
+    // Carregar dados operacionais do Supabase se existirem
+    try {
+      var [rCli, rAg, rSrv] = await Promise.all([
+        _sb.from('clientes').select('*').eq('tenant_id', tenantId).eq('ativo', true),
+        _sb.from('agendamentos').select('*').eq('tenant_id', tenantId).order('data_hora_inicio', {ascending: false}).limit(500),
+        _sb.from('servicos').select('*').eq('tenant_id', tenantId).eq('ativo', true)
+      ]);
+      // Só substituir se tiver dados no Supabase (evitar apagar localStorage com vazio)
+      if (!rCli.error && rCli.data && rCli.data.length > 0) {
+        DATA.clientes = rCli.data;
+        console.log('[GBR SB] Clientes do Supabase: ' + rCli.data.length);
+      }
+      if (!rAg.error && rAg.data && rAg.data.length > 0) {
+        DATA.agendamentos = rAg.data;
+        console.log('[GBR SB] Agendamentos do Supabase: ' + rAg.data.length);
+      }
+      if (!rSrv.error && rSrv.data && rSrv.data.length > 0) {
+        DATA.servicos = rSrv.data;
+        console.log('[GBR SB] Servicos do Supabase: ' + rSrv.data.length);
+      }
+    } catch(eOp) {
+      console.warn('[GBR SB] Dados operacionais via localStorage (Supabase indisponível):', eOp.message);
+    }
     _gbrAtualizarIndicadorSync('ok', 'Conectado');
     console.log('[GBR SB] Dados carregados.');
     return t;
