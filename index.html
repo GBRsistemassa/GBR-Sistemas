@@ -1762,12 +1762,15 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-body">
       <input type="hidden" id="ticketId">
       <div class="form-group"><label>Título <span class="req">*</span></label><input type="text" id="tk_titulo" placeholder="Descreva brevemente o problema"></div>
-      <div class="form-group"><label>Prioridade</label><select id="tk_prio"><option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option><option value="critica">🚨 Crítica</option></select></div>
-      <input type="hidden" id="tk_status" value="aberto">
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label>Prioridade</label><select id="tk_prio"><option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option><option value="critica">🚨 Crítica</option></select></div>
+        <div class="form-group" id="tk_status_wrap"><label>Status</label><select id="tk_status"><option value="aberto">🔴 Aberto</option><option value="em_andamento">🔵 Em Andamento</option><option value="em_analise">🟡 Em Análise</option><option value="resolvido">🟢 Resolvido</option><option value="fechado">⬛ Fechado</option></select></div>
+      </div>
       <div class="form-group"><label>Descrição <span class="req">*</span></label><textarea id="tk_desc" placeholder="Detalhe o problema, incluindo passos para reproduzir..." style="min-height:100px"></textarea></div>
       <div class="form-group"><label>Módulo afetado</label><select id="tk_modulo"><option value="">— Geral —</option><option>Agendamento</option><option>Caixa</option><option>Clientes</option><option>Checklist</option><option>Estoque</option><option>Fidelidade</option><option>Financeiro</option><option>Relatórios</option><option>WhatsApp</option><option>Outros</option></select></div>
+      <div class="form-group" id="tk_resolucao_wrap" style="display:none"><label>Resposta / Resolução</label><textarea id="tk_resolucao" placeholder="Descreva a solução aplicada..." style="min-height:70px"></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTicket')">Cancelar</button><button class="btn btn-primary" onclick="salvarTicket()">Abrir Chamado</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTicket')">Cancelar</button><button class="btn btn-primary" onclick="salvarTicket()">Salvar Chamado</button></div>
   </div>
 </div>
 
@@ -1834,7 +1837,7 @@ var _gbrFbDb_REMOVED = null;
 var _gbrSyncAtivo_REMOVED = false;
 var _gbrSyncListeners_REMOVED = {_main:null};
 var _GBR_SYNC_KEYS = [];
-let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[]};
+let DATA={users:[],tenants:[],clientes:[],servicos:[],agendamentos:[],produtos:[],fichas:[],checklists:[],caixas:[],movimentacoes:[],regras_fidelidade:[],resgates_fidelidade:[],nps_avaliacoes:[],wa_templates:[],wa_historico:[],tickets:[],movimentacoes_fin:[],auditoria:[]};
 let currentUser=null,currentTenant=null,currentCaixa=null;
 
 // ════════════════════════════════════════════════════════
@@ -4922,18 +4925,39 @@ function renderTickets(){
   }).join('');
 }
 function abrirModalTicket(){
-  document.getElementById('ticketId').value='';document.getElementById('ticketModalTitle').textContent='Novo Chamado';
+  document.getElementById('ticketId').value='';
+  document.getElementById('ticketModalTitle').textContent='Novo Chamado';
   ['tk_titulo','tk_desc'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('tk_prio').value='media';document.getElementById('tk_status').value='aberto';
+  document.getElementById('tk_prio').value='media';
+  document.getElementById('tk_status').value='aberto';
   document.getElementById('tk_modulo').value='';
+  // Ocultar campos de admin no novo chamado
+  var isAdmin=['woner','owner','admin','superadmin'].includes(currentUser?.role);
+  var statusWrap=document.getElementById('tk_status_wrap');
+  var resolWrap=document.getElementById('tk_resolucao_wrap');
+  var resolEl=document.getElementById('tk_resolucao');
+  if(statusWrap) statusWrap.style.display=isAdmin?'':'none';
+  if(resolWrap) resolWrap.style.display='none';
+  if(resolEl) resolEl.value='';
   openModal('modalTicket');
 }
 function editarTicket(id){
   const t=DATA.tickets.find(x=>x.id===id);if(!t)return;
-  document.getElementById('ticketId').value=t.id;document.getElementById('ticketModalTitle').textContent='Editar Chamado';
-  document.getElementById('tk_titulo').value=t.titulo;document.getElementById('tk_desc').value=t.descricao;
-  document.getElementById('tk_prio').value=t.prioridade;document.getElementById('tk_status').value=t.status;
+  document.getElementById('ticketId').value=t.id;
+  document.getElementById('ticketModalTitle').textContent='Editar Chamado #'+(t.numero||'');
+  document.getElementById('tk_titulo').value=t.titulo;
+  document.getElementById('tk_desc').value=t.descricao;
+  document.getElementById('tk_prio').value=t.prioridade;
+  document.getElementById('tk_status').value=t.status||'aberto';
   document.getElementById('tk_modulo').value=t.modulo||'';
+  var resolEl=document.getElementById('tk_resolucao');
+  var resolWrap=document.getElementById('tk_resolucao_wrap');
+  var statusWrap=document.getElementById('tk_status_wrap');
+  if(resolEl) resolEl.value=t.resolucao||'';
+  // Mostrar campo resolução se já tem resposta ou é admin
+  var isAdmin=['woner','owner','admin','superadmin'].includes(currentUser?.role);
+  if(resolWrap) resolWrap.style.display=(isAdmin||t.resolucao)?'':'none';
+  if(statusWrap) statusWrap.style.display=''; // sempre visível ao editar
   openModal('modalTicket');
 }
 async function salvarTicket(){
@@ -4944,35 +4968,46 @@ async function salvarTicket(){
   const todos=DATA.tickets||[];
   const novoNum=todos.length?Math.max(...todos.map(t=>t.numero||0))+1:1001;
   const tenantId=currentTenant?.id||'';
-  const dados={titulo,descricao:desc,prioridade:document.getElementById('tk_prio').value,status:document.getElementById('tk_status').value,modulo:document.getElementById('tk_modulo').value||null,usuario:currentUser?.nome,tenant_id:tenantId};
+  const resolucaoEl=document.getElementById('tk_resolucao');
+  const resolucao=(resolucaoEl?.value||'').trim();
+  const dados={
+    titulo, descricao:desc,
+    prioridade:document.getElementById('tk_prio').value,
+    status:document.getElementById('tk_status').value||'aberto',
+    modulo:document.getElementById('tk_modulo').value||null,
+    usuario:currentUser?.nome,
+    tenant_id:tenantId,
+    atualizado_em:new Date().toISOString()
+  };
+  if(resolucao) dados.resolucao=resolucao;
+
+  // BUG FIX: helper para sincronizar ticket no Supabase
+  async function _syncTicketSb(tkId, tkData){
+    if(!_sbReady||!tenantId) return;
+    try{
+      var gsR = await _sb.from('global_settings').select('value').eq('key','tickets_'+tenantId).maybeSingle();
+      var tksObj = (gsR.data&&gsR.data.value) ? gsR.data.value : {};
+      tksObj[tkId] = tkData;
+      await _sb.from('global_settings').upsert({key:'tickets_'+tenantId, value:tksObj, updated_at:new Date().toISOString()},{onConflict:'key'});
+    }catch(e){ console.warn('[GBR] ticket sync:', e.message); }
+  }
+
   if(id){
     const i=DATA.tickets.findIndex(t=>t.id===id);
-    if(i>=0){logAuditoria('Editou Ticket','#'+DATA.tickets[i].numero+' → Status: '+dados.status);Object.assign(DATA.tickets[i],dados);}
-    // Sincronizar edição no Supabase
-    if(_sbReady&&tenantId){
-      try{
-        var gsRes2 = await _sb.from('global_settings').select('value').eq('key','tickets_'+tenantId).maybeSingle();
-        var tks2 = (gsRes2.data&&gsRes2.data.value) ? gsRes2.data.value : {};
-        tks2[id] = DATA.tickets[i];
-        await _sb.from('global_settings').upsert({key:'tickets_'+tenantId, value:tks2, updated_at:new Date().toISOString()},{onConflict:'key'});
-      }catch(e){ console.warn('[GBR] ticket edit sync:', e.message); }
+    if(i>=0){
+      Object.assign(DATA.tickets[i],dados);
+      logAuditoria('Editou Ticket','#'+DATA.tickets[i].numero+' → '+dados.status);
+      await _syncTicketSb(id, DATA.tickets[i]);
     }
   } else {
     const novoId=uid();
     const novoTicket={id:novoId,numero:novoNum,...dados,created_at:new Date().toISOString()};
     DATA.tickets.push(novoTicket);
     logAuditoria('Abriu Chamado','#'+novoNum+' — '+titulo);
-    // Sincronizar ticket no Supabase para o console ver
-    if(_sbReady&&tenantId){
-      try{
-        var gsRes = await _sb.from('global_settings').select('value').eq('key','tickets_'+tenantId).maybeSingle();
-        var tks = (gsRes.data&&gsRes.data.value) ? gsRes.data.value : {};
-        tks[novoId] = novoTicket;
-        await _sb.from('global_settings').upsert({key:'tickets_'+tenantId, value:tks, updated_at:new Date().toISOString()},{onConflict:'key'});
-      }catch(e){ console.warn('[GBR] ticket sync:', e.message); }
-    }
+    await _syncTicketSb(novoId, novoTicket);
   }
-  salvarDados();closeModal('modalTicket');renderTickets();toast('Chamado salvo!');
+  salvarDados();closeModal('modalTicket');renderTickets();
+  toast(id?'Chamado atualizado!':'Chamado aberto com sucesso!','success');
 }
 function excluirTicket(id){if(!confirm('Excluir este chamado?'))return;const t=DATA.tickets.find(x=>x.id===id);logAuditoria('Excluiu Ticket','#'+t?.numero+' — '+t?.titulo);DATA.tickets=DATA.tickets.filter(x=>x.id!==id);salvarDados();renderTickets();toast('Chamado excluído');}
 function verTicket(id){editarTicket(id);}
@@ -5280,6 +5315,47 @@ function resetModulo(mod){
   }
 }
 // Bug #7: exportarExcel() substituída por exportarCSV() por módulo
+function exportarCSVClientes(){
+  const clientes=DATA.clientes.filter(c=>c.tenant_id===currentTenant?.id&&c.ativo);
+  const linhas=[['Nome','Telefone','CPF/CNPJ','Email','Cidade','UF','Pontos Fidelidade','Cadastro']];
+  clientes.forEach(c=>linhas.push([
+    c.nome_completo||'',c.telefone||'',c.cpf_cnpj||'',c.email||'',
+    c.endereco?.cidade||'',c.endereco?.uf||'',c.pontos_fidelidade||0,
+    c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):''
+  ]));
+  const csv=linhas.map(l=>l.map(x=>'\"'+String(x).replace(/"/g,'\"\"')+'\"').join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='clientes_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(url);
+  logAuditoria('Exportou CSV','Clientes ('+clientes.length+')');
+  toast('Clientes exportados!','success');
+}
+function exportarCSVAgendamentos(){
+  const ags=DATA.agendamentos.filter(a=>a.tenant_id===currentTenant?.id);
+  const linhas=[['Data','Hora','Cliente','Serviço','Status','Valor','Pagamento']];
+  ags.forEach(a=>{
+    const cli=DATA.clientes.find(c=>c.id===a.cliente_id);
+    const srv=DATA.servicos.find(s=>s.id===a.servico_id);
+    const dt=a.data_hora_inicio?new Date(a.data_hora_inicio):null;
+    linhas.push([
+      dt?dt.toLocaleDateString('pt-BR'):'',
+      dt?dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'',
+      cli?.nome_completo||a.cliente_nome||'',
+      srv?.nome||a.servico_nome||'',
+      a.status||'',
+      a.valor_total||0,
+      a.forma_pagamento||''
+    ]);
+  });
+  const csv=linhas.map(l=>l.map(x=>'\"'+String(x).replace(/"/g,'\"\"')+'\"').join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='agendamentos_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(url);
+  logAuditoria('Exportou CSV','Agendamentos ('+ags.length+')');
+  toast('Agendamentos exportados!','success');
+}
 function exportarExcel(){
   console.warn('[GBR] exportarExcel() está deprecated. Use exportarCSVClientes() ou equivalente.');
   if(typeof exportarCSVClientes==='function'){
