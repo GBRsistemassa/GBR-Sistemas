@@ -11,6 +11,7 @@
 <title>GBR Sistemas v5.0 — Gestão para Estéticas Automotivas</title>
 <!-- Supabase SDK — Fonte única de verdade -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&family=Bebas+Neue&display=swap');
 
@@ -720,7 +721,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div class="nav-label">Suporte</div>
       <div class="nav-item" onclick="showPage('suporte')"><span class="nav-icon">🎫</span>Suporte<span class="nav-count" id="suporteCount" style="display:none">0</span></div>
       <div class="nav-label">Sistema</div>
-      <div class="nav-item" onclick="showPage('config')"><span class="nav-icon">⚙</span>Configurações</div>
+      
       <div class="nav-item" id="navItemAdmin" onclick="showPage('admin')"><span class="nav-icon">🛡</span>Painel Admin</div>
     </nav>
     <div class="sidebar-footer">
@@ -860,6 +861,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div class="section-header">
         <div><div class="section-title">Estoque</div><div class="section-sub">Controle de produtos e insumos</div></div>
         <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="baixarModeloEstoque()" title="Baixar planilha modelo para preenchimento">📥 Modelo</button>
+          <button class="btn btn-secondary btn-sm" onclick="abrirImportarEstoque()" title="Importar produtos de planilha Excel ou CSV">📂 Importar</button>
           <button class="btn btn-success btn-sm" onclick="exportarXLSX('estoque')">📊 Excel</button>
           <button class="btn btn-primary" onclick="abrirModalProduto()">+ Novo Produto</button>
         </div>
@@ -4558,11 +4561,19 @@ if(!DATA.permissoes) DATA.permissoes={};
 // ── Auditoria ────────────────────────────────────────────
 function logAuditoria(acao,detalhes){
   if(!DATA.auditoria)DATA.auditoria=[];
+  // Detectar dispositivo
+  var ua = navigator.userAgent;
+  var dispositivo = /mobile|android|iphone|ipad/i.test(ua) ? '📱 Mobile' : '🖥️ Desktop';
+  var browser = ua.includes('Chrome') ? 'Chrome' : ua.includes('Firefox') ? 'Firefox' : ua.includes('Safari') ? 'Safari' : 'Outro';
   DATA.auditoria.push({
     id:uid(),
     tenant_id:currentTenant?.id,
     usuario:currentUser?.nome||'Sistema',
+    usuario_email:currentUser?.email||_sbUserEmail||'',
     usuario_id:currentUser?.id,
+    usuario_role:currentUser?.role||'sistema',
+    dispositivo: dispositivo + ' / ' + browser,
+    ip_hint: '',
     acao,detalhes,
     ts:new Date().toISOString()
   });
@@ -4831,9 +4842,16 @@ function _gbrForceSyncNow() {
   setTimeout(function() { renderStatusSync(); }, 1500);
 }
 
-function renderSessoesAdmin(){
+async function renderSessoesAdmin(){
   const el=document.getElementById('sessoesLista');if(!el)return;
-  const sessoes=(DATA._sessoes||[]);
+  // Tentar carregar do Supabase primeiro (mais atualizado)
+  var sessoes = DATA._sessoes || [];
+  if (_sb && _sbTenantId) {
+    try {
+      var r = await _sb.from('global_settings').select('value').eq('key','sessoes_'+_sbTenantId).maybeSingle();
+      if (r.data && r.data.value) sessoes = r.data.value;
+    } catch(e) {}
+  }
   if(!sessoes.length){el.innerHTML='<div class="empty"><div class="empty-icon">📱</div><div class="empty-title">Nenhuma sessão registrada</div><div class="empty-sub">As sessões aparecem ao fazer login</div></div>';return;}
   el.innerHTML=sessoes.map(s=>{
     const online=s.online&&(new Date()-new Date(s.ultima_atividade))<300000;
@@ -5212,7 +5230,7 @@ function carregarLogo(input){
     const i=DATA.tenants.findIndex(t=>t.id===currentTenant?.id);
     if(i>=0){if(!DATA.tenants[i].aparencia)DATA.tenants[i].aparencia={};DATA.tenants[i].aparencia.logo=e.target.result;salvarDados();}
     // Aplicar no logo-box
-    const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+e.target.result+'" style="max-width:30px;max-height:30px;object-fit:contain">';
+    const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+e.target.result+'" style="width:100%;max-height:52px;object-fit:contain;border-radius:6px">';
     toast('Logo carregado!');
   };
   reader.readAsDataURL(file);
@@ -5281,7 +5299,7 @@ function carregarAparenciaTenant(){
   if(ap.bg2)r.style.setProperty('--bg2',ap.bg2);
   if(ap.textColor)r.style.setProperty('--text',ap.textColor);
   if(ap.sys_nome){const lb=document.querySelector('.logo-name');if(lb)lb.textContent=ap.sys_nome;document.title=ap.sys_nome;}
-  if(ap.logo){const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+ap.logo+'" style="max-width:30px;max-height:30px;object-fit:contain">';}
+  if(ap.logo){const lb=document.querySelector('.logo-box');if(lb)lb.innerHTML='<img src="'+ap.logo+'" style="width:100%;max-height:52px;object-fit:contain;border-radius:6px">';}
 }
 
 // ── Integrações ────────────────────────────────────────────
@@ -5309,11 +5327,42 @@ function toggleInteg(key,val){
 // ── Auditoria ─────────────────────────────────────────────
 function renderAuditoria(){
   const busca=(document.getElementById('auditBusca')?.value||'').toLowerCase();
-  const lista=(DATA.auditoria||[]).filter(a=>{if(a.tenant_id&&currentTenant&&a.tenant_id!==currentTenant.id)return false;if(busca&&!(a.acao+' '+a.detalhes+' '+a.usuario).toLowerCase().includes(busca))return false;return true;}).sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+  const lista=(DATA.auditoria||[])
+    .filter(a=>{
+      if(a.tenant_id&&currentTenant&&a.tenant_id!==currentTenant.id)return false;
+      if(busca&&!(a.acao+' '+(a.detalhes||'')+' '+a.usuario+' '+(a.usuario_email||'')).toLowerCase().includes(busca))return false;
+      return true;
+    })
+    .sort((a,b)=>new Date(b.ts)-new Date(a.ts));
   const el=document.getElementById('auditLista');if(!el)return;
-  if(!lista.length){el.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">🔍</div><div class="empty-title">Nenhum registro</div></div>';return;}
-  el.innerHTML=lista.slice(0,100).map(a=>'<div class="audit-item"><div class="audit-dot"></div><div class="audit-time">'+fmtDateTime(a.ts)+'</div><div class="audit-user">'+( a.usuario||'Sistema')+'</div><div class="audit-action"><strong>'+a.acao+'</strong>'+(a.detalhes?' — '+a.detalhes:'')+'</div></div>').join('');
+  if(!lista.length){
+    el.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">🔍</div><div class="empty-title">Nenhum registro</div></div>';
+    return;
+  }
+  el.innerHTML=lista.map(a=>{
+    const dt=new Date(a.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const roleColor={'woner':'#f59e0b','owner':'#f59e0b','admin':'#3b82f6','gerente':'#8b5cf6','operador':'#6b7280','sistema':'#6b7280'}[a.usuario_role||'sistema']||'#6b7280';
+    const roleLabel={'woner':'Dono','owner':'Dono','admin':'Admin','gerente':'Gerente','operador':'Operador','sistema':'Sistema'}[a.usuario_role||'sistema']||a.usuario_role||'—';
+    return '<div style="border-bottom:0.5px solid var(--bd);padding:10px 0">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'+
+        '<div style="flex:1">'+
+          '<div style="font-weight:500;font-size:13px;color:var(--tx)">'+a.acao+'</div>'+
+          (a.detalhes?'<div style="font-size:12px;color:var(--tx2);margin-top:2px">'+a.detalhes+'</div>':'')+
+        '</div>'+
+        '<span style="font-size:10px;color:var(--tx3);white-space:nowrap;flex-shrink:0">'+dt+'</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:5px;align-items:center;flex-wrap:wrap">'+
+        '<span style="font-size:11px;font-weight:500;color:'+roleColor+'">'+
+          '👤 '+a.usuario+(a.usuario_email?' ('+a.usuario_email+')':'')+
+        '</span>'+
+        '<span style="background:'+roleColor+'22;color:'+roleColor+';font-size:10px;padding:1px 6px;border-radius:4px">'+roleLabel+'</span>'+
+        (a.dispositivo?'<span style="font-size:10px;color:var(--tx3)">'+a.dispositivo+'</span>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+  // NOTA: exclusão de logs disponível apenas no Console Admin (superadmin)
 }
+
 function limparAuditoria(){if(!confirm('Limpar todos os logs?'))return;DATA.auditoria=[];salvarDados();renderAuditoria();toast('Logs limpos');}
 
 // ── Agenda Online ──────────────────────────────────────────
@@ -5323,8 +5372,8 @@ function renderAgendaOnline(){
   const cfg=DATA.configuracoes[currentTenant.id]||{};
   // Token único — carregado do Supabase se disponível, senão do localStorage
   const token=cfg.ao_token||'';
-  const baseUrl='https://gbr-sistemas.vercel.app/agendar';
-  const link=token?(baseUrl+'?t='+token+'&tid='+currentTenant.id):'(nenhum link gerado)';
+  const baseUrl=window.location.origin+window.location.pathname;
+  const link=token?(baseUrl+'?agendar='+token+'&tid='+currentTenant.id):'(nenhum link gerado)';
   document.getElementById('aoLink').value=link;
   document.getElementById('aoAtivo').checked=cfg.ao_ativo!==false;
   const horarios=cfg.ao_horarios||DIAS_SEMANA.map((d,i)=>({dia:i,nome:d,ativo:i<5,inicio:'08:00',fim:'18:00'}));
@@ -5565,6 +5614,14 @@ function _registrarSessao(user){
   DATA._sessoes=DATA._sessoes.filter(s=>s.userId!==user.id);
   DATA._sessoes.push(sessao);
   salvarDados();
+  // Sincronizar sessão no Supabase para visibilidade multi-device
+  if (_sb && _sbTenantId) {
+    _sb.from('global_settings').upsert({
+      key: 'sessoes_' + _sbTenantId,
+      value: DATA._sessoes,
+      updated_at: new Date().toISOString()
+    }, {onConflict: 'key'}).then(function(){});
+  }
   // Heartbeat a cada 2 min
   if(window._sessaoHeartbeat)clearInterval(window._sessaoHeartbeat);
   window._sessaoHeartbeat=setInterval(()=>{
@@ -5978,6 +6035,500 @@ function acessarComoTenant(tid) { GBR_API.switchTenant(tid); }
 // ── Init: registro de sessão — integrado diretamente em loginSucesso v5 ──
 
 // ── BUGFIX: DATA arrays garantidos no carregamento ────────
+(function() {
+  if (!_sbReady) return;
+  _sb.auth.onAuthStateChange(async function(event, session) {
+    if (event === 'SIGNED_IN' && session && !_sbTenantId) {
+      _sbUserId    = session.user.id;
+      _sbUserEmail = session.user.email;
+      try {
+        var utRes = await _sb.from('user_tenants')
+          .select('tenant_id,role').eq('user_id',_sbUserId).eq('ativo',true).single();
+        if (!utRes.data) return;
+        _sbTenantId = utRes.data.tenant_id;
+        var tenantObj = await _sbCarregarTudo(_sbTenantId);
+        if (!tenantObj) return;
+        var roleNorm = ({woner:'woner',owner:'woner',admin:'admin',operador:'operador'})[utRes.data.role]||utRes.data.role;
+        var fbTenant = {id:_sbTenantId, nome:tenantObj.nome||_sbTenantId,
+          slug:(tenantObj.nome||_sbTenantId).toLowerCase().replace(/[^a-z0-9]/g,'-'),
+          data_expiracao:tenantObj.expiracao||null, ativo:tenantObj.status_licenca!=='inativo',
+          plano_nome:tenantObj.nome_exibicao_plano||tenantObj.plano||'basico', _sbData:tenantObj};
+        var fbUser = {id:_sbTenantId+'__'+_sbUserId, email:_sbUserEmail,
+          nome:tenantObj.responsavel||tenantObj.nome||_sbUserEmail.split('@')[0],
+          role:roleNorm, tenant_id:_sbTenantId, password:'__supabase__',
+          must_change_password:false, ativo:true, _sbFromSB:true};
+        var tIdx=DATA.tenants.findIndex(function(t){return t.id===_sbTenantId;});
+        if(tIdx>=0) DATA.tenants[tIdx]=fbTenant; else DATA.tenants.push(fbTenant);
+        var uIdx=DATA.users.findIndex(function(u){return u.id===fbUser.id;});
+        if(uIdx>=0) DATA.users[uIdx]=fbUser; else DATA.users.push(fbUser);
+        loginSucesso(fbUser);
+        _sbAtivarRealtime(_sbTenantId);
+        if (tenantObj.aparencia) _gbrCarregarPersonalizacoes(_sbTenantId, {style:tenantObj.aparencia});
+      } catch(e) { console.warn('[GBR SB] restore session:', e.message); }
+    }
+  });
+
+})();
+
+
+/* ═══════════════════════════════════════════════════════════
+   MOTOR DE AGENDAMENTO ONLINE PÚBLICO
+   URL: ?agendar=TOKEN&tid=TENANT_ID
+══════════════════════════════════════════════════════════ */
+var _aoTenantId = null;
+var _aoToken = null;
+var _aoServicos = [];
+var _aoServicoSelecionado = null;
+var _aoHorarioSelecionado = null;
+var _aoMaxVagas = 1;
+var _aoAgendamentosExistentes = [];
+
+// Detectar se é acesso de agendamento online
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('agendar');
+  var tid   = params.get('tid');
+  if (!token || !tid) return;
+  _aoToken = token; _aoTenantId = tid;
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esconder tudo e mostrar a página de agendamento
+    document.getElementById('loginPage') && (document.getElementById('loginPage').style.display = 'none');
+    document.getElementById('appShell') && (document.getElementById('appShell').style.display = 'none');
+    document.getElementById('paginaAgendamentoOnline').style.display = 'block';
+    aoInicializar(tid, token);
+  });
+})();
+
+async function aoInicializar(tid, token) {
+  document.getElementById('aoLoading').style.display = 'block';
+  document.getElementById('aoStep1').style.display = 'none';
+  try {
+    // Criar cliente Supabase público (anon)
+    var sbPublic = supabase.createClient(GBR_SB_URL, GBR_SB_ANON, {auth:{persistSession:false}});
+
+    // 1. Verificar token e carregar dados do tenant
+    var rTenant = await sbPublic.from('tenants').select('id,nome,ao_token,kill_switch,status_licenca,aparencia,max_vagas').eq('id', tid).maybeSingle();
+    if (!rTenant.data) { aoMostrarErro('Estabelecimento não encontrado.'); return; }
+    var tenant = rTenant.data;
+    if (tenant.kill_switch || tenant.status_licenca === 'inativo') { aoMostrarErro('Este estabelecimento está temporariamente indisponível.'); return; }
+
+    // Verificar token
+    var tokenSalvo = tenant.ao_token;
+    if (!tokenSalvo) {
+      // Token pode estar em global_settings
+      var rCfg = await sbPublic.from('global_settings').select('value').eq('key','config_'+tid).maybeSingle();
+      if (rCfg.data && rCfg.data.value) tokenSalvo = rCfg.data.value.ao_token;
+    }
+    if (tokenSalvo && tokenSalvo !== token) { aoMostrarErro('Link inválido ou expirado. Solicite um novo link ao estabelecimento.'); return; }
+
+    // 2. Personalizar aparência
+    if (tenant.aparencia) {
+      var ap = typeof tenant.aparencia === 'string' ? JSON.parse(tenant.aparencia) : tenant.aparencia;
+      if (ap.logo) {
+        document.getElementById('aoLogoWrap').innerHTML = '<img src="'+ap.logo+'" style="width:100%;height:100%;object-fit:contain;border-radius:14px">';
+      }
+    }
+    document.getElementById('aoNomeEstab').textContent = tenant.nome || 'Agendamento Online';
+    document.getElementById('aoSubtitulo').textContent = 'Agende seu horário em ' + (tenant.nome || 'nossa estética');
+    _aoMaxVagas = tenant.max_vagas || 1;
+
+    // 3. Carregar serviços ativos
+    var rSrv = await sbPublic.from('servicos').select('id,nome,preco_base,tempo_estimado_min,descricao').eq('tenant_id', tid).eq('ativo', true);
+    _aoServicos = rSrv.data || [];
+
+    // 4. Carregar agendamentos existentes (para verificar conflitos)
+    var rAg = await sbPublic.from('agendamentos').select('data_hora_inicio,duracao_min,status').eq('tenant_id', tid).neq('status','cancelado');
+    _aoAgendamentosExistentes = rAg.data || [];
+
+    document.getElementById('aoLoading').style.display = 'none';
+    document.getElementById('aoStep1').style.display = 'block';
+
+    // Definir data mínima
+    var hoje = new Date().toISOString().slice(0,10);
+    var dataInput = document.getElementById('aoData');
+    if (dataInput) { dataInput.min = hoje; dataInput.value = hoje; }
+
+  } catch(e) {
+    aoMostrarErro('Erro ao carregar dados: ' + e.message);
+  }
+}
+
+function aoMostrarErro(msg) {
+  document.getElementById('aoLoading').style.display = 'none';
+  document.getElementById('aoErro').style.display = 'block';
+  document.getElementById('aoErro').textContent = '⚠️ ' + msg;
+}
+
+function aoProxEtapa(etapaAtual) {
+  if (etapaAtual === 1) {
+    // Validar dados do cliente
+    var nome = document.getElementById('aoClienteNome').value.trim();
+    var tel  = document.getElementById('aoClienteTel').value.trim();
+    var veiculo = document.getElementById('aoVeiculo').value.trim();
+    if (!nome || !tel || !veiculo) {
+      document.getElementById('aoErro').style.display='block';
+      document.getElementById('aoErro').textContent='⚠️ Preencha nome, telefone e veículo.';
+      return;
+    }
+    document.getElementById('aoErro').style.display='none';
+    // Renderizar serviços
+    document.getElementById('aoStep1').style.display='none';
+    document.getElementById('aoStep2').style.display='block';
+    var lista = document.getElementById('aoServicosLista');
+    if (!_aoServicos.length) {
+      lista.innerHTML='<div style="color:#888;text-align:center;padding:20px">Nenhum serviço disponível no momento.</div>';
+      return;
+    }
+    lista.innerHTML = _aoServicos.map(function(s) {
+      return '<div onclick="aoSelecionarServico(\'' +s.id+ '\')" style="padding:14px 16px;border-radius:12px;border:2px solid #333;cursor:pointer;transition:all .2s" id="aoSrv_'+s.id+'">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center">'+
+          '<div>'+
+            '<div style="font-weight:600;color:#fff;font-size:14px">'+s.nome+'</div>'+
+            (s.descricao?'<div style="font-size:12px;color:#888;margin-top:2px">'+s.descricao+'</div>':'')+
+            '<div style="font-size:11px;color:#f59e0b;margin-top:4px">⏱ '+((s.tempo_estimado_min||60)+'min')+'</div>'+
+          '</div>'+
+          '<div style="font-size:16px;font-weight:700;color:#22c55e">R$'+parseFloat(s.preco_base||0).toFixed(2).replace('.',',')+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+}
+
+function aoVoltarEtapa(etapaAtual) {
+  if (etapaAtual === 2) {
+    document.getElementById('aoStep2').style.display='none';
+    document.getElementById('aoStep1').style.display='block';
+  } else if (etapaAtual === 3) {
+    document.getElementById('aoStep3').style.display='none';
+    document.getElementById('aoStep2').style.display='block';
+    _aoHorarioSelecionado = null;
+  }
+}
+
+function aoSelecionarServico(sid) {
+  _aoServicoSelecionado = _aoServicos.find(function(s){return s.id===sid;});
+  document.querySelectorAll('[id^="aoSrv_"]').forEach(function(el){el.style.borderColor='#333';el.style.background='';});
+  var el = document.getElementById('aoSrv_'+sid);
+  if (el) { el.style.borderColor='#f59e0b'; el.style.background='#f59e0b11'; }
+  setTimeout(function(){
+    document.getElementById('aoStep2').style.display='none';
+    document.getElementById('aoStep3').style.display='block';
+    aoCarregarHorarios();
+  }, 300);
+}
+
+function aoCarregarHorarios() {
+  var data = document.getElementById('aoData').value;
+  if (!data || !_aoServicoSelecionado) return;
+  var grid = document.getElementById('aoHorariosGrid');
+  grid.innerHTML='<div style="grid-column:span 3;text-align:center;color:#888;padding:12px">Verificando horários...</div>';
+  _aoHorarioSelecionado = null;
+  document.getElementById('aoHorarioSelecionado').style.display='none';
+  document.getElementById('aoBtnConfirmar').style.display='none';
+
+  // Gerar horários de 07:00 às 19:00 de 30 em 30 min
+  var slots = [];
+  var duracao = _aoServicoSelecionado.tempo_estimado_min || 60;
+  var inicio = 7 * 60; // 7:00
+  var fim    = 19 * 60; // 19:00
+  var agora  = new Date();
+  var dataSel = new Date(data + 'T00:00:00');
+  var ehHoje  = data === agora.toISOString().slice(0,10);
+
+  for (var m = inicio; m + duracao <= fim; m += 30) {
+    var h = Math.floor(m/60);
+    var min = m%60;
+    var horaStr = h.toString().padStart(2,'0')+':'+min.toString().padStart(2,'0');
+
+    // Pular horários passados
+    if (ehHoje) {
+      var slotDt = new Date(data+'T'+horaStr+':00');
+      if (slotDt <= agora) continue;
+    }
+
+    // Contar quantos agendamentos existem nesse slot
+    var isoInicio = data+'T'+horaStr+':00';
+    var slotStart = new Date(isoInicio).getTime();
+    var slotEnd   = slotStart + duracao * 60000;
+    var ocupados  = 0;
+    _aoAgendamentosExistentes.forEach(function(ag) {
+      if (!ag.data_hora_inicio) return;
+      var agStart = new Date(ag.data_hora_inicio).getTime();
+      var agEnd   = agStart + ((ag.duracao_min||60) * 60000);
+      // Verificar sobreposição
+      if (agStart < slotEnd && agEnd > slotStart) ocupados++;
+    });
+    var disponivel = ocupados < _aoMaxVagas;
+    slots.push({hora:horaStr, isoInicio:isoInicio, disponivel:disponivel, vagas:_aoMaxVagas-ocupados});
+  }
+
+  if (!slots.length) {
+    grid.innerHTML='<div style="grid-column:span 3;text-align:center;color:#888;padding:12px">Sem horários disponíveis para esta data.</div>';
+    return;
+  }
+
+  grid.innerHTML = slots.map(function(sl) {
+    var style = sl.disponivel
+      ? 'background:#1a1a1a;border:1.5px solid #333;color:#fff;cursor:pointer;'
+      : 'background:#111;border:1.5px solid #222;color:#444;cursor:not-allowed;';
+        var dataAttrs = sl.disponivel ? ' data-hora="'+sl.hora+'" data-iso="'+sl.isoInicio+'" onclick="aoSelecionarHorario(this.dataset.hora,this.dataset.iso)"' : '';
+        return '<button '+dataAttrs+' id="aoSlot_'+sl.hora.replace(':','_')+'" style="'+style+'padding:10px 0;border-radius:8px;font-size:13px;font-weight:500">'+sl.hora+'</button>';
+  }).join('');
+}
+
+function aoSelecionarHorario(hora, isoInicio) {
+  _aoHorarioSelecionado = {hora:hora, isoInicio:isoInicio};
+  document.querySelectorAll('[id^="aoSlot_"]').forEach(function(el){
+    el.style.borderColor='#333'; el.style.background='#1a1a1a'; el.style.color='#fff';
+  });
+  var el = document.getElementById('aoSlot_'+hora.replace(':','_'));
+  if (el) { el.style.borderColor='#22c55e'; el.style.background='#22c55e22'; el.style.color='#22c55e'; }
+  var info = document.getElementById('aoHorarioSelecionado');
+  var data = document.getElementById('aoData').value;
+  info.style.display='block';
+  info.textContent='✓ '+hora+' — '+new Date(data).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  document.getElementById('aoBtnConfirmar').style.display='block';
+}
+
+async function aoConfirmarAgendamento() {
+  if (!_aoHorarioSelecionado || !_aoServicoSelecionado) return;
+  var btn = document.getElementById('aoBtnConfirmar');
+  btn.disabled = true; btn.textContent = 'Aguarde...';
+
+  var nome    = document.getElementById('aoClienteNome').value.trim();
+  var tel     = document.getElementById('aoClienteTel').value.trim();
+  var email   = document.getElementById('aoClienteEmail').value.trim();
+  var veiculo = document.getElementById('aoVeiculo').value.trim();
+  var placa   = document.getElementById('aoPlaca').value.trim().toUpperCase();
+
+  try {
+    var sbPublic = supabase.createClient(GBR_SB_URL, GBR_SB_ANON, {auth:{persistSession:false}});
+
+    // 1. Verificar conflito em tempo real (double-check)
+    var duracao = _aoServicoSelecionado.tempo_estimado_min || 60;
+    var slotStart = new Date(_aoHorarioSelecionado.isoInicio).getTime();
+    var slotEnd   = slotStart + duracao * 60000;
+    var rCheck = await sbPublic.from('agendamentos').select('id').eq('tenant_id',_aoTenantId).neq('status','cancelado');
+    var ocupados = 0;
+    if (rCheck.data) {
+      rCheck.data.forEach(function(ag){
+        if (!ag.data_hora_inicio) return;
+        var agS = new Date(ag.data_hora_inicio).getTime();
+        var agE = agS + ((ag.duracao_min||60)*60000);
+        if (agS < slotEnd && agE > slotStart) ocupados++;
+      });
+    }
+    if (ocupados >= _aoMaxVagas) {
+      btn.disabled=false; btn.textContent='✓ Confirmar Agendamento';
+      document.getElementById('aoErro').style.display='block';
+      document.getElementById('aoErro').textContent='⚠️ Este horário foi ocupado agora. Por favor, escolha outro.';
+      aoCarregarHorarios();
+      return;
+    }
+
+    // 2. Criar/buscar cliente
+    var clienteId = 'ao_'+Date.now().toString(36);
+    var rCli = await sbPublic.from('clientes').select('id').eq('tenant_id',_aoTenantId).eq('telefone',tel).maybeSingle();
+    if (rCli.data) {
+      clienteId = rCli.data.id;
+    } else {
+      var newCli = {id:clienteId,tenant_id:_aoTenantId,nome_completo:nome,telefone:tel,email:email||null,ativo:true,created_at:new Date().toISOString()};
+      await sbPublic.from('clientes').insert(newCli);
+    }
+
+    // 3. Criar agendamento
+    var agId = 'ao_ag_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    var agendamento = {
+      id: agId,
+      tenant_id: _aoTenantId,
+      cliente_id: clienteId,
+      servico_ids: [_aoServicoSelecionado.id],
+      colaborador_id: null,
+      data_hora_inicio: _aoHorarioSelecionado.isoInicio,
+      duracao_min: duracao,
+      status: 'agendado',
+      valor_total: _aoServicoSelecionado.preco_base || 0,
+      veiculo: veiculo,
+      placa: placa,
+      observacoes: 'Agendamento online',
+      origem: 'online',
+      created_at: new Date().toISOString()
+    };
+    var rAg = await sbPublic.from('agendamentos').insert(agendamento);
+    if (rAg.error) throw new Error(rAg.error.message);
+
+    // 4. Mostrar confirmação
+    document.getElementById('aoStep3').style.display='none';
+    document.getElementById('aoStep4').style.display='block';
+    var dtFormatada = new Date(_aoHorarioSelecionado.isoInicio).toLocaleString('pt-BR',{weekday:'long',day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('aoConfirmMsg').textContent = nome+', seu agendamento foi confirmado! Anote os detalhes abaixo.';
+    document.getElementById('aoConfirmDetalhes').innerHTML =
+      '<div style="display:flex;flex-direction:column;gap:8px;font-size:13px">'+
+        '<div style="display:flex;gap:8px"><span>📅</span><span>'+dtFormatada+'</span></div>'+
+        '<div style="display:flex;gap:8px"><span>✂️</span><span>'+_aoServicoSelecionado.nome+'</span></div>'+
+        '<div style="display:flex;gap:8px"><span>🚗</span><span>'+veiculo+(placa?' — '+placa:'')+'</span></div>'+
+        '<div style="display:flex;gap:8px"><span>💵</span><span>R$'+parseFloat(_aoServicoSelecionado.preco_base||0).toFixed(2).replace('.',',')+'</span></div>'+
+      '</div>';
+
+  } catch(e) {
+    btn.disabled=false; btn.textContent='✓ Confirmar Agendamento';
+    document.getElementById('aoErro').style.display='block';
+    document.getElementById('aoErro').textContent='⚠️ Erro ao confirmar: '+e.message;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   IMPORTAÇÃO DE ESTOQUE VIA PLANILHA EXCEL
+   Formato esperado: nome, categoria, unidade, preco_compra, volume_total, saldo_atual, estoque_minimo
+══════════════════════════════════════════════════════════ */
+function abrirImportarEstoque() {
+  // Criar input de arquivo invisível
+  var input = document.getElementById('_importEstoqueInput');
+  if (!input) {
+    input = document.createElement('input');
+    input.id = '_importEstoqueInput';
+    input.type = 'file';
+    input.accept = '.xlsx,.xls,.csv';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', importarArquivoEstoque);
+  }
+  input.value = '';
+  input.click();
+}
+
+function baixarModeloEstoque() {
+  // Criar CSV modelo para download
+  var csv = 'nome,categoria,unidade,preco_compra,volume_total,saldo_atual,estoque_minimo\n';
+  csv += 'Shampoo Automotivo Premium,Limpeza,ml,45.90,500,500,100\n';
+  csv += 'Cera de Carnauba,Polimento,ml,89.50,300,300,50\n';
+  csv += 'Lustra-Borracha,Acabamento,ml,32.00,250,250,80\n';
+  csv += 'Microfibra Profissional,Acessórios,un,25.00,1,10,3\n';
+  csv += '# Instruções:\n';
+  csv += '# nome: nome do produto (obrigatório)\n';
+  csv += '# categoria: grupo/categoria do produto\n';
+  csv += '# unidade: ml (mililitros) / g (gramas) / un (unidade)\n';
+  csv += '# preco_compra: valor pago pela embalagem (ex: 45.90)\n';
+  csv += '# volume_total: quantidade total na embalagem (ex: 500 para 500ml)\n';
+  csv += '# saldo_atual: quantidade disponível agora\n';
+  csv += '# estoque_minimo: alerta quando chegar neste valor\n';
+
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'modelo_importacao_estoque_GBR.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('📥 Modelo baixado! Preencha e importe.','success');
+}
+
+async function importarArquivoEstoque(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  toast('📂 Processando arquivo...','info');
+
+  var ext = file.name.split('.').pop().toLowerCase();
+  
+  if (ext === 'csv') {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try { processarCSVEstoque(ev.target.result); }
+      catch(err) { toast('Erro ao processar CSV: '+err.message,'error'); }
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else if (ext === 'xlsx' || ext === 'xls') {
+    // Usar SheetJS (CDN já carregado se disponível)
+    if (typeof XLSX === 'undefined') {
+      toast('Biblioteca XLSX não carregada. Use o formato CSV.','warn');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var wb = XLSX.read(ev.target.result, {type:'array'});
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var data = XLSX.utils.sheet_to_csv(ws);
+        processarCSVEstoque(data);
+      } catch(err) { toast('Erro ao processar Excel: '+err.message,'error'); }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    toast('Formato inválido. Use .xlsx, .xls ou .csv','error');
+  }
+}
+
+async function processarCSVEstoque(csvText) {
+  var linhas = csvText.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+  if (!linhas.length) { toast('Arquivo vazio.','error'); return; }
+
+  // Detectar cabeçalho
+  var header = linhas[0].toLowerCase().split(',').map(function(h){return h.replace(/[^a-z_]/g,'');});
+  var getCol = function(row, name) {
+    var idx = header.indexOf(name);
+    return idx >= 0 ? (row[idx]||'').trim().replace(/"/g,'') : '';
+  };
+
+  var importados = 0, erros = 0, atualizados = 0;
+  var tenantId = currentTenant?.id;
+  if (!tenantId) { toast('Sem empresa vinculada.','error'); return; }
+
+  for (var i = 1; i < linhas.length; i++) {
+    var linha = linhas[i];
+    if (linha.startsWith('#')) continue; // comentários
+    var row = linha.split(',');
+    var nome = getCol(row, 'nome');
+    if (!nome) continue;
+
+    var produto = {
+      id: uid(),
+      tenant_id: tenantId,
+      nome: nome,
+      categoria: getCol(row,'categoria') || null,
+      unidade: getCol(row,'unidade') || 'un',
+      preco_compra: parseFloat(getCol(row,'preco_compra')) || 0,
+      custo_por_embalagem: parseFloat(getCol(row,'preco_compra')) || 0,
+      volume_total: parseFloat(getCol(row,'volume_total')) || 1,
+      quantidade_por_embalagem: parseFloat(getCol(row,'volume_total')) || 1,
+      saldo_atual: parseFloat(getCol(row,'saldo_atual')) || 0,
+      quantidade_atual: parseFloat(getCol(row,'saldo_atual')) || 0,
+      estoque_minimo: parseFloat(getCol(row,'estoque_minimo')) || 0,
+      quantidade_minima: parseFloat(getCol(row,'estoque_minimo')) || 0,
+      ativo: true,
+      created_at: new Date().toISOString()
+    };
+
+    // Verificar se produto já existe pelo nome
+    var existente = DATA.produtos.findIndex(function(p){
+      return p.nome.toLowerCase() === nome.toLowerCase() && p.tenant_id === tenantId;
+    });
+
+    if (existente >= 0) {
+      // Atualizar existente
+      Object.assign(DATA.produtos[existente], produto, {id: DATA.produtos[existente].id});
+      if (_sb && _sbTenantId) {
+        try { await _sbUpsert('produtos', DATA.produtos[existente]); atualizados++; }
+        catch(e) { erros++; }
+      } else { atualizados++; }
+    } else {
+      // Novo produto
+      DATA.produtos.push(produto);
+      if (_sb && _sbTenantId) {
+        try { await _sbUpsert('produtos', produto); importados++; }
+        catch(e) { erros++; }
+      } else { importados++; }
+    }
+  }
+
+  salvarDados();
+  renderEstoque();
+  logAuditoria('Importação de Estoque', importados+' criados, '+atualizados+' atualizados'+(erros?' ('+erros+' erros)':''));
+  toast('✅ '+importados+' produtos importados, '+atualizados+' atualizados!'+(erros?' ⚠️ '+erros+' erros.':''),'success');
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{
     if(!DATA.fichas)DATA.fichas=[];
@@ -6005,5 +6556,64 @@ function _gbrAplicarCmsPersonalizacoes(tenantObj) {
 }
 
 </script>
+
+<!-- ════════════ PÁGINA PÚBLICA DE AGENDAMENTO ONLINE ════════════ -->
+<div id="paginaAgendamentoOnline" style="display:none;position:fixed;inset:0;z-index:99999;background:var(--bg,#0d0d0d);overflow-y:auto">
+  <div style="max-width:480px;margin:0 auto;padding:24px 16px;min-height:100vh">
+    <div id="aoHeader" style="text-align:center;padding:24px 0 20px">
+      <div id="aoLogoWrap" style="width:64px;height:64px;margin:0 auto 12px;border-radius:16px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:28px">🚗</div>
+      <div id="aoNomeEstab" style="font-size:20px;font-weight:700;color:#fff">Agendamento Online</div>
+      <div id="aoSubtitulo" style="font-size:13px;color:#888;margin-top:4px">Escolha o serviço e horário desejado</div>
+    </div>
+
+    <!-- Etapa 1: Dados do cliente -->
+    <div id="aoStep1" class="ao-step">
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Seus dados</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <input id="aoClienteNome" type="text" placeholder="Seu nome completo *" style="padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;outline:none" onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#333'">
+        <input id="aoClienteTel" type="tel" placeholder="WhatsApp / Telefone *" style="padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;outline:none" onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#333'">
+        <input id="aoClienteEmail" type="email" placeholder="E-mail (opcional)" style="padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;outline:none" onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#333'">
+        <input id="aoVeiculo" type="text" placeholder="Veículo (ex: Honda Civic Prata) *" style="padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;outline:none" onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#333'">
+        <input id="aoPlaca" type="text" placeholder="Placa do veículo" style="padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;outline:none;text-transform:uppercase" onfocus="this.style.borderColor='#f59e0b'" onblur="this.style.borderColor='#333'">
+      </div>
+      <button onclick="aoProxEtapa(1)" style="width:100%;margin-top:16px;padding:14px;border-radius:10px;background:#f59e0b;border:none;color:#000;font-weight:700;font-size:15px;cursor:pointer">Continuar →</button>
+    </div>
+
+    <!-- Etapa 2: Serviço -->
+    <div id="aoStep2" class="ao-step" style="display:none">
+      <button onclick="aoVoltarEtapa(2)" style="background:none;border:none;color:#888;cursor:pointer;font-size:13px;margin-bottom:12px">← Voltar</button>
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Selecione o serviço</div>
+      <div id="aoServicosLista" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Etapa 3: Data e Hora -->
+    <div id="aoStep3" class="ao-step" style="display:none">
+      <button onclick="aoVoltarEtapa(3)" style="background:none;border:none;color:#888;cursor:pointer;font-size:13px;margin-bottom:12px">← Voltar</button>
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Escolha data e horário</div>
+      <input id="aoData" type="date" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #333;background:#1a1a1a;color:#fff;font-size:14px;margin-bottom:12px;box-sizing:border-box" onchange="aoCarregarHorarios()">
+      <div id="aoHorariosGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px"></div>
+      <div id="aoHorarioSelecionado" style="display:none;margin-top:12px;padding:10px;border-radius:8px;background:#f59e0b22;border:1px solid #f59e0b44;color:#f59e0b;font-size:13px;text-align:center"></div>
+      <button id="aoBtnConfirmar" onclick="aoConfirmarAgendamento()" style="display:none;width:100%;margin-top:16px;padding:14px;border-radius:10px;background:#22c55e;border:none;color:#fff;font-weight:700;font-size:15px;cursor:pointer">✓ Confirmar Agendamento</button>
+    </div>
+
+    <!-- Etapa 4: Confirmação -->
+    <div id="aoStep4" class="ao-step" style="display:none;text-align:center;padding:40px 0">
+      <div style="font-size:64px;margin-bottom:16px">✅</div>
+      <div style="font-size:22px;font-weight:700;color:#22c55e;margin-bottom:8px">Agendado com sucesso!</div>
+      <div id="aoConfirmMsg" style="font-size:14px;color:#888;line-height:1.6"></div>
+      <div style="margin-top:24px;padding:16px;background:#1a1a1a;border-radius:12px;text-align:left" id="aoConfirmDetalhes"></div>
+    </div>
+
+    <!-- Loading -->
+    <div id="aoLoading" style="display:none;text-align:center;padding:40px 0">
+      <div style="font-size:32px;margin-bottom:12px">⏳</div>
+      <div style="color:#888">Verificando horários disponíveis...</div>
+    </div>
+
+    <!-- Erro -->
+    <div id="aoErro" style="display:none;padding:16px;border-radius:10px;background:#ef444422;border:1px solid #ef444444;color:#ef4444;font-size:13px;margin-top:12px"></div>
+  </div>
+</div>
+
 </body>
 </html>
