@@ -2216,16 +2216,25 @@ async function _sbCarregarTudo(tenantId) {
         }
       } catch(ePl) { window._gbrModulosLiberados = null; }
     }
-    // Carregar dados operacionais do Supabase
+    // Carregar dados operacionais do Supabase (fonte de verdade)
     try {
       var [rCli, rAg, rSrv] = await Promise.all([
         _sb.from('clientes').select('*').eq('tenant_id', tenantId).eq('ativo', true),
         _sb.from('agendamentos').select('*').eq('tenant_id', tenantId).neq('status','cancelado').order('data_hora_inicio',{ascending:false}).limit(500),
         _sb.from('servicos').select('*').eq('tenant_id', tenantId).eq('ativo', true)
       ]);
-      if (!rCli.error && rCli.data && rCli.data.length > 0) DATA.clientes = rCli.data;
-      if (!rAg.error && rAg.data && rAg.data.length > 0) DATA.agendamentos = rAg.data;
-      if (!rSrv.error && rSrv.data && rSrv.data.length > 0) DATA.servicos = rSrv.data;
+      // Supabase é a fonte de verdade — sempre usar se não houve erro
+      if (!rCli.error && rCli.data !== null) DATA.clientes = rCli.data;
+      if (!rAg.error && rAg.data !== null) DATA.agendamentos = rAg.data;
+      if (!rSrv.error && rSrv.data !== null) DATA.servicos = rSrv.data;
+      
+      // Se Supabase retornou vazio mas localStorage tem dados → MIGRAR
+      var sbVazio = (rCli.data||[]).length === 0 && (rSrv.data||[]).length === 0;
+      var localTemDados = (DATA.clientes.length > 0 || DATA.servicos.length > 0);
+      if (sbVazio && localTemDados) {
+        console.log('[GBR] Supabase vazio, iniciando migração do localStorage...');
+        setTimeout(function(){ _gbrMigrarLocalStorageParaSupabase(tenantId); }, 1000);
+      }
       // Tickets
       try {
         var rTk = await _sb.from('global_settings').select('value').eq('key','tickets_'+tenantId).maybeSingle();
@@ -2260,6 +2269,72 @@ function _gbrCarregarPersonalizacoes(tenantId, tenantData) {
     if(lb2){lb2.style.background='transparent';lb2.innerHTML='<img src="'+stl.logo+'" style="width:100%;height:100%;object-fit:contain;border-radius:8px">';}
   }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   MIGRAÇÃO: localStorage → Supabase
+   Roda uma vez por tenant quando Supabase está vazio mas localStorage tem dados
+   ══════════════════════════════════════════════════════════ */
+async function _gbrMigrarLocalStorageParaSupabase(tenantId) {
+  if (!_sb || !tenantId) return;
+  
+  var tabelas = [
+    { local: 'clientes',      sb: 'clientes',     campo_tenant: 'tenant_id' },
+    { local: 'agendamentos',  sb: 'agendamentos',  campo_tenant: 'tenant_id' },
+    { local: 'servicos',      sb: 'servicos',      campo_tenant: 'tenant_id' },
+    { local: 'produtos',      sb: 'produtos',      campo_tenant: 'tenant_id' },
+  ];
+
+  var migrou = false;
+  for (var t of tabelas) {
+    try {
+      // Verificar se Supabase já tem dados
+      var rCheck = await _sb.from(t.sb).select('id').eq(t.campo_tenant, tenantId).limit(1);
+      if (rCheck.data && rCheck.data.length > 0) continue; // já tem dados no SB
+
+      // Pegar dados do localStorage
+      var localData = [];
+      try {
+        var raw = localStorage.getItem('gbr_' + t.local);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          localData = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+        }
+      } catch(e) {}
+      if (!DATA[t.local] && localData.length === 0) continue;
+      var dados = DATA[t.local] && DATA[t.local].length > 0 ? DATA[t.local] : localData;
+      if (!dados || dados.length === 0) continue;
+
+      // Garantir tenant_id em todos os registros e ativo=true
+      var dadosComTenant = dados
+        .filter(function(d){ return d && d.id; })
+        .map(function(d){
+          var item = Object.assign({}, d);
+          item[t.campo_tenant] = tenantId;
+          if (item.ativo === undefined) item.ativo = true;
+          return item;
+        });
+
+      if (dadosComTenant.length === 0) continue;
+
+      // Inserir em lotes de 50
+      for (var i = 0; i < dadosComTenant.length; i += 50) {
+        var lote = dadosComTenant.slice(i, i + 50);
+        await _sb.from(t.sb).upsert(lote, {onConflict: 'id', ignoreDuplicates: true});
+      }
+      console.log('[GBR] Migrados ' + dadosComTenant.length + ' registros de ' + t.local + ' → Supabase');
+      migrou = true;
+    } catch(eM) {
+      console.warn('[GBR] Migração ' + t.local + ':', eM.message);
+    }
+  }
+  if (migrou) {
+    toast('✅ Dados migrados para a nuvem! Agora sincronizam em todos os dispositivos.', 'success');
+    logAuditoria('Migração de Dados', 'Dados do localStorage migrados para o Supabase');
+  }
+  return migrou;
+}
+
 
 async function fazerLogin() {
   var email = document.getElementById('loginEmail').value.trim().toLowerCase();
