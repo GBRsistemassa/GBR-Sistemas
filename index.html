@@ -7414,8 +7414,12 @@ function _marcarLida(notifId) {
   var n = _notifCache.find(function(x){ return x.id===notifId; });
   if (n && !n.lida) {
     n.lida = true;
+    // FIX: Supabase v2 query builder não tem .catch() direto — usar Promise
     if (_sbReady && currentTenant) {
-      _sb.from('notifications').update({lido:true,lida:true}).eq('id',notifId).catch(function(){});
+      _sb.from('notifications').update({lido:true,lida:true})
+        .eq('id', notifId)
+        .then(function(r){ if(r.error) console.warn('[GBR] marcarLida:', r.error.message); })
+        .catch(function(e){ console.warn('[GBR] marcarLida catch:', e.message); });
     }
     renderNotifLista();
     atualizarBadgeNotif();
