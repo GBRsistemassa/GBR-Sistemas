@@ -6067,6 +6067,105 @@ function acessarComoTenant(tid) { GBR_API.switchTenant(tid); }
       } catch(e) { console.warn('[GBR SB] restore session:', e.message); }
     }
   });
+})();
+
+// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+let diaAgenda=new Date();
+let semanaAgenda=new Date();
+let chkItens=[],fotosChk=[],assinOk=false,assinData=null;
+let resgateAtual=null;
+let _fichaAtual=null,_servAtual=null;
+let _npsNota=0;
+let _waTplSelecionado=null;
+
+// ===== INIT =====
+(function init(){
+
+  // ── Núcleo: se qualquer coisa aqui falhar, o loader já mostra o botão de reload ──
+  try { carregarDados(); } catch(e) { console.error('[GBR] carregarDados falhou:', e); }
+
+  // ── Aparência (antes de qualquer render para evitar flash) ──
+  try {
+    const tema = localStorage.getItem('gbr_tema') || 'dark';
+    const accent = localStorage.getItem('gbr_accent') || 'amber';
+    setTheme(tema, true);
+    setAccent(accent, true);
+  } catch(e) { console.warn('[GBR] Aparência não carregada:', e); }
+
+  // ── Elementos do DOM que precisam existir antes de serem vinculados ──
+  try {
+    const topbarDate = document.getElementById('topbarDate');
+    if (topbarDate) topbarDate.textContent = new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+
+    const loginSenha = document.getElementById('loginSenha');
+    if (loginSenha) loginSenha.addEventListener('keydown', e => { if(e.key==='Enter') fazerLogin(); });
+
+    const confirmaSenha = document.getElementById('confirmaSenha');
+    if (confirmaSenha) confirmaSenha.addEventListener('keydown', e => { if(e.key==='Enter') trocarSenha(); });
+  } catch(e) { console.warn('[GBR] Listeners de login:', e); }
+
+  // ── initCanvas: LAZY — só executa quando o modal do checklist abrir ──
+  // Não chamamos initCanvas() aqui pois o canvas (#canvasAssin) fica dentro
+  // de um modal oculto e pode não estar renderizado no momento do init.
+  // A função openModalChecklist() chama initCanvasLazy() no momento certo.
+
+  // ── Keyboard shortcuts ──
+  try {
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); abrirBuscaGlobal(); }
+      if (e.key==='Escape') { fecharBuscaGlobal(); fecharAparencia(); }
+    });
+  } catch(e) { console.warn('[GBR] Shortcuts:', e); }
+
+  // ── Click fora fecha painel de aparência ──
+  try {
+    document.addEventListener('click', e => {
+      const p = document.getElementById('aparenciaPanel');
+      if (p && p.classList.contains('open') && !p.contains(e.target) && !e.target.closest('.topbar-btn')) {
+        p.classList.remove('open');
+      }
+    });
+  } catch(e) {}
+
+  // ── Loader: remove após 800ms; exibe botão reload se demorar > 5s ──
+  const loaderTimeout = setTimeout(() => {
+    const l = document.getElementById('gbr-loader');
+    if (l) {
+      const reloadBtn = document.createElement('button');
+      reloadBtn.textContent = '⟳ Recarregar';
+      reloadBtn.style.cssText = 'margin-top:8px;padding:10px 24px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit';
+      reloadBtn.onclick = () => location.reload();
+      const sub = l.querySelector('.ld-sub');
+      if (sub) { sub.textContent = 'Algo demorou demais...'; sub.after(reloadBtn); }
+      else l.appendChild(reloadBtn);
+    }
+  }, 5000);
+
+  setTimeout(async () => {
+    clearTimeout(loaderTimeout);
+    const l = document.getElementById('gbr-loader');
+    if (l) { l.classList.add('out'); setTimeout(() => l.remove(), 500); }
+    
+    // Se não há sessão ativa → mostrar tela de login
+    if (!_sbTenantId && _sbReady) {
+      try {
+        const { data: { session } } = await _sb.auth.getSession();
+        if (!session) {
+          // Sem sessão → mostrar loginPage
+          const lp = document.getElementById('loginPage');
+          if (lp) lp.style.display = 'flex';
+          const ap = document.getElementById('appShell');
+          if (ap) ap.style.display = 'none';
+        }
+        // Com sessão → onAuthStateChange vai lidar com SIGNED_IN
+      } catch(e) {
+        // Fallback: mostrar login
+        const lp = document.getElementById('loginPage');
+        if (lp) lp.style.display = 'flex';
+      }
+    }
+  }, 800);
 
 })();
 
