@@ -2785,10 +2785,21 @@ function uid() {
 }
 function toast(msg,type){
   const box=document.getElementById('toastBox');
-  const icons={success:'✓',error:'✕',warn:'⚠'};
+  if(!box)return;
+  // Limitar a 3 toasts simultâneos para evitar flood de erros
+  var existentes = box.querySelectorAll('.toast');
+  if(existentes.length>=3){
+    // Se já há 3 toasts iguais, não adicionar mais
+    for(var i=0;i<existentes.length;i++){
+      if(existentes[i].querySelector('.t-msg')?.textContent===msg) return;
+    }
+    // Remover o mais antigo
+    if(existentes.length>=5) existentes[0].remove();
+  }
+  const icons={success:'✓',error:'✕',warn:'⚠',info:'ℹ'};
   const t=document.createElement('div');t.className='toast '+(type||'success');
-  t.innerHTML='<span class="t-icon">'+(icons[type||'success'])+'</span><span class="t-msg">'+msg+'</span>';
-  box.appendChild(t);setTimeout(()=>t.remove(),3500);
+  t.innerHTML='<span class="t-icon">'+(icons[type||'success']||'ℹ')+'</span><span class="t-msg">'+msg+'</span>';
+  box.appendChild(t);setTimeout(()=>{if(t.parentNode)t.remove();},4000);
 }
 function fmtMoney(v){return'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtDateTime(iso){if(!iso)return'-';const d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
@@ -4758,11 +4769,17 @@ async function diagnosticarConexao() {
 
     var d = document.createElement('div');
     d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px';
+    var diagCloseId = '_gbr_diag_' + Date.now();
+    d.id = diagCloseId;
     d.innerHTML = '<div style="background:var(--bg2,#1a1a2e);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;width:100%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;gap:16px">'
       + dh
-      + '<button onclick="document.body.removeChild(this.closest(\'[style*=fixed]\')||this.parentElement.parentElement)" '
-      + 'class="btn btn-primary" style="width:100%;flex-shrink:0">Fechar</button></div>';
+      + '<button id="' + diagCloseId + '_btn" class="btn btn-primary" style="width:100%;flex-shrink:0;margin-top:8px">Fechar</button></div>';
     document.body.appendChild(d);
+    // Adicionar event listener após inserir no DOM (evita problemas de aspas no onclick)
+    document.getElementById(diagCloseId + '_btn').addEventListener('click', function() {
+      var el = document.getElementById(diagCloseId);
+      if (el) document.body.removeChild(el);
+    });
   } catch(eDiag) {
     alert('Erro ao abrir diagnóstico: ' + eDiag.message);
     console.error('[GBR] diagnosticarConexao:', eDiag);
@@ -4770,9 +4787,12 @@ async function diagnosticarConexao() {
 }
 
 async function forcarMigracao() {
-  if (!_sbReady || !_sbTenantId) {
-    toast('Conecte-se ao sistema primeiro.', 'error'); return;
+  // FIX: usar currentTenant.id como fallback se _sbTenantId não foi setado
+  var tid = _sbTenantId || currentTenant?.id;
+  if (!_sbReady || !tid) {
+    toast('Conecte-se ao sistema primeiro. Se já está logado, recarregue a página.', 'warn'); return;
   }
+  _sbTenantId = _sbTenantId || tid;
   if (!confirm('Vai enviar todos os dados deste dispositivo para a nuvem.\n\nDados já existentes NÃO serão sobrescritos.\nContinuar?')) return;
   toast('⬆️ Iniciando migração...', 'info');
   try {
@@ -4785,9 +4805,12 @@ async function forcarMigracao() {
 }
 
 async function recuperarDadosNuvem() {
-  if (!_sbReady || !_sbTenantId) {
-    toast('Sem conexão com a nuvem. Faça login novamente.', 'error'); return;
+  // FIX: usar currentTenant.id como fallback
+  var tid = _sbTenantId || currentTenant?.id;
+  if (!_sbReady || !tid) {
+    toast('Sem conexão com a nuvem. Se já está logado, recarregue a página.', 'warn'); return;
   }
+  _sbTenantId = _sbTenantId || tid;
   if (!confirm('Isso vai recarregar TODOS os dados da nuvem (Supabase) para este dispositivo.\n\nDados locais não sincronizados podem ser sobrescritos.\n\nContinuar?')) return;
 
   toast('☁️ Recuperando dados da nuvem...', 'info');
@@ -4859,7 +4882,11 @@ async function recuperarDadosNuvem() {
     var resumo = Object.entries(resultados).filter(function(kv){ return kv[1]>0; })
       .map(function(kv){ return kv[0]+': '+kv[1]; }).join(', ');
 
-    if (erros.length) console.warn('[GBR] recuperarDadosNuvem erros:', erros);
+    if (erros.length) {
+      console.warn('[GBR] recuperarDadosNuvem erros:', erros);
+      // Consolidar erros em um único toast
+      toast('⚠️ ' + erros.length + ' tabela(s) com problema. Ver console para detalhes.', 'warn');
+    }
 
     toast('✅ ' + totalReg + ' registros recuperados! (' + (resumo||'nenhum dado encontrado') + ')', 'success');
     logAuditoria('Recuperou Dados da Nuvem', totalReg + ' registros');
