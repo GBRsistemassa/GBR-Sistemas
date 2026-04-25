@@ -640,10 +640,14 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <p>Preencha seus dados e entraremos em contato em até 48h</p>
     </div>
     <div id="setupMsg" class="login-msg"></div>
-    <div class="form-group"><label>Nome da Empresa / Estética <span class="req">*</span></label><input type="text" id="setupEmpresa" placeholder="Ex: Auto Premium Estética"></div>
-    <div class="form-group"><label>Seu Nome <span class="req">*</span></label><input type="text" id="setupNome" placeholder="Nome do responsável"></div>
-    <div class="form-group"><label>WhatsApp <span class="req">*</span></label><input type="tel" id="setupWhatsapp" placeholder="(00) 00000-0000" oninput="maskTel(this)"></div>
-    <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="setupEmail" placeholder="seu@email.com"></div>
+    <div class="form-group"><label for="setupEmpresa">Nome da Empresa / Estética <span class="req">*</span></label><input type="text" id="setupEmpresa" placeholder="Ex: Auto Premium Estética"></div>
+
+    <div class="form-group"><label for="setupNome">Seu Nome <span class="req">*</span></label><input type="text" id="setupNome" placeholder="Nome do responsável"></div>
+
+    <div class="form-group"><label for="setupWhatsapp">WhatsApp <span class="req">*</span></label><input type="tel" id="setupWhatsapp" placeholder="(00) 00000-0000" oninput="maskTel(this)"></div>
+
+    <div class="form-group"><label for="setupEmail">E-mail <span class="req">*</span></label><input type="email" id="setupEmail" placeholder="seu@email.com"></div>
+
     <button class="btn btn-primary btn-lg" id="btnSolicitarAcesso" onclick="enviarSolicitacaoAcesso()" style="margin-top:8px">Solicitar Demonstração</button>
     <div style="margin-top:16px;text-align:center;font-size:12px;color:var(--text2)">
       ⏱ Retorno em até <strong style="color:var(--accent)">48 horas</strong> por WhatsApp ou e-mail.<br>
@@ -661,8 +665,10 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <p>Gestão para Estéticas Automotivas</p>
     </div>
     <div id="loginMsg" class="login-msg"></div>
-    <div class="form-group"><label>E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email"></div>
-    <div class="form-group"><label>Senha</label><input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password"></div>
+    <div class="form-group"><label for="loginEmail">E-mail</label><input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email"></div>
+
+    <div class="form-group"><label for="loginSenha">Senha</label><input type="password" id="loginSenha" placeholder="Sua senha" autocomplete="current-password"></div>
+
     <button class="btn btn-primary btn-lg" id="btnLogin" onclick="fazerLogin()" style="margin-top:6px">Entrar no Sistema</button>
     <div style="margin-top:16px;text-align:center">
       <button class="btn btn-ghost btn-sm" onclick="mostrarCredenciais()" style="font-size:11px;color:var(--text3)">Esqueci minhas credenciais</button>
@@ -682,8 +688,10 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <p>Por segurança, defina uma nova senha</p>
     </div>
     <div id="trocaMsg" class="login-msg"></div>
-    <div class="form-group"><label>Nova senha <span class="req">*</span></label><input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres"></div>
-    <div class="form-group"><label>Confirmar senha <span class="req">*</span></label><input type="password" id="confirmaSenha" placeholder="Repita a senha"></div>
+    <div class="form-group"><label for="novaSenha">Nova senha <span class="req">*</span></label><input type="password" id="novaSenha" placeholder="Mínimo 6 caracteres"></div>
+
+    <div class="form-group"><label for="confirmaSenha">Confirmar senha <span class="req">*</span></label><input type="password" id="confirmaSenha" placeholder="Repita a senha"></div>
+
     <button class="btn btn-primary btn-lg" onclick="trocarSenha()" style="margin-top:6px">Definir Senha</button>
   </div>
 </div>
@@ -928,22 +936,31 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div class="admin-grid">
         <div class="card">
           <div class="card-title" style="margin-bottom:16px">🔒 Alterar Senha</div>
-          <div class="form-group"><label>Senha atual</label><input type="password" id="cfgSenhaAtual" placeholder="Senha atual"></div>
-          <div class="form-group"><label>Nova senha</label><input type="password" id="cfgNovaSenha" placeholder="Nova senha"></div>
-          <div class="form-group"><label>Confirmar</label><input type="password" id="cfgConfirmaSenha" placeholder="Confirmar nova senha"></div>
+          <div class="form-group"><label for="cfgSenhaAtual">Senha atual</label><input type="password" id="cfgSenhaAtual" placeholder="Senha atual"></div>
+
+          <div class="form-group"><label for="cfgNovaSenha">Nova senha</label><input type="password" id="cfgNovaSenha" placeholder="Nova senha"></div>
+
+          <div class="form-group"><label for="cfgConfirmaSenha">Confirmar</label><input type="password" id="cfgConfirmaSenha" placeholder="Confirmar nova senha"></div>
+
           <button class="btn btn-primary" onclick="alterarSenhaConfig()">Salvar Nova Senha</button>
         </div>
         <div class="card">
           <div class="card-title" style="margin-bottom:16px">🏢 Dados da Empresa</div>
-          <div class="form-group"><label>Nome da empresa</label><input type="text" id="cfgEmpresaNome" placeholder="Nome da estética"></div>
-          <div class="form-group"><label>CNPJ</label><input type="text" id="cfgCnpj" placeholder="00.000.000/0001-00"></div>
-          <div class="form-group"><label>Telefone</label><input type="tel" id="cfgTelefone" oninput="maskTel(this)" placeholder="(00) 00000-0000"></div>
-          <div class="form-group"><label>E-mail</label><input type="email" id="cfgEmail" placeholder="contato@estetica.com"></div>
+          <div class="form-group"><label for="cfgEmpresaNome">Nome da empresa</label><input type="text" id="cfgEmpresaNome" placeholder="Nome da estética"></div>
+
+          <div class="form-group"><label for="cfgCnpj">CNPJ</label><input type="text" id="cfgCnpj" placeholder="00.000.000/0001-00"></div>
+
+          <div class="form-group"><label for="cfgTelefone">Telefone</label><input type="tel" id="cfgTelefone" oninput="maskTel(this)" placeholder="(00) 00000-0000"></div>
+
+          <div class="form-group"><label for="cfgEmail">E-mail</label><input type="email" id="cfgEmail" placeholder="contato@estetica.com"></div>
+
           <div style="background:rgba(20,184,166,.06);border:1px solid rgba(20,184,166,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px">
             <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:10px">🚗 Configuração Leva e Traz <span id="kmRateBadge" class="km-rate-display" style="display:none"></span></div>
             <div class="form-row">
-              <div class="form-group"><label>CEP da Estética <span style="font-size:10px;color:var(--text3)">(base para cálculo de distância)</span></label><input type="text" id="cfgCepEmpresa" placeholder="00000-000" oninput="maskCep(this)" maxlength="9"></div>
-              <div class="form-group"><label>Valor por KM (R$) <span style="font-size:10px;color:var(--text3)">(seu preço personalizado)</span></label><input type="number" id="cfgValorKmLT" min="0" step="0.01" placeholder="Ex: 2,50"></div>
+              <div class="form-group"><label for="cfgCepEmpresa">CEP da Estética <span style="font-size:10px;color:var(--text3)">(base para cálculo de distância)</span></label><input type="text" id="cfgCepEmpresa" placeholder="00000-000" oninput="maskCep(this)" maxlength="9"></div>
+
+              <div class="form-group"><label for="cfgValorKmLT">Valor por KM (R$) <span style="font-size:10px;color:var(--text3)">(seu preço personalizado)</span></label><input type="number" id="cfgValorKmLT" min="0" step="0.01" placeholder="Ex: 2,50"></div>
+
             </div>
             <div class="info-box" style="font-size:11.5px;margin-top:4px">💡 Este é <strong>seu valor por KM</strong>. O cálculo será: distância (km) × seu valor/km × 2 (ida e volta).</div>
           </div>
@@ -1039,7 +1056,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <span id="waAutoStatus" style="font-size:12px;color:var(--text2)">Desativado</span>
-          <label class="switch"><input type="checkbox" id="waAutoToggle" onchange="toggleWaAuto(this.checked)"><span class="switch-slider"></span></label>
+          <label for="waAutoToggle" class="switch"><input type="checkbox" id="waAutoToggle" onchange="toggleWaAuto(this.checked)"><span class="switch-slider"></span></label>
         </div>
       </div>
       <!-- Barra de envio em massa -->
@@ -1098,8 +1115,10 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="card" id="finFiltroWrap" style="display:none">
           <div class="card-header"><div class="card-title">Período Personalizado</div></div>
           <div class="form-row">
-            <div class="form-group"><label>De</label><input type="date" id="finDe"></div>
-            <div class="form-group"><label>Até</label><input type="date" id="finAte"></div>
+            <div class="form-group"><label for="finDe">De</label><input type="date" id="finDe"></div>
+
+            <div class="form-group"><label for="finAte">Até</label><input type="date" id="finAte"></div>
+
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap" id="finCatChips"></div>
           <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="renderFinanceiro()">Filtrar</button>
@@ -1169,17 +1188,20 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="admin-grid">
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">💸 Regras de Desconto</div>
-            <div class="form-group"><label>Desconto máx. sem senha (%)</label><input type="number" id="rDescSem" min="0" max="100" placeholder="10"></div>
-            <div class="form-group"><label>Desconto máx. com senha admin (%)</label><input type="number" id="rDescCom" min="0" max="100" placeholder="50"></div>
-            <div class="form-group"><label>Senha administrativa</label><input type="password" id="rSenhaAdm" placeholder="Senha do owner"></div>
+            <div class="form-group"><label for="rDescSem">Desconto máx. sem senha (%)</label><input type="number" id="rDescSem" min="0" max="100" placeholder="10"></div>
+
+            <div class="form-group"><label for="rDescCom">Desconto máx. com senha admin (%)</label><input type="number" id="rDescCom" min="0" max="100" placeholder="50"></div>
+
+            <div class="form-group"><label for="rSenhaAdm">Senha administrativa</label><input type="password" id="rSenhaAdm" placeholder="Senha do owner"></div>
+
             <button class="btn btn-primary" onclick="salvarRegrasDesconto()">Salvar</button>
           </div>
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">⚙ Automações</div>
-            <div class="switch-row"><div><div class="switch-label">Pontos Automáticos (Fidelidade)</div><div class="switch-sub">Adiciona pontos ao concluir serviço</div></div><label class="switch"><input type="checkbox" id="autoFidelidade" checked><span class="switch-slider"></span></label></div>
-            <div class="switch-row"><div><div class="switch-label">Lançamento Auto no Caixa</div><div class="switch-sub">Registra valor ao concluir agendamento</div></div><label class="switch"><input type="checkbox" id="autoCaixa" checked><span class="switch-slider"></span></label></div>
-            <div class="switch-row"><div><div class="switch-label">Alertas de Aniversário</div><div class="switch-sub">Notifica no dashboard</div></div><label class="switch"><input type="checkbox" id="autoAniversario" checked><span class="switch-slider"></span></label></div>
-            <div class="switch-row"><div><div class="switch-label">Alerta de Estoque Mínimo</div><div class="switch-sub">Avisa quando produto abaixo do mínimo</div></div><label class="switch"><input type="checkbox" id="autoEstoque" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Pontos Automáticos (Fidelidade)</div><div class="switch-sub">Adiciona pontos ao concluir serviço</div></div><label for="autoFidelidade" class="switch"><input type="checkbox" id="autoFidelidade" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Lançamento Auto no Caixa</div><div class="switch-sub">Registra valor ao concluir agendamento</div></div><label for="autoCaixa" class="switch"><input type="checkbox" id="autoCaixa" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Alertas de Aniversário</div><div class="switch-sub">Notifica no dashboard</div></div><label for="autoAniversario" class="switch"><input type="checkbox" id="autoAniversario" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Alerta de Estoque Mínimo</div><div class="switch-sub">Avisa quando produto abaixo do mínimo</div></div><label for="autoEstoque" class="switch"><input type="checkbox" id="autoEstoque" checked><span class="switch-slider"></span></label></div>
             <button class="btn btn-primary" style="margin-top:14px" onclick="salvarAutomacoes()">Salvar Automações</button>
           </div>
           <div class="card">
@@ -1245,28 +1267,39 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="admin-grid">
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">🏢 Dados da Empresa</div>
-            <div class="form-group"><label>Nome da empresa</label><input type="text" id="adm_nome" placeholder="Nome da estética"></div>
-            <div class="form-group"><label>CNPJ</label><input type="text" id="adm_cnpj" placeholder="00.000.000/0001-00"></div>
+            <div class="form-group"><label for="adm_nome">Nome da empresa</label><input type="text" id="adm_nome" placeholder="Nome da estética"></div>
+
+            <div class="form-group"><label for="adm_cnpj">CNPJ</label><input type="text" id="adm_cnpj" placeholder="00.000.000/0001-00"></div>
+
             <div class="form-row">
-              <div class="form-group"><label>Telefone</label><input type="tel" id="adm_tel" oninput="maskTel(this)" placeholder="(00) 00000-0000"></div>
-              <div class="form-group"><label>E-mail</label><input type="email" id="adm_email" placeholder="contato@estetica.com"></div>
+              <div class="form-group"><label for="adm_tel">Telefone</label><input type="tel" id="adm_tel" oninput="maskTel(this)" placeholder="(00) 00000-0000"></div>
+
+              <div class="form-group"><label for="adm_email">E-mail</label><input type="email" id="adm_email" placeholder="contato@estetica.com"></div>
+
             </div>
-            <div class="form-group"><label>CEP da Empresa</label><div class="cep-row"><input type="text" id="adm_cep" placeholder="00000-000" oninput="maskCep(this)" onblur="buscarCepAdmin()"><button class="cep-btn" onclick="buscarCepAdmin()">🔍 Buscar</button></div></div>
+            <div class="form-group"><label for="adm_cep">CEP da Empresa</label><div class="cep-row"><input type="text" id="adm_cep" placeholder="00000-000" oninput="maskCep(this)" onblur="buscarCepAdmin()"><button class="cep-btn" onclick="buscarCepAdmin()">🔍 Buscar</button></div></div>
             <div class="form-row">
-              <div class="form-group"><label>Logradouro</label><input type="text" id="adm_logr" placeholder="Rua, Av..."></div>
-              <div class="form-group"><label>Número</label><input type="text" id="adm_nnum"></div>
+              <div class="form-group"><label for="adm_logr">Logradouro</label><input type="text" id="adm_logr" placeholder="Rua, Av..."></div>
+
+              <div class="form-group"><label for="adm_nnum">Número</label><input type="text" id="adm_nnum"></div>
+
             </div>
             <div class="form-row-3">
-              <div class="form-group"><label>Bairro</label><input type="text" id="adm_bairro"></div>
-              <div class="form-group"><label>Cidade</label><input type="text" id="adm_cidade"></div>
-              <div class="form-group"><label>UF</label><input type="text" id="adm_uf" maxlength="2"></div>
+              <div class="form-group"><label for="adm_bairro">Bairro</label><input type="text" id="adm_bairro"></div>
+
+              <div class="form-group"><label for="adm_cidade">Cidade</label><input type="text" id="adm_cidade"></div>
+
+              <div class="form-group"><label for="adm_uf">UF</label><input type="text" id="adm_uf" maxlength="2"></div>
+
             </div>
             <!-- LEVA E TRAZ CONFIG -->
             <div style="background:rgba(20,184,166,.06);border:1px solid rgba(20,184,166,.25);border-radius:var(--radius);padding:14px;margin:12px 0">
               <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:10px">🚗 Leva e Traz — Seu Valor por KM</div>
               <div class="form-row">
-                <div class="form-group"><label>CEP base (estética)</label><input type="text" id="adm_cep_empresa" placeholder="00000-000" oninput="maskCep(this)"></div>
-                <div class="form-group"><label>Valor por KM (R$) <span style="font-size:10px;color:var(--text3)">Seu preço personalizado</span></label><input type="number" id="adm_valor_km" min="0" step="0.01" placeholder="Ex: 2,50"></div>
+                <div class="form-group"><label for="adm_cep_empresa">CEP base (estética)</label><input type="text" id="adm_cep_empresa" placeholder="00000-000" oninput="maskCep(this)"></div>
+
+                <div class="form-group"><label for="adm_valor_km">Valor por KM (R$) <span style="font-size:10px;color:var(--text3)">Seu preço personalizado</span></label><input type="number" id="adm_valor_km" min="0" step="0.01" placeholder="Ex: 2,50"></div>
+
               </div>
               <div style="font-size:11px;color:var(--text2)">Cálculo: distância(km) × seu valor/km × 2 (ida e volta). O cliente verá o total calculado automaticamente.</div>
             </div>
@@ -1274,8 +1307,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
             <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.25);border-radius:var(--radius);padding:14px;margin:12px 0">
               <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:10px">🅿 Vagas Simultâneas de Atendimento</div>
               <div class="form-group">
-                <label>Quantas vagas (carros) pode atender ao mesmo tempo?</label>
-                <input type="number" id="adm_vagas" min="1" max="20" value="1" placeholder="Ex: 3">
+                <label for="adm_vagas">Quantas vagas (carros) pode atender ao mesmo tempo?</label><input type="number" id="adm_vagas" min="1" max="20" value="1" placeholder="Ex: 3">
+
               </div>
               <div style="font-size:11px;color:var(--text2)">O sistema bloqueará novos agendamentos quando todas as vagas estiverem ocupadas naquele horário.</div>
             </div>
@@ -1283,10 +1316,14 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
           </div>
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">🖨 Configuração de Impressão e APIs</div>
-            <div class="form-group"><label>Título do documento</label><input type="text" id="adm_print_titulo" placeholder="Ex: Ordem de Serviço"></div>
-            <div class="form-group"><label>Rodapé</label><input type="text" id="adm_print_rodape" placeholder="Obrigado pela preferência!"></div>
-            <div class="form-group"><label>Chave API WhatsApp Business</label><textarea id="adm_wa_api" placeholder="Cole aqui sua chave de API do WhatsApp Business..." style="min-height:80px"></textarea></div>
-            <div class="form-group"><label>Chave API Google Maps</label><input type="text" id="adm_maps_api" placeholder="Google Maps API Key (opcional)"></div>
+            <div class="form-group"><label for="adm_print_titulo">Título do documento</label><input type="text" id="adm_print_titulo" placeholder="Ex: Ordem de Serviço"></div>
+
+            <div class="form-group"><label for="adm_print_rodape">Rodapé</label><input type="text" id="adm_print_rodape" placeholder="Obrigado pela preferência!"></div>
+
+            <div class="form-group"><label for="adm_wa_api">Chave API WhatsApp Business</label><textarea id="adm_wa_api" placeholder="Cole aqui sua chave de API do WhatsApp Business..." style="min-height:80px"></textarea></div>
+
+            <div class="form-group"><label for="adm_maps_api">Chave API Google Maps</label><input type="text" id="adm_maps_api" placeholder="Google Maps API Key (opcional)"></div>
+
             <button class="btn btn-primary" onclick="salvarIntegAdmin()">💾 Salvar Integrações</button>
           </div>
         </div>
@@ -1297,10 +1334,12 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="admin-grid">
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">🎨 Personalização de Marca (White Label)</div>
-            <div class="form-group"><label>Nome do Sistema</label><input type="text" id="adm_sys_nome" placeholder="GBR Pro"></div>
-            <div class="form-group"><label>Subtítulo</label><input type="text" id="adm_sys_sub" placeholder="Gestão para Estéticas Automotivas"></div>
+            <div class="form-group"><label for="adm_sys_nome">Nome do Sistema</label><input type="text" id="adm_sys_nome" placeholder="GBR Pro"></div>
+
+            <div class="form-group"><label for="adm_sys_sub">Subtítulo</label><input type="text" id="adm_sys_sub" placeholder="Gestão para Estéticas Automotivas"></div>
+
             <div class="form-group" style="margin-bottom:14px">
-              <label>Logo da Empresa</label>
+              <label for="logoUploadZone">Logo da Empresa</label>
               <div class="logo-upload-zone" id="logoUploadZone" onclick="document.getElementById('logoInput').click()">
                 <div id="logoPreviewWrap"><div style="font-size:28px;margin-bottom:8px">🖼</div><div style="font-size:12px;color:var(--text2)">Clique para enviar logo (PNG/SVG)</div></div>
                 <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="carregarLogo(this)">
@@ -1310,10 +1349,14 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
           </div>
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">🖌 Paleta de Cores Customizada</div>
-            <div class="color-picker-row"><label>Cor de Destaque</label><input type="color" id="cp_accent" value="#f59e0b" oninput="previewCores()"><input type="text" id="cp_accent_hex" value="#f59e0b" oninput="syncColor('accent',this.value)"></div>
-            <div class="color-picker-row"><label>Fundo Principal</label><input type="color" id="cp_bg" value="#0b0b12" oninput="previewCores()"><input type="text" id="cp_bg_hex" value="#0b0b12" oninput="syncColor('bg',this.value)"></div>
-            <div class="color-picker-row"><label>Fundo Secundário</label><input type="color" id="cp_bg2" value="#12121a" oninput="previewCores()"><input type="text" id="cp_bg2_hex" value="#12121a" oninput="syncColor('bg2',this.value)"></div>
-            <div class="color-picker-row"><label>Texto Principal</label><input type="color" id="cp_text" value="#eaeaf2" oninput="previewCores()"><input type="text" id="cp_text_hex" value="#eaeaf2" oninput="syncColor('text',this.value)"></div>
+            <div class="color-picker-row"><label for="cp_accent">Cor de Destaque</label><input type="color" id="cp_accent" value="#f59e0b" oninput="previewCores()"><input type="text" id="cp_accent_hex" value="#f59e0b" oninput="syncColor('accent',this.value)"></div>
+
+            <div class="color-picker-row"><label for="cp_bg">Fundo Principal</label><input type="color" id="cp_bg" value="#0b0b12" oninput="previewCores()"><input type="text" id="cp_bg_hex" value="#0b0b12" oninput="syncColor('bg',this.value)"></div>
+
+            <div class="color-picker-row"><label for="cp_bg2">Fundo Secundário</label><input type="color" id="cp_bg2" value="#12121a" oninput="previewCores()"><input type="text" id="cp_bg2_hex" value="#12121a" oninput="syncColor('bg2',this.value)"></div>
+
+            <div class="color-picker-row"><label for="cp_text">Texto Principal</label><input type="color" id="cp_text" value="#eaeaf2" oninput="previewCores()"><input type="text" id="cp_text_hex" value="#eaeaf2" oninput="syncColor('text',this.value)"></div>
+
             <div style="display:flex;gap:8px;margin-top:14px">
               <button class="btn btn-primary" onclick="aplicarCoresCustom()">✓ Aplicar Cores</button>
               <button class="btn btn-secondary" onclick="resetCoresCustom()">↺ Resetar</button>
@@ -1322,8 +1365,9 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
           </div>
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">📝 Tipografia</div>
-            <div class="form-group"><label>Tamanho base da fonte</label><select id="adm_font_size" onchange="aplicarFontSize()"><option value="13.5">Normal (13.5px)</option><option value="14.5">Maior (14.5px)</option><option value="12.5">Menor (12.5px)</option></select></div>
-            <div class="form-group"><label>Módulos ativos (visibilidade no menu)</label></div>
+            <div class="form-group"><label for="adm_font_size">Tamanho base da fonte</label><select id="adm_font_size" onchange="aplicarFontSize()"><option value="13.5">Normal (13.5px)</option><option value="14.5">Maior (14.5px)</option><option value="12.5">Menor (12.5px)</option></select></div>
+
+            <div class="form-group"><label for="modulosToggle">Módulos ativos (visibilidade no menu)</label></div>
             <div id="modulosToggle"></div>
           </div>
         </div>
@@ -1384,7 +1428,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <div class="admin-grid">
           <div class="card">
             <div class="card-title" style="margin-bottom:16px">🌐 Agenda Online</div>
-            <div class="switch-row"><div><div class="switch-label">Habilitar Agenda Online</div><div class="switch-sub">Gera link público de agendamento exclusivo</div></div><label class="switch"><input type="checkbox" id="aoAtivo" checked><span class="switch-slider"></span></label></div>
+            <div class="switch-row"><div><div class="switch-label">Habilitar Agenda Online</div><div class="switch-sub">Gera link público de agendamento exclusivo</div></div><label for="aoAtivo" class="switch"><input type="checkbox" id="aoAtivo" checked><span class="switch-slider"></span></label></div>
             <div style="margin-top:14px">
               <div style="font-size:11.5px;font-weight:500;color:var(--text2);margin-bottom:5px">Link único do cliente <span style="color:var(--text3);font-weight:400">(cada geração invalida o anterior)</span></div>
               <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -1437,25 +1481,35 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-body">
       <input type="hidden" id="clienteId">
       <div class="form-row">
-        <div class="form-group"><label>Nome completo <span class="req">*</span></label><input type="text" id="c_nome" placeholder="Nome do cliente"></div>
-        <div class="form-group"><label>Telefone / WhatsApp <span class="req">*</span></label><input type="tel" id="c_telefone" placeholder="(00) 00000-0000" oninput="maskTel(this)"></div>
+        <div class="form-group"><label for="c_nome">Nome completo <span class="req">*</span></label><input type="text" id="c_nome" placeholder="Nome do cliente"></div>
+
+        <div class="form-group"><label for="c_telefone">Telefone / WhatsApp <span class="req">*</span></label><input type="tel" id="c_telefone" placeholder="(00) 00000-0000" oninput="maskTel(this)"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>E-mail</label><input type="email" id="c_email" placeholder="email@exemplo.com"></div>
-        <div class="form-group"><label>CPF / CNPJ</label><input type="text" id="c_cpf" placeholder="000.000.000-00" oninput="maskCpfCnpj(this)"></div>
+        <div class="form-group"><label for="c_email">E-mail</label><input type="email" id="c_email" placeholder="email@exemplo.com"></div>
+
+        <div class="form-group"><label for="c_cpf">CPF / CNPJ</label><input type="text" id="c_cpf" placeholder="000.000.000-00" oninput="maskCpfCnpj(this)"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Data de nascimento</label><input type="date" id="c_nascimento"></div>
-        <div class="form-group"><label>CEP</label><div class="cep-row"><input type="text" id="c_cep" placeholder="00000-000" oninput="maskCep(this)" onblur="buscarCep()"><button class="cep-btn" onclick="buscarCep()">🔍 Buscar</button></div></div>
+        <div class="form-group"><label for="c_nascimento">Data de nascimento</label><input type="date" id="c_nascimento"></div>
+
+        <div class="form-group"><label for="c_cep">CEP</label><div class="cep-row"><input type="text" id="c_cep" placeholder="00000-000" oninput="maskCep(this)" onblur="buscarCep()"><button class="cep-btn" onclick="buscarCep()">🔍 Buscar</button></div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Logradouro</label><input type="text" id="c_logradouro" placeholder="Rua, Avenida..."></div>
-        <div class="form-group"><label>Número</label><input type="text" id="c_numero" placeholder="123"></div>
+        <div class="form-group"><label for="c_logradouro">Logradouro</label><input type="text" id="c_logradouro" placeholder="Rua, Avenida..."></div>
+
+        <div class="form-group"><label for="c_numero">Número</label><input type="text" id="c_numero" placeholder="123"></div>
+
       </div>
       <div class="form-row-3">
-        <div class="form-group"><label>Bairro</label><input type="text" id="c_bairro"></div>
-        <div class="form-group"><label>Cidade</label><input type="text" id="c_cidade"></div>
-        <div class="form-group"><label>UF</label><select id="c_uf"><option>SP</option><option>RJ</option><option>MG</option><option>ES</option><option>PR</option><option>SC</option><option>RS</option><option>BA</option><option>CE</option><option>PE</option><option>GO</option><option>DF</option><option>MT</option><option>MS</option><option>PA</option><option>AM</option><option>MA</option><option>PI</option><option>RN</option><option>PB</option><option>AL</option><option>SE</option><option>TO</option><option>RO</option><option>AC</option><option>AP</option><option>RR</option></select></div>
+        <div class="form-group"><label for="c_bairro">Bairro</label><input type="text" id="c_bairro"></div>
+
+        <div class="form-group"><label for="c_cidade">Cidade</label><input type="text" id="c_cidade"></div>
+
+        <div class="form-group"><label for="c_uf">UF</label><select id="c_uf"><option>SP</option><option>RJ</option><option>MG</option><option>ES</option><option>PR</option><option>SC</option><option>RS</option><option>BA</option><option>CE</option><option>PE</option><option>GO</option><option>DF</option><option>MT</option><option>MS</option><option>PA</option><option>AM</option><option>MA</option><option>PI</option><option>RN</option><option>PB</option><option>AL</option><option>SE</option><option>TO</option><option>RO</option><option>AC</option><option>AP</option><option>RR</option></select></div>
+
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalCliente')">Cancelar</button><button class="btn btn-primary" onclick="salvarCliente()">Salvar Cliente</button></div>
@@ -1468,18 +1522,25 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="servicoModalTitle">Novo Serviço</div></div><button class="modal-close" onclick="closeModal('modalServico')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="servicoId">
-      <div class="form-group"><label>Nome <span class="req">*</span></label><input type="text" id="s_nome" placeholder="Nome do serviço"></div>
-      <div class="form-group"><label>Descrição</label><textarea id="s_descricao" placeholder="Descrição do serviço"></textarea></div>
+      <div class="form-group"><label for="s_nome">Nome <span class="req">*</span></label><input type="text" id="s_nome" placeholder="Nome do serviço"></div>
+
+      <div class="form-group"><label for="s_descricao">Descrição</label><textarea id="s_descricao" placeholder="Descrição do serviço"></textarea></div>
+
       <div class="form-row">
-        <div class="form-group"><label>Tempo estimado (min) <span class="req">*</span></label><input type="number" id="s_tempo" placeholder="60" min="15" step="15"></div>
-        <div class="form-group"><label>Valor (R$) <span class="req">*</span></label><input type="number" id="s_valor" step="0.01" placeholder="0.00" min="0"></div>
+        <div class="form-group"><label for="s_tempo">Tempo estimado (min) <span class="req">*</span></label><input type="number" id="s_tempo" placeholder="60" min="15" step="15"></div>
+
+        <div class="form-group"><label for="s_valor">Valor (R$) <span class="req">*</span></label><input type="number" id="s_valor" step="0.01" placeholder="0.00" min="0"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Valor da Hora (R$) <span style="font-size:10px;color:var(--text2)">Para cálculo de mão de obra</span></label><input type="number" id="s_valor_hora" placeholder="25.00" min="0" step="0.50"></div>
-        <div class="form-group"><label>Pontos de fidelidade</label><input type="number" id="s_pontos" placeholder="0" min="0"></div>
+        <div class="form-group"><label for="s_valor_hora">Valor da Hora (R$) <span style="font-size:10px;color:var(--text2)">Para cálculo de mão de obra</span></label><input type="number" id="s_valor_hora" placeholder="25.00" min="0" step="0.50"></div>
+
+        <div class="form-group"><label for="s_pontos">Pontos de fidelidade</label><input type="number" id="s_pontos" placeholder="0" min="0"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>R$/km — leva e traz</label><input type="number" id="s_valorKm" placeholder="0.00" min="0" step="0.10"></div>
+        <div class="form-group"><label for="s_valorKm">R$/km — leva e traz</label><input type="number" id="s_valorKm" placeholder="0.00" min="0" step="0.10"></div>
+
       </div>
       <div class="toggle-row"><input type="checkbox" id="s_levaTraz"><label for="s_levaTraz">Disponível leva e traz</label></div>
     </div>
@@ -1495,7 +1556,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <input type="hidden" id="agendId">
       <!-- Cliente autocomplete -->
       <div class="form-group">
-        <label>Cliente <span class="req">*</span></label>
+        <label for="agendClienteBusca">Cliente <span class="req">*</span></label>
         <div class="autocomplete-wrap">
           <input type="text" id="agendClienteBusca" placeholder="Digite nome, telefone ou CPF..." oninput="autoCliente()" autocomplete="off">
           <div class="autocomplete-drop" id="agendCliDrop" style="display:none"></div>
@@ -1507,14 +1568,14 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         </div>
       </div>
       <div class="form-group">
-        <label>Serviços <span class="req">*</span></label>
+        <label for="agendServicosLista">Serviços <span class="req">*</span></label>
         <div id="agendServicosLista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:6px"></div>
         <button type="button" class="btn btn-secondary btn-sm" onclick="addServicoAgend()" style="width:100%">+ Adicionar Serviço</button>
         <!-- hidden para compatibilidade -->
         <input type="hidden" id="agendServico">
       </div>
-      <div class="form-group"><label>Forma de pagamento</label>
-        <select id="agendPagamento">
+      <div class="form-group"><label for="agendPagamento">Forma de pagamento</label><select id="agendPagamento">
+
           <option value="">— Selecione —</option>
           <option value="pix">💳 Pix</option><option value="credito">💳 Crédito</option>
           <option value="debito">💳 Débito</option><option value="dinheiro">💵 Dinheiro</option>
@@ -1522,28 +1583,36 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         </select>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Data <span class="req">*</span></label><input type="date" id="agendData" onchange="checarConflito()"></div>
-        <div class="form-group"><label>Horário <span class="req">*</span></label><input type="time" id="agendHora" value="09:00" step="1800" onchange="checarConflito()"></div>
+        <div class="form-group"><label for="agendData">Data <span class="req">*</span></label><input type="date" id="agendData" onchange="checarConflito()"></div>
+
+        <div class="form-group"><label for="agendHora">Horário <span class="req">*</span></label><input type="time" id="agendHora" value="09:00" step="1800" onchange="checarConflito()"></div>
+
       </div>
       <div id="agendDurInfo" style="display:none" class="info-box"></div>
       <div id="agendConflito" style="display:none" class="info-box danger"></div>
       <div class="form-row">
-        <div class="form-group"><label>Veículo</label><input type="text" id="agendVeiculo" placeholder="Marca / Modelo"></div>
-        <div class="form-group"><label>Placa</label><input type="text" id="agendPlaca" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="form-group"><label for="agendVeiculo">Veículo</label><input type="text" id="agendVeiculo" placeholder="Marca / Modelo"></div>
+
+        <div class="form-group"><label for="agendPlaca">Placa</label><input type="text" id="agendPlaca" placeholder="ABC-1234" oninput="this.value=this.value.toUpperCase()"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Cor do veículo</label><input type="text" id="agendCor" placeholder="Prata, Preto..."></div>
-        <div class="form-group"><label>Desconto (%)</label><input type="number" id="agendDesconto" min="0" max="100" value="0" oninput="calcTotalAgend()"></div>
+        <div class="form-group"><label for="agendCor">Cor do veículo</label><input type="text" id="agendCor" placeholder="Prata, Preto..."></div>
+
+        <div class="form-group"><label for="agendDesconto">Desconto (%)</label><input type="number" id="agendDesconto" min="0" max="100" value="0" oninput="calcTotalAgend()"></div>
+
       </div>
       <div class="toggle-row"><input type="checkbox" id="agendLevaTraz" onchange="toggleLT()"><label for="agendLevaTraz">Serviço com leva e traz</label></div>
       <div id="ltWrap" style="display:none">
         <div class="form-row">
-          <div class="form-group"><label>CEP do cliente</label><input type="text" id="agendCepCli" placeholder="00000-000" oninput="maskCep(this)" maxlength="9"></div>
+          <div class="form-group"><label for="agendCepCli">CEP do cliente</label><input type="text" id="agendCepCli" placeholder="00000-000" oninput="maskCep(this)" maxlength="9"></div>
+
           <div class="form-group" style="align-self:end"><button class="btn btn-secondary" onclick="calcLevaTraz()" style="width:100%">📍 Calcular distância</button></div>
         </div>
         <div id="ltInfo" style="display:none" class="info-box"></div>
       </div>
-      <div class="form-group"><label>Observações</label><textarea id="agendObs" placeholder="Observações especiais..."></textarea></div>
+      <div class="form-group"><label for="agendObs">Observações</label><textarea id="agendObs" placeholder="Observações especiais..."></textarea></div>
+
       <!-- Resumo financeiro -->
       <div style="background:var(--bg3);border-radius:8px;padding:14px;border:1px solid var(--border)">
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>Valor do serviço</span><span id="agendVS" class="mono">R$ 0,00</span></div>
@@ -1562,18 +1631,25 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="produtoModalTitle">Novo Produto</div></div><button class="modal-close" onclick="closeModal('modalProduto')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="produtoId">
-      <div class="form-group"><label>Nome <span class="req">*</span></label><input type="text" id="p_nome" placeholder="Nome do produto"></div>
+      <div class="form-group"><label for="p_nome">Nome <span class="req">*</span></label><input type="text" id="p_nome" placeholder="Nome do produto"></div>
+
       <div class="form-row">
-        <div class="form-group"><label>Categoria</label><select id="p_categoria"><option value="">— Selecione —</option><option>Químicos</option><option>Abrasivos</option><option>Proteção</option><option>Limpeza</option><option>Outros</option></select></div>
-        <div class="form-group"><label>Unidade de medida</label><select id="p_unidade"><option value="ml">ml</option><option value="l">litro</option><option value="g">g</option><option value="kg">kg</option><option value="un">unidade</option></select></div>
+        <div class="form-group"><label for="p_categoria">Categoria</label><select id="p_categoria"><option value="">— Selecione —</option><option>Químicos</option><option>Abrasivos</option><option>Proteção</option><option>Limpeza</option><option>Outros</option></select></div>
+
+        <div class="form-group"><label for="p_unidade">Unidade de medida</label><select id="p_unidade"><option value="ml">ml</option><option value="l">litro</option><option value="g">g</option><option value="kg">kg</option><option value="un">unidade</option></select></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Quantidade por embalagem <span class="req">*</span></label><input type="number" id="p_qtdEmb" placeholder="500" min="0.001" step="0.001"></div>
-        <div class="form-group"><label>Nº de embalagens em estoque</label><input type="number" id="p_embalagens" placeholder="1" min="0" step="1" value="1"></div>
+        <div class="form-group"><label for="p_qtdEmb">Quantidade por embalagem <span class="req">*</span></label><input type="number" id="p_qtdEmb" placeholder="500" min="0.001" step="0.001"></div>
+
+        <div class="form-group"><label for="p_embalagens">Nº de embalagens em estoque</label><input type="number" id="p_embalagens" placeholder="1" min="0" step="1" value="1"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Custo por embalagem (R$)</label><input type="number" id="p_custoEmb" step="0.01" placeholder="0.00" min="0" oninput="prevProduto()"></div>
-        <div class="form-group"><label>Estoque mínimo (unidade)</label><input type="number" id="p_qtdMin" placeholder="0" min="0" step="0.1"></div>
+        <div class="form-group"><label for="p_custoEmb">Custo por embalagem (R$)</label><input type="number" id="p_custoEmb" step="0.01" placeholder="0.00" min="0" oninput="prevProduto()"></div>
+
+        <div class="form-group"><label for="p_qtdMin">Estoque mínimo (unidade)</label><input type="number" id="p_qtdMin" placeholder="0" min="0" step="0.1"></div>
+
       </div>
       <div id="prodPreview" style="display:none" class="info-box"></div>
     </div>
@@ -1589,10 +1665,13 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <input type="hidden" id="movProdId">
       <div id="movProdInfo" class="info-box" style="margin-bottom:12px"></div>
       <div class="form-row">
-        <div class="form-group"><label>Tipo</label><select id="movTipo"><option value="entrada">📥 Entrada de estoque</option><option value="saida">📤 Sangria / Perda</option><option value="ajuste">⚖ Ajuste de inventário</option></select></div>
-        <div class="form-group"><label>Quantidade</label><input type="number" id="movQtd" placeholder="0" step="0.01" min="0"></div>
+        <div class="form-group"><label for="movTipo">Tipo</label><select id="movTipo"><option value="entrada">📥 Entrada de estoque</option><option value="saida">📤 Sangria / Perda</option><option value="ajuste">⚖ Ajuste de inventário</option></select></div>
+
+        <div class="form-group"><label for="movQtd">Quantidade</label><input type="number" id="movQtd" placeholder="0" step="0.01" min="0"></div>
+
       </div>
-      <div class="form-group"><label>Motivo</label><input type="text" id="movMotivo" placeholder="Motivo da movimentação"></div>
+      <div class="form-group"><label for="movMotivo">Motivo</label><input type="text" id="movMotivo" placeholder="Motivo da movimentação"></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalMovEstoque')">Cancelar</button><button class="btn btn-primary" onclick="salvarMovEstoque()">Confirmar</button></div>
   </div>
@@ -1604,13 +1683,18 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="regraModalTitle">Nova Regra de Fidelidade</div></div><button class="modal-close" onclick="closeModal('modalRegra')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="regraId">
-      <div class="form-group"><label>Nome do benefício <span class="req">*</span></label><input type="text" id="r_nome" placeholder="Ex: Desconto 20%"></div>
-      <div class="form-group"><label>Descrição</label><input type="text" id="r_desc" placeholder="Ex: 20% de desconto no próximo serviço"></div>
+      <div class="form-group"><label for="r_nome">Nome do benefício <span class="req">*</span></label><input type="text" id="r_nome" placeholder="Ex: Desconto 20%"></div>
+
+      <div class="form-group"><label for="r_desc">Descrição</label><input type="text" id="r_desc" placeholder="Ex: 20% de desconto no próximo serviço"></div>
+
       <div class="form-row">
-        <div class="form-group"><label>Pontos necessários <span class="req">*</span></label><input type="number" id="r_pontos" placeholder="500" min="1"></div>
-        <div class="form-group"><label>Tipo de benefício</label><select id="r_tipo"><option value="desconto">Desconto (%)</option><option value="brinde">Brinde / Produto</option><option value="servico">Serviço gratuito</option></select></div>
+        <div class="form-group"><label for="r_pontos">Pontos necessários <span class="req">*</span></label><input type="number" id="r_pontos" placeholder="500" min="1"></div>
+
+        <div class="form-group"><label for="r_tipo">Tipo de benefício</label><select id="r_tipo"><option value="desconto">Desconto (%)</option><option value="brinde">Brinde / Produto</option><option value="servico">Serviço gratuito</option></select></div>
+
       </div>
-      <div class="form-group"><label>Valor do benefício (% ou descrição)</label><input type="text" id="r_valor" placeholder="Ex: 20 ou Lavagem gratuita"></div>
+      <div class="form-group"><label for="r_valor">Valor do benefício (% ou descrição)</label><input type="text" id="r_valor" placeholder="Ex: 20 ou Lavagem gratuita"></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalRegra')">Cancelar</button><button class="btn btn-primary" onclick="salvarRegra()">Salvar Regra</button></div>
   </div>
@@ -1622,7 +1706,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title">Resgatar Benefício</div></div><button class="modal-close" onclick="closeModal('modalResgate')">&times;</button></div>
     <div class="modal-body">
       <div id="resgateInfo" class="info-box" style="margin-bottom:14px"></div>
-      <div class="form-group"><label>Observação</label><input type="text" id="resgateObs" placeholder="Observação sobre o resgate..."></div>
+      <div class="form-group"><label for="resgateObs">Observação</label><input type="text" id="resgateObs" placeholder="Observação sobre o resgate..."></div>
+
       <div class="info-box warn">Após confirmar, os pontos acumulados serão zerados e a contagem reiniciará.</div>
     </div>
     <div class="modal-footer">
@@ -1637,7 +1722,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
   <div class="modal">
     <div class="modal-header"><div><div class="modal-title">▶ Abrir Caixa</div><div class="modal-sub">Informe o saldo inicial disponível</div></div><button class="modal-close" onclick="closeModal('modalAbrirCaixa')">&times;</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>Data/hora de abertura</label><input type="text" id="acHora" readonly style="color:var(--text2)"></div>
+      <div class="form-group"><label for="acHora">Data/hora de abertura</label><input type="text" id="acHora" readonly style="color:var(--text2)"></div>
+
       <div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Contagem inicial por forma de pagamento</div>
       <div class="count-grid">
         <div class="count-item"><div class="count-label">💵 Dinheiro</div><input type="number" class="count-input" id="ac_din" value="0" min="0" step="0.01" oninput="calcAbertura()"></div>
@@ -1671,7 +1757,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <hr class="tot-sep">
         <div class="tot-row"><span class="tot-label" style="font-weight:600">Diferença</span><span class="tot-val" id="fcDif" style="font-size:16px">R$ 0,00</span></div>
       </div>
-      <div class="form-group" style="margin-top:14px"><label>Observações</label><textarea id="fcObs" placeholder="Anotações sobre o fechamento..."></textarea></div>
+      <div class="form-group" style="margin-top:14px"><label for="fcObs">Observações</label><textarea id="fcObs" placeholder="Anotações sobre o fechamento..."></textarea></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalFecharCaixa')">Cancelar</button><button class="btn btn-danger" onclick="fecharCaixa()">🔒 Confirmar Fechamento</button></div>
   </div>
@@ -1684,10 +1771,13 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-body">
       <input type="hidden" id="movCaixaTipo">
       <div class="form-row">
-        <div class="form-group"><label>Valor (R$) <span class="req">*</span></label><input type="number" id="movCaixaVal" min="0.01" step="0.01" placeholder="0,00"></div>
-        <div class="form-group"><label>Forma de pagamento</label><select id="movCaixaPag"><option value="dinheiro">Dinheiro</option><option value="pix">Pix</option><option value="credito">Crédito</option><option value="outros">Outros</option></select></div>
+        <div class="form-group"><label for="movCaixaVal">Valor (R$) <span class="req">*</span></label><input type="number" id="movCaixaVal" min="0.01" step="0.01" placeholder="0,00"></div>
+
+        <div class="form-group"><label for="movCaixaPag">Forma de pagamento</label><select id="movCaixaPag"><option value="dinheiro">Dinheiro</option><option value="pix">Pix</option><option value="credito">Crédito</option><option value="outros">Outros</option></select></div>
+
       </div>
-      <div class="form-group"><label>Descrição <span class="req">*</span></label><input type="text" id="movCaixaDesc" placeholder="Motivo..."></div>
+      <div class="form-group"><label for="movCaixaDesc">Descrição <span class="req">*</span></label><input type="text" id="movCaixaDesc" placeholder="Motivo..."></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalMovCaixa')">Cancelar</button><button class="btn btn-primary" onclick="confirmarMovCaixa()">Confirmar</button></div>
   </div>
@@ -1699,8 +1789,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="chkModalTitle">Nova Vistoria</div></div><button class="modal-close" onclick="closeModal('modalChecklist')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group">
-        <label>Agendamento vinculado <span class="req">*</span></label>
-        <select id="chkAgend" onchange="onChkAgendCh()"><option value="">— Selecione o agendamento —</option></select>
+        <label for="chkAgend">Agendamento vinculado <span class="req">*</span></label><select id="chkAgend" onchange="onChkAgendCh()"><option value="">— Selecione o agendamento —</option></select>
+
       </div>
       <div id="chkAgendInfo" style="display:none" class="info-box"></div>
       <hr class="divider">
@@ -1713,7 +1803,7 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <div style="margin-bottom:14px">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px">📷 Fotos do veículo</div>
         <div id="fotosGrid" style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start">
-          <label style="width:80px;height:80px;border:2px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <label for="fotoInput" style="width:80px;height:80px;border:2px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);gap:4px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
             <span style="font-size:20px">+</span>Foto
             <input type="file" id="fotoInput" accept="image/*" multiple style="display:none" onchange="adicionarFotos(this)">
           </label>
@@ -1729,7 +1819,8 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
         <button class="btn btn-success btn-sm" onclick="confirmarAssin()" style="margin-left:auto">✓ Confirmar assinatura</button>
       </div>
       <hr class="divider">
-      <div class="form-group"><label>Observações gerais</label><textarea id="chkObs" placeholder="Estado geral do veículo, observações..."></textarea></div>
+      <div class="form-group"><label for="chkObs">Observações gerais</label><textarea id="chkObs" placeholder="Estado geral do veículo, observações..."></textarea></div>
+
       <div style="display:flex;gap:10px;margin-top:6px">
         <button class="btn btn-success" style="flex:1;justify-content:center" onclick="salvarChk('aprovado')">✓ Aprovar e Salvar</button>
         <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="salvarChk('reprovado')">✕ Reprovar</button>
@@ -1747,10 +1838,13 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="userModalTitle">Novo Usuário</div></div><button class="modal-close" onclick="closeModal('modalUsuario')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="userId">
-      <div class="form-group"><label>Nome <span class="req">*</span></label><input type="text" id="u_nome" placeholder="Nome completo"></div>
+      <div class="form-group"><label for="u_nome">Nome <span class="req">*</span></label><input type="text" id="u_nome" placeholder="Nome completo"></div>
+
       <div class="form-row">
-        <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="u_email" placeholder="email@empresa.com"></div>
-        <div class="form-group"><label>Perfil</label><select id="u_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
+        <div class="form-group"><label for="u_email">E-mail <span class="req">*</span></label><input type="email" id="u_email" placeholder="email@empresa.com"></div>
+
+        <div class="form-group"><label for="u_role">Perfil</label><select id="u_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
+
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalUsuario')">Cancelar</button><button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button></div>
@@ -1762,13 +1856,15 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
   <div class="modal">
     <div class="modal-header"><div><div class="modal-title">⭐ Registrar Avaliação NPS</div></div><button class="modal-close" onclick="closeModal('modalNPS')">&times;</button></div>
     <div class="modal-body">
-      <div class="form-group"><label>Cliente</label><select id="npsCliente"><option value="">— Selecione —</option></select></div>
+      <div class="form-group"><label for="npsCliente">Cliente</label><select id="npsCliente"><option value="">— Selecione —</option></select></div>
+
       <div class="form-group">
-        <label>Nota (1 a 10)</label>
+        <label for="npsStars">Nota (1 a 10)</label>
         <div class="nps-stars" id="npsStars" style="margin-top:6px"></div>
         <input type="hidden" id="npsNota" value="0">
       </div>
-      <div class="form-group"><label>Comentário (opcional)</label><textarea id="npsComentario" placeholder="O que achou do serviço?"></textarea></div>
+      <div class="form-group"><label for="npsComentario">Comentário (opcional)</label><textarea id="npsComentario" placeholder="O que achou do serviço?"></textarea></div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modalNPS')">Cancelar</button>
@@ -1785,10 +1881,13 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-body">
       <input type="hidden" id="waTplId">
       <div class="form-row">
-        <div class="form-group"><label>Nome do template <span class="req">*</span></label><input type="text" id="waTplNome" placeholder="Ex: Confirmação de Agendamento"></div>
-        <div class="form-group"><label>Categoria</label><select id="waTplCat"><option>Confirmação</option><option>Lembrete</option><option>Conclusão</option><option>Aniversário</option><option>Inativo</option><option>Fidelidade</option><option>Promoção</option><option>Personalizada</option></select></div>
+        <div class="form-group"><label for="waTplNome">Nome do template <span class="req">*</span></label><input type="text" id="waTplNome" placeholder="Ex: Confirmação de Agendamento"></div>
+
+        <div class="form-group"><label for="waTplCat">Categoria</label><select id="waTplCat"><option>Confirmação</option><option>Lembrete</option><option>Conclusão</option><option>Aniversário</option><option>Inativo</option><option>Fidelidade</option><option>Promoção</option><option>Personalizada</option></select></div>
+
       </div>
-      <div class="form-group"><label>Mensagem <span class="req">*</span></label><textarea id="waTplMsg" placeholder="Digite a mensagem. Use {nome}, {empresa}, {data}, {hora}, {servico}, {veiculo}, {placa}, {valor}, {pontos}" style="min-height:120px"></textarea></div>
+      <div class="form-group"><label for="waTplMsg">Mensagem <span class="req">*</span></label><textarea id="waTplMsg" placeholder="Digite a mensagem. Use {nome}, {empresa}, {data}, {hora}, {servico}, {veiculo}, {placa}, {valor}, {pontos}" style="min-height:120px"></textarea></div>
+
       <div class="info-box" style="font-size:11.5px">Variáveis disponíveis: <strong>{nome}</strong> {empresa} {data} {hora} {servico} {veiculo} {placa} {valor} {pontos} {cidade}</div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalWaTpl')">Cancelar</button><button class="btn btn-primary" onclick="salvarWaTpl()">Salvar Template</button></div>
@@ -1802,14 +1901,20 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-header"><div><div class="modal-title" id="ticketModalTitle">Novo Chamado</div></div><button class="modal-close" onclick="closeModal('modalTicket')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="ticketId">
-      <div class="form-group"><label>Título <span class="req">*</span></label><input type="text" id="tk_titulo" placeholder="Descreva brevemente o problema"></div>
+      <div class="form-group"><label for="tk_titulo">Título <span class="req">*</span></label><input type="text" id="tk_titulo" placeholder="Descreva brevemente o problema"></div>
+
       <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-group"><label>Prioridade</label><select id="tk_prio"><option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option><option value="critica">🚨 Crítica</option></select></div>
-        <div class="form-group" id="tk_status_wrap"><label>Status</label><select id="tk_status"><option value="aberto">🔴 Aberto</option><option value="em_andamento">🔵 Em Andamento</option><option value="em_analise">🟡 Em Análise</option><option value="resolvido">🟢 Resolvido</option><option value="fechado">⬛ Fechado</option></select></div>
+        <div class="form-group"><label for="tk_prio">Prioridade</label><select id="tk_prio"><option value="baixa">🟢 Baixa</option><option value="media" selected>🟡 Média</option><option value="alta">🔴 Alta</option><option value="critica">🚨 Crítica</option></select></div>
+
+        <div class="form-group" id="tk_status_wrap"><label for="tk_status">Status</label><select id="tk_status"><option value="aberto">🔴 Aberto</option><option value="em_andamento">🔵 Em Andamento</option><option value="em_analise">🟡 Em Análise</option><option value="resolvido">🟢 Resolvido</option><option value="fechado">⬛ Fechado</option></select></div>
+
       </div>
-      <div class="form-group"><label>Descrição <span class="req">*</span></label><textarea id="tk_desc" placeholder="Detalhe o problema, incluindo passos para reproduzir..." style="min-height:100px"></textarea></div>
-      <div class="form-group"><label>Módulo afetado</label><select id="tk_modulo"><option value="">— Geral —</option><option>Agendamento</option><option>Caixa</option><option>Clientes</option><option>Checklist</option><option>Estoque</option><option>Fidelidade</option><option>Financeiro</option><option>Relatórios</option><option>WhatsApp</option><option>Outros</option></select></div>
-      <div class="form-group" id="tk_resolucao_wrap" style="display:none"><label>Resposta / Resolução</label><textarea id="tk_resolucao" placeholder="Descreva a solução aplicada..." style="min-height:70px"></textarea></div>
+      <div class="form-group"><label for="tk_desc">Descrição <span class="req">*</span></label><textarea id="tk_desc" placeholder="Detalhe o problema, incluindo passos para reproduzir..." style="min-height:100px"></textarea></div>
+
+      <div class="form-group"><label for="tk_modulo">Módulo afetado</label><select id="tk_modulo"><option value="">— Geral —</option><option>Agendamento</option><option>Caixa</option><option>Clientes</option><option>Checklist</option><option>Estoque</option><option>Fidelidade</option><option>Financeiro</option><option>Relatórios</option><option>WhatsApp</option><option>Outros</option></select></div>
+
+      <div class="form-group" id="tk_resolucao_wrap" style="display:none"><label for="tk_resolucao">Resposta / Resolução</label><textarea id="tk_resolucao" placeholder="Descreva a solução aplicada..." style="min-height:70px"></textarea></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalTicket')">Cancelar</button><button class="btn btn-primary" onclick="salvarTicket()">Salvar Chamado</button></div>
   </div>
@@ -1823,15 +1928,21 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
       <input type="hidden" id="finMovId">
       <input type="hidden" id="finMovTipoHid">
       <div class="form-row">
-        <div class="form-group"><label>Valor (R$) <span class="req">*</span></label><input type="number" id="fin_valor" min="0.01" step="0.01" placeholder="0,00"></div>
-        <div class="form-group"><label>Data <span class="req">*</span></label><input type="date" id="fin_data"></div>
+        <div class="form-group"><label for="fin_valor">Valor (R$) <span class="req">*</span></label><input type="number" id="fin_valor" min="0.01" step="0.01" placeholder="0,00"></div>
+
+        <div class="form-group"><label for="fin_data">Data <span class="req">*</span></label><input type="date" id="fin_data"></div>
+
       </div>
-      <div class="form-group"><label>Descrição <span class="req">*</span></label><input type="text" id="fin_desc" placeholder="Descrição da movimentação"></div>
+      <div class="form-group"><label for="fin_desc">Descrição <span class="req">*</span></label><input type="text" id="fin_desc" placeholder="Descrição da movimentação"></div>
+
       <div class="form-row">
-        <div class="form-group"><label>Categoria</label><select id="fin_cat"><option value="servico">Serviço</option><option value="produto">Produto</option><option value="aluguel">Aluguel</option><option value="salario">Salário/Pro-labore</option><option value="marketing">Marketing</option><option value="manutencao">Manutenção</option><option value="impostos">Impostos</option><option value="outros">Outros</option></select></div>
-        <div class="form-group"><label>Forma de Pagamento</label><select id="fin_forma"><option value="pix">Pix</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="outros">Outros</option></select></div>
+        <div class="form-group"><label for="fin_cat">Categoria</label><select id="fin_cat"><option value="servico">Serviço</option><option value="produto">Produto</option><option value="aluguel">Aluguel</option><option value="salario">Salário/Pro-labore</option><option value="marketing">Marketing</option><option value="manutencao">Manutenção</option><option value="impostos">Impostos</option><option value="outros">Outros</option></select></div>
+
+        <div class="form-group"><label for="fin_forma">Forma de Pagamento</label><select id="fin_forma"><option value="pix">Pix</option><option value="credito">Crédito</option><option value="debito">Débito</option><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option><option value="outros">Outros</option></select></div>
+
       </div>
-      <div class="form-group"><label>Observação</label><textarea id="fin_obs" placeholder="Notas adicionais..."></textarea></div>
+      <div class="form-group"><label for="fin_obs">Observação</label><textarea id="fin_obs" placeholder="Notas adicionais..."></textarea></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalMovFinanceiro')">Cancelar</button><button class="btn btn-primary" onclick="salvarMovFinanceiro()">Salvar</button></div>
   </div>
@@ -1844,14 +1955,19 @@ input:checked + .switch-slider:before{transform:translateX(20px);background:#fff
     <div class="modal-body">
       <input type="hidden" id="uaId">
       <div class="form-row">
-        <div class="form-group"><label>Nome completo <span class="req">*</span></label><input type="text" id="ua_nome" placeholder="Nome do usuário"></div>
-        <div class="form-group"><label>E-mail <span class="req">*</span></label><input type="email" id="ua_email" placeholder="email@empresa.com"></div>
+        <div class="form-group"><label for="ua_nome">Nome completo <span class="req">*</span></label><input type="text" id="ua_nome" placeholder="Nome do usuário"></div>
+
+        <div class="form-group"><label for="ua_email">E-mail <span class="req">*</span></label><input type="email" id="ua_email" placeholder="email@empresa.com"></div>
+
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
-        <div class="form-group"><label>Senha temporária</label><input type="password" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
+        <div class="form-group"><label for="ua_role">Perfil</label><select id="ua_role"><option value="operador">Operador</option><option value="admin">Admin/Supervisor</option><!-- woner só pode ser criado pelo Console --></select></div>
+
+        <div class="form-group"><label for="ua_senha">Senha temporária</label><input type="password" id="ua_senha" placeholder="Deixe em branco para senha padrão"></div>
+
       </div>
-      <div class="form-group"><label>Status</label><select id="ua_status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+      <div class="form-group"><label for="ua_status">Status</label><select id="ua_status"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modalUsuarioAdmin')">Cancelar</button><button class="btn btn-primary" onclick="salvarUsuarioAdmin()">Salvar Usuário</button></div>
   </div>
@@ -3958,14 +4074,14 @@ function renderFichaEditor(){
   // Mão de Obra
   html += '<div class="card"><div class="card-header"><div class="card-title">Mão de Obra</div></div>'+
     '<div class="form-row-3">'+
-    '<div class="form-group"><label>Valor da Hora (R$)</label>'+
-    '<input type="number" value="'+(valorHora||0)+'" min="0" step="0.50" placeholder="25.00" '+
+    '<div class="form-group"><label for="fichaVlHora">Valor da Hora (R$)</label>'+
+    '<input type="number" id="fichaVlHora" value="'+(valorHora||0)+'" min="0" step="0.50" placeholder="25.00" '+
     'oninput="_fichaAtual.valor_hora_manual=+this.value;_servAtual.valor_hora=+this.value;_recalcFichaSummary();salvarDados()">'+
     '<div style="font-size:10px;color:var(--text2);margin-top:2px">Ou edite direto no cadastro do serviço</div></div>'+
-    '<div class="form-group"><label>Tempo do serviço (min)</label>'+
+    '<div class="form-group"><label for="maoObraCalc">Tempo do serviço (min)</label>'+
     '<input type="number" value="'+tempoMin+'" min="1" step="5" readonly style="background:var(--bg3);color:var(--text2)">'+
     '<div style="font-size:10px;color:var(--text2);margin-top:2px">Definido no cadastro do serviço</div></div>'+
-    '<div class="form-group"><label>Custo calculado</label>'+
+    '<div class="form-group"><label for="maoObraCalc">Custo calculado</label>'+
     '<div style="font-size:20px;font-weight:700;color:var(--ac);padding-top:4px" id="maoObraCalc">'+fmtMoney(custoMaoObra)+'</div>'+
     '<div style="font-size:10px;color:var(--text2)">= R$'+fmtMoney(valorHora)+'/h ÷ 60 × '+tempoMin+'min</div></div>'+
     '</div></div>';
@@ -3973,10 +4089,10 @@ function renderFichaEditor(){
   // Outros custos
   html += '<div class="card"><div class="card-header"><div class="card-title">Outros Custos</div></div>'+
     '<div class="form-row-3">'+
-    '<div class="form-group"><label>Desgaste de equipamentos (R$)</label>'+
+    '<div class="form-group"><label for="fichaFixoPct">Desgaste de equipamentos (R$)</label>'+
     '<input type="number" value="'+(custoDesg||0)+'" min="0" step="0.01" '+
     'oninput="_fichaAtual.custo_desgaste=+this.value;_recalcFichaSummary();salvarDados()"></div>'+
-    '<div class="form-group"><label>Custo fixo (% sobre preço) <span style="font-size:10px;color:var(--text2)">aluguel+luz÷serviços/mês</span></label>'+
+    '<div class="form-group"><label for="fichaFixoPct">Custo fixo (% sobre preço) <span style="font-size:10px;color:var(--text2)">aluguel+luz÷serviços/mês</span></label>'+
     '<div style="display:flex;align-items:center;gap:6px">'+
     '<input type="number" id="fichaFixoPct" value="'+custoFixoPct+'" min="0" max="100" step="0.1" style="flex:1" '+
     'oninput="_fichaAtual.custo_fixo_pct=+this.value;_fichaAtual.custo_fixo=(_servAtual.preco_base*(+this.value/100));_recalcFichaSummary();salvarDados()">'+
@@ -4373,7 +4489,7 @@ function addItemChk(){
 function renderFotosGrid(){
   const grid=document.getElementById('fotosGrid');
   const thumbs=fotosChk.map((src,i)=>'<div style="position:relative;width:80px;height:80px"><img src="'+src+'" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><button onclick="fotosChk.splice('+i+',1);renderFotosGrid()" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:4px;padding:2px 5px;font-size:11px;cursor:pointer">✕</button></div>').join('');
-  grid.innerHTML=thumbs+'<label style="width:80px;height:80px;border:2px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);gap:4px" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border2)\'"><span style="font-size:20px">+</span>Foto<input type="file" id="fotoInput" accept="image/*" multiple style="display:none" onchange="adicionarFotos(this)"></label>';
+  grid.innerHTML=thumbs+'<label for="fotoInput" style="width:80px;height:80px;border:2px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text3);gap:4px" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border2)\'"><span style="font-size:20px">+</span>Foto<input type="file" id="fotoInput" accept="image/*" multiple style="display:none" onchange="adicionarFotos(this)"></label>';
 }
 
 function adicionarFotos(input){
@@ -5306,7 +5422,7 @@ function abrirViewMassa(){
   if(!clientes.length){html+='<div class="empty"><div class="empty-title">Nenhum cliente com telefone cadastrado</div></div>';}
   else{
     html+='<div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius)">';
-    html+=clientes.map(c=>'<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" onclick="toggleSelMassa(\''+c.id+'\');atualizarCheckboxesMassa()"><input type="checkbox" id="chkWa-'+c.id+'" '+(+(_waSelected.has(c.id))?' checked':'')+' style="pointer-events:none"><span style="flex:1">'+c.nome_completo+'</span><span style="color:var(--text3);font-size:11px">'+c.telefone+'</span></label>').join('');
+    html+=clientes.map(c=>'<label for="chkWa-" style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px" onclick="toggleSelMassa(\''+c.id+'\');atualizarCheckboxesMassa()"><input type="checkbox" id="chkWa-'+c.id+'" '+(+(_waSelected.has(c.id))?' checked':'')+' style="pointer-events:none"><span style="flex:1">'+c.nome_completo+'</span><span style="color:var(--text3);font-size:11px">'+c.telefone+'</span></label>').join('');
     html+='</div>';
   }
   html+='<div style="margin-top:12px"><button class="btn btn-success" onclick="enviarMassaSelecionados()">💬 Enviar para Selecionados (<span id=\"massaCountPanel\">'+_waSelected.size+'</span>)</button></div>';
@@ -5333,9 +5449,10 @@ function selecionarWaTpl(id){
   document.getElementById('waSendPanel').innerHTML='<div style="padding:20px">'+
     '<div style="font-size:15px;font-weight:600;margin-bottom:6px">'+tpl.nome+'</div>'+
     '<span class="badge badge-blue" style="margin-bottom:14px;display:inline-block">'+tpl.cat+'</span>'+
-    '<div class="form-group" style="margin-top:12px"><label>Selecionar cliente <span class="req">*</span></label><select id="waCliente" onchange="previewWaMensagem()"><option value="">— Selecione —</option>'+clientes.map(c=>'<option value="'+c.id+'">'+c.nome_completo+(c.telefone?' · '+c.telefone:'')+'</option>').join('')+'</select></div>'+
-    (agFut.length?'<div class="form-group"><label>Agendamento (opcional)</label><select id="waAgend" onchange="previewWaMensagem()"><option value="">— Nenhum —</option>'+agFut.map(a=>{const cl=DATA.clientes.find(c=>c.id===a.cliente_id);const sv=DATA.servicos.find(s=>s.id===a.servico_id);return'<option value="'+a.id+'">'+(cl?.nome_completo||'?')+' · '+(sv?.nome||'?')+' · '+fmtDate(a.data_hora_inicio)+'</option>';}).join('')+'</select></div>':'')+
-    '<div class="form-group"><label>Preview</label><div class="wa-preview" id="waPreview" style="color:var(--text2)">Selecione o cliente para ver o preview...</div></div>'+
+    '<div class="form-group" style="margin-top:12px"><label for="waCliente">Selecionar cliente <span class="req">*</span></label><select id="waCliente" onchange="previewWaMensagem()"><option value="">— Selecione —</option>'+clientes.map(c=>'<option value="'+c.id+'">'+c.nome_completo+(c.telefone?' · '+c.telefone:'')+'</option>').join('')+'</select></div>'+
+    (agFut.length?'<div class="form-group"><label for="waAgend">Agendamento (opcional)</label><select id="waAgend" onchange="previewWaMensagem()"><option value="">— Nenhum —</option>'+agFut.map(a=>{const cl=DATA.clientes.find(c=>c.id===a.cliente_id);const sv=DATA.servicos.find(s=>s.id===a.servico_id);return'<option value="'+a.id+'">'+(cl?.nome_completo||'?')+' · '+(sv?.nome||'?')+' · '+fmtDate(a.data_hora_inicio)+'</option>';}).join('')+'</select></div>':'')+
+
+    '<div class="form-group"><label for="waPreview">Preview</label><div class="wa-preview" id="waPreview" style="color:var(--text2)">Selecione o cliente para ver o preview...</div></div>'+
     '<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-success" onclick="enviarWhatsapp()">💬 Abrir WhatsApp</button><button class="btn btn-secondary" onclick="copiarMensagemWA()">📋 Copiar</button><button class="btn btn-ghost btn-sm" onclick="editarWaTpl(\''+id+'\')">✏ Editar</button><button class="btn btn-danger btn-sm" onclick="excluirWaTpl(\''+id+'\')">🗑</button></div>'+
   '</div>';
 }
@@ -6270,7 +6387,7 @@ function renderAdminAparencia(){
   // Módulos toggle
   const modNames={dashboard:'Dashboard',agenda:'Agenda',agendamentos:'Agendamentos',clientes:'Clientes',servicos:'Serviços',estoque:'Estoque',fichas:'Ficha Técnica',fidelidade:'Fidelidade',caixa:'Caixa',checklist:'Checklist',financeiro:'Financeiro',relatorios:'Relatórios',whatsapp:'WhatsApp',suporte:'Suporte'};
   const modAtivos=cfg.modulos_ativos||MODULOS_SISTEMA;
-  document.getElementById('modulosToggle').innerHTML=MODULOS_SISTEMA.map(m=>'<div class="switch-row"><div><div class="switch-label">'+(modNames[m]||m)+'</div></div><label class="switch"><input type="checkbox" id="mod_'+m+'" '+(modAtivos.includes(m)?'checked':'')+' onchange="atualizarMenuModulos()"><span class="switch-slider"></span></label></div>').join('');
+  document.getElementById('modulosToggle').innerHTML=MODULOS_SISTEMA.map(m=>'<div class="switch-row"><div><div class="switch-label">'+(modNames[m]||m)+'</div></div><label for="mod_" class="switch"><input type="checkbox" id="mod_'+m+'" '+(modAtivos.includes(m)?'checked':'')+' onchange="atualizarMenuModulos()"><span class="switch-slider"></span></label></div>').join('');
 }
 function carregarLogo(input){
   const file=input.files[0];if(!file)return;
@@ -6427,10 +6544,10 @@ function renderAgendaOnline(){
   document.getElementById('aoLink').value=link;
   document.getElementById('aoAtivo').checked=cfg.ao_ativo!==false;
   const horarios=cfg.ao_horarios||DIAS_SEMANA.map((d,i)=>({dia:i,nome:d,ativo:i<5,inicio:'08:00',fim:'18:00'}));
-  document.getElementById('aoHorarios').innerHTML=horarios.map((h,i)=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aodia_'+i+'" '+(h.ativo?'checked':'')+' ><span class="switch-slider"></span></label><span style="font-size:13px;min-width:70px">'+h.nome+'</span></div><div style="display:flex;gap:8px;align-items:center"><input type="time" value="'+h.inicio+'" id="aoinicio_'+i+'" style="width:90px;font-size:12px"> às <input type="time" value="'+h.fim+'" id="aofim_'+i+'" style="width:90px;font-size:12px"></div></div>').join('');
+  document.getElementById('aoHorarios').innerHTML=horarios.map((h,i)=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label for="aodia_" class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aodia_'+i+'" '+(h.ativo?'checked':'')+' ><span class="switch-slider"></span></label><span style="font-size:13px;min-width:70px">'+h.nome+'</span></div><div style="display:flex;gap:8px;align-items:center"><input type="time" value="'+h.inicio+'" id="aoinicio_'+i+'" style="width:90px;font-size:12px"> às <input type="time" value="'+h.fim+'" id="aofim_'+i+'" style="width:90px;font-size:12px"></div></div>').join('');
   const servs=DATA.servicos.filter(s=>s.tenant_id===currentTenant.id&&s.ativo);
   const servOnline=cfg.ao_servicos||servs.map(s=>s.id);
-  document.getElementById('aoServicos').innerHTML=servs.map(s=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aoserv_'+s.id+'" '+(servOnline.includes(s.id)?'checked':'')+' ><span class="switch-slider"></span></label><span style="font-size:13px">'+s.nome+'</span></div><span style="font-size:12px;color:var(--accent)">'+fmtMoney(s.preco_base)+'</span></div>').join('');
+  document.getElementById('aoServicos').innerHTML=servs.map(s=>'<div class="online-slot"><div style="display:flex;align-items:center;gap:8px"><label for="aoserv_" class="switch" style="transform:scale(0.85)"><input type="checkbox" id="aoserv_'+s.id+'" '+(servOnline.includes(s.id)?'checked':'')+' ><span class="switch-slider"></span></label><span style="font-size:13px">'+s.nome+'</span></div><span style="font-size:12px;color:var(--accent)">'+fmtMoney(s.preco_base)+'</span></div>').join('');
 }
 
 async function gerarNovoTokenOnline(){
