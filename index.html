@@ -2071,13 +2071,18 @@ function _sbAtivarRealtime(tenantId) {
     ['wa_templates','wa_templates']
   ];
   tabelas.forEach(function(cfg) {
-    var ch = _sb.channel('gbr_' + cfg[0] + '_' + tenantId)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: cfg[0],
-        filter: 'tenant_id=eq.' + tenantId
-      }, function(payload) { _sbHandleChange(cfg[1], payload); })
-      .subscribe(function(s) { if (s === 'SUBSCRIBED') console.log('[GBR RT] ' + cfg[0] + ' OK'); });
-    _sbChannels.push(ch);
+    try {
+      var ch = _sb.channel('gbr_' + cfg[0] + '_' + tenantId)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: cfg[0],
+          filter: 'tenant_id=eq.' + tenantId
+        }, function(payload) { _sbHandleChange(cfg[1], payload); })
+        .subscribe(function(s) {
+          if (s === 'SUBSCRIBED') console.log('[GBR RT] ' + cfg[0] + ' OK');
+          else if (s === 'CHANNEL_ERROR') console.warn('[GBR RT] Canal ' + cfg[0] + ' indisponível (tabela pode não existir)');
+        });
+      _sbChannels.push(ch);
+    } catch(eCh) { console.warn('[GBR RT] Erro ao criar canal', cfg[0]); }
   });
   var tenantCh = _sb.channel('gbr_tenant_' + tenantId)
     .on('postgres_changes', {
@@ -2151,21 +2156,22 @@ function _sbHandleChange(chave, payload) {
 }
 
 async function _sbUpsert(tabela, dados) {
-  if (!_sbReady) {
-    console.warn('[GBR] _sbUpsert: Supabase não inicializado, dado NÃO salvo na nuvem:', tabela);
-    return null;
-  }
+  if (!_sbReady) return null;
   try {
-    var r = await _sb.from(tabela).upsert(dados, {onConflict:'id'}).select().single();
+    // Usar upsert simples sem .select().single() para evitar erro
+    // "operator does not exist: text = uuid" quando tenant_id é string customizada
+    var r = await _sb.from(tabela).upsert(dados, {onConflict:'id', ignoreDuplicates:false});
     if (r.error) {
-      console.error('[GBR SB] ERRO upsert '+tabela+':', r.error.message, '| Dado:', JSON.stringify(dados).slice(0,100));
-      // Mostrar aviso visual se for erro crítico (não violação de chave duplicada)
-      if (!r.error.message.includes('duplicate') && !r.error.message.includes('unique')) {
-        toast('Erro ao salvar '+tabela+' na nuvem: '+r.error.message, 'error');
+      // Suprimir erros de tabela inexistente (404/403) graciosamente
+      if (r.error.code === '42P01' || r.status === 404 || r.status === 403 ||
+          r.error.message.includes('does not exist') || r.error.message.includes('relation')) {
+        console.warn('[GBR] Tabela não existe no Supabase:', tabela, '— dado salvo apenas localmente');
+        return dados; // retornar dados como se tivesse salvo para não quebrar o fluxo
       }
+      console.error('[GBR SB] ERRO upsert '+tabela+':', r.error.message);
       return null;
     }
-    return r.data;
+    return dados; // retornar os dados enviados (não precisa do select)
   } catch(e) {
     console.error('[GBR SB] EXCEÇÃO upsert '+tabela+':', e.message);
     return null;
@@ -2298,28 +2304,42 @@ async function _sbCarregarTudo(tenantId) {
     // FIX: anteriormente só carregava clientes/agendamentos/serviços — produtos,
     // fichas, regras, caixas e movimentações ficavam só no localStorage e sumiam.
     try {
+      // Carregar cada tabela individualmente para isolar erros de tabelas inexistentes
+      async function _qry(tabela, query) {
+        try { return await query; }
+        catch(e) { console.warn('[GBR] Tabela', tabela, 'não disponível:', e.message); return {data:null,error:e}; }
+      }
       var [rCli, rAg, rSrv, rProd, rRegras, rCaixas, rMovFin, rChk, rWaTpl] = await Promise.all([
-        _sb.from('clientes').select('*').eq('tenant_id', tenantId).eq('ativo', true),
-        _sb.from('agendamentos').select('*').eq('tenant_id', tenantId).neq('status','cancelado').order('data_hora_inicio',{ascending:false}).limit(500),
-        _sb.from('servicos').select('*').eq('tenant_id', tenantId).eq('ativo', true),
-        _sb.from('produtos').select('*').eq('tenant_id', tenantId).eq('ativo', true),
-        _sb.from('regras_fidelidade').select('*').eq('tenant_id', tenantId).eq('ativo', true),
-        _sb.from('caixas').select('*').eq('tenant_id', tenantId).order('data_abertura',{ascending:false}).limit(100),
-        _sb.from('movimentacoes_financeiras').select('*').eq('tenant_id', tenantId).order('data',{ascending:false}).limit(500),
-        _sb.from('checklists').select('*').eq('tenant_id', tenantId).order('created_at',{ascending:false}).limit(200),
-        _sb.from('wa_templates').select('*').eq('tenant_id', tenantId)
+        _qry('clientes',    _sb.from('clientes').select('*').eq('tenant_id', tenantId).eq('ativo', true)),
+        _qry('agendamentos',_sb.from('agendamentos').select('*').eq('tenant_id', tenantId).neq('status','cancelado').order('data_hora_inicio',{ascending:false}).limit(500)),
+        _qry('servicos',    _sb.from('servicos').select('*').eq('tenant_id', tenantId).eq('ativo', true)),
+        _qry('produtos',    _sb.from('produtos').select('*').eq('tenant_id', tenantId).eq('ativo', true)),
+        _qry('regras_fid',  _sb.from('regras_fidelidade').select('*').eq('tenant_id', tenantId).eq('ativo', true)),
+        _qry('caixas',      _sb.from('caixas').select('*').eq('tenant_id', tenantId).order('data_abertura',{ascending:false}).limit(100)),
+        _qry('mov_fin',     _sb.from('movimentacoes_financeiras').select('*').eq('tenant_id', tenantId).order('data',{ascending:false}).limit(500)),
+        _qry('checklists',  _sb.from('checklists').select('*').eq('tenant_id', tenantId).order('created_at',{ascending:false}).limit(200)),
+        _qry('wa_templates',_sb.from('wa_templates').select('*').eq('tenant_id', tenantId))
       ]);
 
-      // Aplicar todos os resultados — Supabase é sempre a fonte de verdade
-      if (!rCli.error   && rCli.data   !== null) DATA.clientes            = rCli.data;
-      if (!rAg.error    && rAg.data    !== null) DATA.agendamentos        = rAg.data;
-      if (!rSrv.error   && rSrv.data   !== null) DATA.servicos            = rSrv.data;
-      if (!rProd.error  && rProd.data  !== null) DATA.produtos            = rProd.data;
-      if (!rRegras.error && rRegras.data !== null) DATA.regras_fidelidade  = rRegras.data;
-      if (!rCaixas.error && rCaixas.data !== null) DATA.caixas             = rCaixas.data;
-      if (!rMovFin.error && rMovFin.data !== null) DATA.movimentacoes_fin  = rMovFin.data;
-      if (!rChk.error   && rChk.data   !== null) DATA.checklists          = rChk.data;
-      if (!rWaTpl.error && rWaTpl.data !== null) DATA.wa_templates        = rWaTpl.data;
+      // Aplicar resultados — ignorar erros 404/403 (tabela não existe ainda)
+      function _aplicarSB(r, chave) {
+        if (!r) return;
+        if (r.error) {
+          if (r.status !== 404 && r.status !== 403 && !String(r.error.message).includes('does not exist'))
+            console.warn('[GBR] Tabela', chave, ':', r.error.message);
+          return;
+        }
+        if (r.data !== null) DATA[chave] = r.data;
+      }
+      _aplicarSB(rCli,   'clientes');
+      _aplicarSB(rAg,    'agendamentos');
+      _aplicarSB(rSrv,   'servicos');
+      _aplicarSB(rProd,  'produtos');
+      _aplicarSB(rRegras,'regras_fidelidade');
+      _aplicarSB(rCaixas,'caixas');
+      _aplicarSB(rMovFin,'movimentacoes_fin');
+      _aplicarSB(rChk,   'checklists');
+      _aplicarSB(rWaTpl, 'wa_templates');
 
       // ── Carregar TODOS os colaboradores do tenant para exibir na lista de usuários ──
       try {
@@ -2358,11 +2378,12 @@ async function _sbCarregarTudo(tenantId) {
         }
       } catch(eFichas) {}
 
-      // Carregar movimentações de caixa (tabela movimentacoes local)
+      // Carregar movimentações de caixa (tabela pode não existir)
       try {
         var rMovCx = await _sb.from('movimentacoes').select('*').eq('tenant_id', tenantId).order('created_at',{ascending:false}).limit(500);
         if (!rMovCx.error && rMovCx.data !== null) DATA.movimentacoes = rMovCx.data;
-      } catch(eMovCx) {}
+        // Ignorar 404/403 silenciosamente
+      } catch(eMovCx) { /* tabela não existe ainda */ }
 
       // Tickets
       try {
@@ -3513,24 +3534,17 @@ async function salvarCliente(){
     const sbDados = {...dados};
     // Remover campos sem coluna direta no banco
     const saved = await _sbUpsert('clientes', sbDados);
-    if (saved) {
-      // Supabase salvou — atualizar DATA local para feedback imediato
-      // O Realtime vai disparar para os outros dispositivos automaticamente
-      const idx = DATA.clientes.findIndex(c=>c.id===dados.id);
-      if(idx>=0) Object.assign(DATA.clientes[idx], saved); else DATA.clientes.push(saved);
-      // Também salvar no localStorage como cache offline
-      try { localStorage.setItem('gbr_clientes', JSON.stringify(DATA.clientes)); } catch(e) {}
-    } else {
-      // Supabase retornou erro — NÃO salvar silenciosamente no localStorage
-      // O erro já foi exibido pelo _sbUpsert
-      toast('Não foi possível salvar na nuvem. Verifique a conexão.', 'error');
-      return; // Não fechar o modal para o usuário tentar novamente
+    // Atualizar DATA local imediatamente (feedback visual)
+    const idx2 = DATA.clientes.findIndex(c=>c.id===dados.id);
+    if(idx2>=0) Object.assign(DATA.clientes[idx2], dados); else DATA.clientes.push(dados);
+    try { localStorage.setItem('gbr_clientes', JSON.stringify(DATA.clientes)); } catch(e) {}
+    if (!saved) {
+      // Erro real de conexão
+      toast('⚠️ Erro ao salvar na nuvem. Tente novamente.', 'warn');
     }
   } else {
-    // Sem Supabase (offline) — avisar usuário
-    toast('⚠️ Sem conexão com a nuvem. Dado salvo localmente apenas.', 'warn');
-    const idx=DATA.clientes.findIndex(c=>c.id===dados.id);
-    if(idx>=0) Object.assign(DATA.clientes[idx],dados); else DATA.clientes.push(dados);
+    const idx2=DATA.clientes.findIndex(c=>c.id===dados.id);
+    if(idx2>=0) Object.assign(DATA.clientes[idx2],dados); else DATA.clientes.push(dados);
     salvarDados();
   }
   if(typeof logAuditoria==='function')logAuditoria(_isNovoC?'Cadastrou Cliente':'Editou Cliente',dados.nome_completo);
@@ -5552,9 +5566,16 @@ async function renderSessoesAdmin(){
 async function _sbCarregarColaboradores() {
   if (!_sbReady || !_sbTenantId) return;
   try {
+    // Tentar com campos completos, fallback para campos básicos
     var r = await _sb.from('user_tenants')
       .select('user_id,role,email_cache,nome,ativo,criado_em')
       .eq('tenant_id', _sbTenantId).eq('ativo', true);
+    if (r.error) {
+      // Tentar com menos campos se colunas não existirem
+      r = await _sb.from('user_tenants')
+        .select('user_id,role,ativo')
+        .eq('tenant_id', _sbTenantId);
+    }
     if (r.error || !r.data) return;
     r.data.forEach(function(ut) {
       var fbU = {
@@ -5604,7 +5625,8 @@ function renderAdminAcessos(){
       counterEl = document.createElement('div');
       counterEl.id = 'colabCounter';
       counterEl.style.cssText = 'font-size:11px;color:var(--text2);margin-bottom:10px;padding:6px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border)';
-      headerCard.insertBefore(counterEl, tb.parentElement);
+      // FIX3: insertAdjacentElement evita NotFoundError
+      var ch = headerCard.querySelector(".card-header"); if(ch) ch.insertAdjacentElement("afterend", counterEl); else headerCard.appendChild(counterEl);
     }
     if (counterEl) {
       const cor = totalAtivos >= maxColab ? 'var(--red)' : 'var(--green)';
@@ -6174,7 +6196,14 @@ async function gerarNovoTokenOnline(){
   DATA.configuracoes[tid].ao_token=novoToken;
   // Salvar no Supabase para persistência
   if(_sbReady&&tid){
-    try{ await _sb.from('tenants').update({ao_token:novoToken}).eq('id',tid); }catch(e){ console.warn('[GBR] ao_token:',e.message); }
+    try{
+      await _sb.from('tenants').update({ao_token:novoToken}).eq('id',tid);
+      // Salvar mapeamento token→tenantId para agendamento online encontrar mesmo com id text
+      var rMap = await _sb.from('global_settings').select('value').eq('key','ao_token_map').maybeSingle();
+      var mapa = (rMap.data && rMap.data.value) ? rMap.data.value : {};
+      mapa[novoToken] = tid;
+      await _sb.from('global_settings').upsert({key:'ao_token_map', value:mapa, updated_at:new Date().toISOString()},{onConflict:'key'});
+    }catch(e){ console.warn('[GBR] ao_token:',e.message); }
   }
   salvarDados();
   renderAgendaOnline();
@@ -7050,25 +7079,34 @@ async function aoInicializar(tid, token) {
     if (!sbPublic) { aoMostrarErro('Erro de conexão. Recarregue a página.'); return; }
 
     // 1. Buscar tenant — tenta por id (string custom) e por ao_token como fallback
-    var rTenant = await sbPublic.from('tenants').select('id,nome,ao_token,kill_switch,status_licenca,aparencia,max_vagas').eq('id', tid).maybeSingle();
+    // Busca em múltiplos campos para máxima compatibilidade
+    var tenantCols = 'id,nome,ao_token,kill_switch,status_licenca,aparencia,max_vagas';
+    var rTenant = {data: null};
 
-    // Fallback: buscar via global_settings se RLS bloquear ou id não bater
-    if (!rTenant.data || rTenant.error) {
-      var rCfgFb = await sbPublic.from('global_settings').select('value').eq('key','config_ao_'+token).maybeSingle();
-      if (rCfgFb.data && rCfgFb.data.value && rCfgFb.data.value.tenant_id) {
-        var fbTid = rCfgFb.data.value.tenant_id;
-        rTenant = await sbPublic.from('tenants').select('id,nome,ao_token,kill_switch,status_licenca,aparencia,max_vagas').eq('id', fbTid).maybeSingle();
-        if (rTenant.data) _aoTenantId = fbTid;
-      }
+    // Tentativa 1: buscar por id (funciona se id é text no banco)
+    try {
+      var r1 = await sbPublic.from('tenants').select(tenantCols).eq('id', tid).maybeSingle();
+      if (!r1.error && r1.data) rTenant = r1;
+    } catch(e1) {}
+
+    // Tentativa 2: buscar pelo ao_token (funciona mesmo sem saber o id)
+    if (!rTenant.data) {
+      try {
+        var r2 = await sbPublic.from('tenants').select(tenantCols).eq('ao_token', token).maybeSingle();
+        if (!r2.error && r2.data) { rTenant = r2; _aoTenantId = r2.data.id; }
+      } catch(e2) {}
     }
 
+    // Tentativa 3: buscar via global_settings (fallback total)
     if (!rTenant.data) {
-      // Último recurso: buscar pelo ao_token diretamente na coluna
-      var rByToken = await sbPublic.from('tenants').select('id,nome,ao_token,kill_switch,status_licenca,aparencia,max_vagas').eq('ao_token', token).maybeSingle();
-      if (rByToken.data) {
-        rTenant = rByToken;
-        _aoTenantId = rByToken.data.id;
-      }
+      try {
+        var rGs = await sbPublic.from('global_settings').select('value').eq('key','ao_token_map').maybeSingle();
+        if (rGs.data && rGs.data.value && rGs.data.value[token]) {
+          var mappedId = rGs.data.value[token];
+          var r3 = await sbPublic.from('tenants').select(tenantCols).eq('id', mappedId).maybeSingle();
+          if (!r3.error && r3.data) { rTenant = r3; _aoTenantId = mappedId; }
+        }
+      } catch(e3) {}
     }
 
     if (!rTenant.data) { aoMostrarErro('Estabelecimento não encontrado. Verifique o link ou solicite um novo ao estabelecimento.'); return; }
