@@ -4563,225 +4563,183 @@ function carregarPaginaConfig(){
 // Força recarga de TODOS os dados do Supabase — útil quando dados "sumiam"
 // ══ DIAGNÓSTICO DE CONEXÃO SUPABASE ══
 async function diagnosticarConexao() {
+  // ── Mostrar loading IMEDIATAMENTE (feedback visual instantâneo) ──
+  var loadId = '_gbr_diag_' + Date.now();
+  var loadEl = document.createElement('div');
+  loadEl.id = loadId;
+  loadEl.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px';
+  loadEl.innerHTML = '<div style="background:var(--bg2,#1a1a2e);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:40px 32px;text-align:center;min-width:320px">'
+    + '<div style="font-size:32px;margin-bottom:16px">🔍</div>'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:8px">Diagnóstico de Conexão</div>'
+    + '<div id="'+loadId+'_status" style="font-size:12px;color:rgba(255,255,255,.5)">Verificando conexão...</div>'
+    + '<div style="margin-top:16px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">'
+    + '<div id="'+loadId+'_bar" style="height:100%;width:0%;background:var(--accent,#f59e0b);transition:width .3s;border-radius:2px"></div>'
+    + '</div></div>';
+  document.body.appendChild(loadEl);
+
+  function setStatus(txt, pct) {
+    var s = document.getElementById(loadId+'_status');
+    var b = document.getElementById(loadId+'_bar');
+    if(s) s.textContent = txt;
+    if(b) b.style.width = pct+'%';
+  }
+
   try {
     var rows = [];
     function addRow(modulo, item, status, detalhe, acao) {
       rows.push({modulo:modulo, item:item, status:status, detalhe:detalhe||'', acao:acao||''});
     }
 
-    // ── SDK e Conexão ────────────────────────────────────────────
-    addRow('Conexão', 'SDK Supabase', _sbReady?'ok':'erro',
-      _sbReady?'Inicializado':'SDK não carregou',
-      _sbReady?'':' Verifique a URL e chave no código');
+    // ── Checks síncronos (instantâneos) ──────────────────────────
+    setStatus('Verificando SDK e autenticação...', 10);
+    addRow('Conexão', 'SDK Supabase',  _sbReady?'ok':'erro',  _sbReady?'Inicializado':'NÃO INICIALIZADO', _sbReady?'':'Verifique a URL/chave no código');
+    addRow('Conexão', 'URL do banco',  window.GBR_SB_URL?'ok':'erro', window.GBR_SB_URL?GBR_SB_URL.slice(0,50)+'...':'NÃO CONFIGURADA', '');
+    addRow('Conexão', 'UUID gerado',   'info', uid(), '');
+    addRow('Auth', 'Usuário autenticado', _sbUserId?'ok':'erro', _sbUserId||'NÃO LOGADO', _sbUserId?'':'Faça login');
+    addRow('Auth', 'Empresa (tenant)', _sbTenantId?'ok':'erro', _sbTenantId||'NÃO VINCULADA', _sbTenantId?'':'Execute o SQL e vincule o usuário');
+    var nCh = (_sbChannels||[]).length;
+    addRow('Realtime', 'Canais ativos', nCh>=10?'ok':nCh>0?'aviso':'erro', nCh+'/12 canais', nCh<10?'Habilite Realtime nas tabelas no Supabase':'');
 
-    addRow('Conexão', 'URL do banco', window.GBR_SB_URL?'ok':'erro',
-      window.GBR_SB_URL ? GBR_SB_URL.slice(0,45)+'...' : 'NÃO CONFIGURADA',
-      window.GBR_SB_URL?'':'Configure GBR_SB_URL no HTML');
-
-    addRow('Conexão', 'UUID gerado', 'info', uid(), '');
-
-    // ── Autenticação ─────────────────────────────────────────────
-    addRow('Auth', 'Usuário autenticado', _sbUserId?'ok':'erro',
-      _sbUserId||'NÃO LOGADO',
-      _sbUserId?'':'Faça login para continuar');
-
-    addRow('Auth', 'Empresa vinculada (tenant)', _sbTenantId?'ok':'erro',
-      _sbTenantId||'NÃO VINCULADA',
-      _sbTenantId?'':'Execute SQL e vincule usuário ao tenant');
-
-    // ── user_tenants ─────────────────────────────────────────────
+    // ── user_tenants ──────────────────────────────────────────────
+    setStatus('Verificando vínculos de usuário...', 20);
     if (_sbReady && _sbUserId) {
       try {
         var rUT = await _sb.from('user_tenants').select('user_id,tenant_id,role,email_cache').eq('user_id', _sbUserId);
-        if (rUT.error) {
-          addRow('Auth', 'Vínculos (user_tenants)', 'erro', rUT.error.message, 'Verifique a tabela user_tenants no Supabase');
-        } else if (!rUT.data || !rUT.data.length) {
-          addRow('Auth', 'Vínculos (user_tenants)', 'erro', 'SEM VÍNCULO — usuário não vinculado a nenhuma estética', 'No Console Admin, vincule o usuário à estética');
-        } else {
-          rUT.data.forEach(function(ut) {
-            addRow('Auth', 'Vínculo: ' + (ut.email_cache||ut.user_id.slice(0,8)), 'ok',
-              'tenant: '+ut.tenant_id+' | role: '+ut.role, '');
-          });
-        }
-      } catch(e) { addRow('Auth', 'user_tenants', 'aviso', e.message, ''); }
+        if (rUT.error) addRow('Auth', 'user_tenants', 'erro', rUT.error.message, 'Verifique a tabela no Supabase');
+        else if (!rUT.data||!rUT.data.length) addRow('Auth', 'user_tenants', 'erro', 'SEM VÍNCULO', 'No Console Admin, vincule o usuário à estética');
+        else rUT.data.forEach(function(ut){ addRow('Auth','Vínculo: '+(ut.email_cache||ut.user_id.slice(0,8)),'ok','tenant: '+ut.tenant_id+' | role: '+ut.role,''); });
+      } catch(e) { addRow('Auth','user_tenants','aviso',e.message,''); }
     }
 
-    // ── Realtime ─────────────────────────────────────────────────
-    var nCh = (_sbChannels||[]).length;
-    addRow('Realtime', 'Canais ativos', nCh>=10?'ok':nCh>0?'aviso':'erro',
-      nCh+' canais (esperado: 12)',
-      nCh<10?'Habilite Realtime nas tabelas no Supabase Dashboard':'');
-
-    // ── Tabelas — Leitura ────────────────────────────────────────
-    if (_sbReady && _sbTenantId) {
-      var tabsTeste = [
-        ['clientes', 'clientes'],
-        ['agendamentos', 'agendamentos'],
-        ['servicos', 'servicos'],
-        ['produtos', 'produtos'],
-        ['caixas', 'caixas'],
-        ['movimentacoes', 'movimentacoes'],
-        ['movimentacoes_fin', 'movimentacoes_financeiras'],
-        ['checklists', 'checklists'],
-        ['wa_templates', 'wa_templates'],
-        ['regras_fidelidade', 'regras_fidelidade'],
-        ['notifications', 'notifications'],
-        ['global_settings (config)', 'global_settings'],
-        ['user_tenants', 'user_tenants'],
-      ];
-      for (var ti = 0; ti < tabsTeste.length; ti++) {
-        var tn = tabsTeste[ti][0], tb = tabsTeste[ti][1];
-        try {
-          var t0 = Date.now();
-          var qr;
-          if (tb === 'global_settings') {
-            qr = await _sb.from(tb).select('key').limit(1);
-          } else if (tb === 'user_tenants') {
-            qr = await _sb.from(tb).select('user_id').filter('tenant_id::text','eq',_sbTenantId).limit(1);
-          } else {
-            qr = await _sb.from(tb).select('id').filter('tenant_id::text','eq',_sbTenantId).limit(1);
-          }
-          var ms = Date.now() - t0;
-          if (qr.error) {
-            addRow('Tabelas', 'Leitura: '+tn, 'erro', qr.error.message,
-              qr.error.message.includes('does not exist') ? 'Execute GBR_criar_tabelas.sql no Supabase' :
-              qr.error.message.includes('text = uuid') ? 'Execute GBR_schema_fix_v2.sql para converter tenant_id para TEXT' :
-              'Verifique RLS no Supabase');
-          } else {
-            addRow('Tabelas', 'Leitura: '+tn, 'ok',
-              ms+'ms — '+(qr.data&&qr.data.length?qr.data.length+' reg':'vazia'), '');
-          }
-        } catch(e) { addRow('Tabelas', 'Leitura: '+tn, 'erro', e.message, ''); }
-      }
-
-      // ── Teste de escrita ────────────────────────────────────────
-      try {
-        var wId = uid();
-        var wR = await _sb.from('clientes').insert({
-          id: wId, tenant_id: _sbTenantId,
-          nome_completo: '__DIAG_TEST__', ativo: false
-        });
-        if (wR.error) {
-          addRow('Tabelas', 'Escrita: clientes', 'erro', wR.error.message,
-            wR.error.message.includes('created_at') ?
-              'Execute: NOTIFY pgrst, \'reload schema\'; no SQL Editor do Supabase' :
-            wR.error.message.includes('text = uuid') ?
-              'Execute GBR_schema_fix_v2.sql para converter tenant_id para TEXT' :
-              'Verifique RLS: CREATE POLICY "all_auth" ON clientes FOR ALL TO authenticated USING (true);');
-        } else {
-          addRow('Tabelas', 'Escrita: clientes', 'ok', 'Insert OK — limpando...', '');
-          await _sb.from('clientes').delete().eq('id', wId);
-        }
-      } catch(e) { addRow('Tabelas', 'Escrita: clientes', 'erro', e.message, ''); }
-
-      // ── Teste de upsert ─────────────────────────────────────────
-      try {
-        var uId = uid();
-        var uR = await _sb.from('servicos').insert({
-          id: uId, tenant_id: _sbTenantId,
-          nome: '__DIAG_TEST__', ativo: false
-        });
-        if (uR.error) {
-          addRow('Tabelas', 'Escrita: servicos', 'erro', uR.error.message,
-            uR.error.message.includes('created_at') ? "Execute: NOTIFY pgrst, 'reload schema';" : 'Verifique RLS');
-        } else {
-          addRow('Tabelas', 'Escrita: servicos', 'ok', 'Insert OK — limpando...', '');
-          await _sb.from('servicos').delete().eq('id', uId);
-        }
-      } catch(e) { addRow('Tabelas', 'Escrita: servicos', 'erro', e.message, ''); }
-    }
-
-    // ── Módulos do sistema ───────────────────────────────────────
-    var modulos = [
-      ['carregarNotificacoes', typeof carregarNotificacoes === 'function'],
-      ['renderClientes', typeof renderClientes === 'function'],
-      ['renderAgenda', typeof renderAgenda === 'function'],
-      ['renderCaixa', typeof renderCaixa === 'function'],
-      ['renderFinanceiro', typeof renderFinanceiro === 'function'],
-      ['salvarCliente', typeof salvarCliente === 'function'],
-      ['salvarAgendamento', typeof salvarAgendamento === 'function'],
-      ['importarDados', typeof importarDados === 'function'],
-      ['processarCSVEstoque', typeof processarCSVEstoque === 'function'],
-      ['processarCSVClientes', typeof processarCSVClientes === 'function'],
-      ['forcarMigracao', typeof forcarMigracao === 'function'],
-      ['recuperarDadosNuvem', typeof recuperarDadosNuvem === 'function'],
-      ['_sbUpsert', typeof _sbUpsert === 'function'],
-      ['_gbrMigrarLocalStorageParaSupabase', typeof _gbrMigrarLocalStorageParaSupabase === 'function'],
+    // ── Leitura das tabelas em PARALELO ───────────────────────────
+    setStatus('Testando leitura das tabelas (paralelo)...', 35);
+    var tabsTeste = [
+      ['clientes','clientes'],['agendamentos','agendamentos'],['servicos','servicos'],
+      ['produtos','produtos'],['caixas','caixas'],['movimentacoes','movimentacoes'],
+      ['mov_financeiras','movimentacoes_financeiras'],['checklists','checklists'],
+      ['wa_templates','wa_templates'],['regras_fidelidade','regras_fidelidade'],
+      ['notifications','notifications'],['global_settings','global_settings'],
+      ['user_tenants','user_tenants']
     ];
-    modulos.forEach(function(mod) {
-      addRow('Módulos JS', mod[0]+'()', mod[1]?'ok':'erro',
-        mod[1]?'Definida':'FUNÇÃO NÃO DEFINIDA',
-        mod[1]?'':'Erro no carregamento do JS');
-    });
 
-    // ── Dados em memória ─────────────────────────────────────────
+    if (_sbReady && _sbTenantId) {
+      var queries = tabsTeste.map(function(tt) {
+        var tb = tt[1];
+        var t0 = Date.now();
+        var q;
+        if (tb==='global_settings') q = _sb.from(tb).select('key').limit(1);
+        else if (tb==='user_tenants') q = _sb.from(tb).select('user_id').filter('tenant_id::text','eq',_sbTenantId).limit(1);
+        else q = _sb.from(tb).select('id').filter('tenant_id::text','eq',_sbTenantId).limit(1);
+        return q.then(function(r){ return {tt:tt, r:r, ms:Date.now()-t0}; }).catch(function(e){ return {tt:tt, r:{error:{message:e.message}}, ms:0}; });
+      });
+
+      var results = await Promise.all(queries);
+      setStatus('Processando resultados...', 70);
+
+      results.forEach(function(res) {
+        var tn=res.tt[0], r=res.r, ms=res.ms;
+        if (r.error) {
+          addRow('Tabelas','Leitura: '+tn,'erro',r.error.message,
+            r.error.message.includes('does not exist')?'Execute GBR_criar_tabelas.sql':
+            r.error.message.includes('text = uuid')?'Execute GBR_schema_fix_v2.sql':
+            'Verifique RLS no Supabase');
+        } else {
+          addRow('Tabelas','Leitura: '+tn,'ok',ms+'ms — '+(r.data&&r.data.length?r.data.length+' reg':'vazia'),'');
+        }
+      });
+
+      // ── Testes de escrita ─────────────────────────────────────
+      setStatus('Testando escrita...', 80);
+      for (var wt of [['clientes','clientes'],['servicos','servicos']]) {
+        try {
+          var wId = uid();
+          var wR = await _sb.from(wt[1]).insert({id:wId, tenant_id:_sbTenantId, [wt[0]==='clientes'?'nome_completo':'nome']:'__DIAG__', ativo:false});
+          if (wR.error) {
+            addRow('Tabelas','Escrita: '+wt[0],'erro',wR.error.message,
+              wR.error.message.includes('created_at')?"Execute: NOTIFY pgrst, 'reload schema'; no SQL Editor":
+              'Verifique RLS: CREATE POLICY "all" ON '+wt[1]+' FOR ALL TO authenticated USING(true);');
+          } else {
+            addRow('Tabelas','Escrita: '+wt[0],'ok','Insert OK','');
+            await _sb.from(wt[1]).delete().eq('id',wId);
+          }
+        } catch(e) { addRow('Tabelas','Escrita: '+wt[0],'erro',e.message,''); }
+      }
+    } else {
+      addRow('Tabelas','Leitura/Escrita','aviso','Não testado — usuário não autenticado ou tenant não vinculado','Faça login primeiro');
+    }
+
+    // ── Módulos JS ────────────────────────────────────────────────
+    setStatus('Verificando módulos do sistema...', 90);
     [
-      ['DATA.clientes', DATA.clientes],
-      ['DATA.agendamentos', DATA.agendamentos],
-      ['DATA.servicos', DATA.servicos],
-      ['DATA.produtos', DATA.produtos],
-    ].forEach(function(d) {
-      var arr = d[1]||[];
-      addRow('Dados em memória', d[0], arr.length>0?'ok':'aviso',
-        arr.length+' registro(s)',
-        arr.length===0?'Use "Recuperar Dados da Nuvem" ou "Migrar Dados Locais"':'');
+      ['salvarCliente',typeof salvarCliente],['salvarAgendamento',typeof salvarAgendamento],
+      ['renderClientes',typeof renderClientes],['renderAgenda',typeof renderAgenda],
+      ['renderCaixa',typeof renderCaixa],['renderFinanceiro',typeof renderFinanceiro],
+      ['importarDados',typeof importarDados],['processarCSVEstoque',typeof processarCSVEstoque],
+      ['recuperarDadosNuvem',typeof recuperarDadosNuvem],['_sbUpsert',typeof _sbUpsert],
+    ].forEach(function(m){ addRow('Módulos JS',m[0]+'()',m[1]==='function'?'ok':'erro',m[1]==='function'?'✔ Definida':'FUNÇÃO NÃO ENCONTRADA',''); });
+
+    // ── Dados em memória ──────────────────────────────────────────
+    [['DATA.clientes',DATA.clientes],['DATA.agendamentos',DATA.agendamentos],
+     ['DATA.servicos',DATA.servicos],['DATA.produtos',DATA.produtos]].forEach(function(d){
+      var n=(d[1]||[]).length;
+      addRow('Memória',d[0],n>0?'ok':'aviso',n+' registro(s)',n===0?'Use "Recuperar Dados da Nuvem"':'');
     });
 
-    // ── Renderizar tabela HTML ────────────────────────────────────
-    var cor = {ok:'#10b981', erro:'#ef4444', aviso:'#f59e0b', info:'#60a5fa'};
-    var ico = {ok:'✅', erro:'❌', aviso:'⚠️', info:'ℹ️'};
-    var rows_html = rows.map(function(r) {
-      var c = cor[r.status]||cor.info;
-      return '<tr style="border-bottom:1px solid rgba(255,255,255,.06)">'
-        + '<td style="padding:6px 10px;color:rgba(255,255,255,.5);white-space:nowrap;font-size:11px">'+r.modulo+'</td>'
-        + '<td style="padding:6px 10px;font-size:12px;white-space:nowrap">'+r.item+'</td>'
-        + '<td style="padding:6px 10px;text-align:center">'+ico[r.status]+'</td>'
-        + '<td style="padding:6px 10px;font-size:11px;color:'+c+';max-width:280px;word-break:break-all">'+r.detalhe+'</td>'
-        + '<td style="padding:6px 10px;font-size:10px;color:rgba(255,255,255,.5);max-width:200px">'+r.acao+'</td>'
-        + '</tr>';
+    setStatus('Montando relatório...', 95);
+
+    // ── Montar tabela HTML ────────────────────────────────────────
+    var cor = {ok:'#10b981',erro:'#ef4444',aviso:'#f59e0b',info:'#60a5fa'};
+    var ico = {ok:'✅',erro:'❌',aviso:'⚠️',info:'ℹ️'};
+    var ok_n=rows.filter(function(r){return r.status==='ok';}).length;
+    var err_n=rows.filter(function(r){return r.status==='erro';}).length;
+    var warn_n=rows.filter(function(r){return r.status==='aviso';}).length;
+    var sc = err_n>0?'#ef4444':warn_n>0?'#f59e0b':'#10b981';
+    var st = err_n>0?err_n+' erro(s)':warn_n>0?warn_n+' aviso(s)':'Tudo OK! ✅';
+
+    var rows_html = rows.map(function(r){
+      var c=cor[r.status]||cor.info;
+      return '<tr style="border-bottom:1px solid rgba(255,255,255,.05)">'
+        +'<td style="padding:5px 10px;color:rgba(255,255,255,.4);font-size:10px;white-space:nowrap">'+r.modulo+'</td>'
+        +'<td style="padding:5px 10px;font-size:12px;white-space:nowrap">'+r.item+'</td>'
+        +'<td style="padding:5px 10px;text-align:center;font-size:14px">'+ico[r.status]+'</td>'
+        +'<td style="padding:5px 10px;font-size:11px;color:'+c+';max-width:260px;word-break:break-word">'+r.detalhe+'</td>'
+        +'<td style="padding:5px 10px;font-size:10px;color:rgba(255,255,255,.4);max-width:180px">'+r.acao+'</td>'
+        +'</tr>';
     }).join('');
 
-    var ok_count = rows.filter(function(r){return r.status==='ok';}).length;
-    var err_count = rows.filter(function(r){return r.status==='erro';}).length;
-    var warn_count = rows.filter(function(r){return r.status==='aviso';}).length;
+    var tableHtml = '<div style="font-family:var(--ff,system-ui,sans-serif)">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">'
+      +'<span style="font-size:15px;font-weight:700">🔍 Diagnóstico de Conexão</span>'
+      +'<span style="background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'44;border-radius:20px;padding:2px 12px;font-size:11px;font-weight:600">'+st+'</span>'
+      +'<span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.4)">'+ok_n+' OK · '+err_n+' Erro · '+warn_n+' Aviso</span>'
+      +'</div>'
+      +'<div style="overflow:auto;max-height:52vh;border-radius:8px;border:1px solid rgba(255,255,255,.08)">'
+      +'<table style="width:100%;border-collapse:collapse">'
+      +'<thead><tr style="background:rgba(255,255,255,.05);position:sticky;top:0">'
+      +'<th style="padding:7px 10px;text-align:left;font-size:10px;color:rgba(255,255,255,.5);font-weight:600;white-space:nowrap">MÓDULO</th>'
+      +'<th style="padding:7px 10px;text-align:left;font-size:10px;color:rgba(255,255,255,.5);font-weight:600">ITEM</th>'
+      +'<th style="padding:7px 10px;text-align:center;font-size:10px;color:rgba(255,255,255,.5);font-weight:600">STATUS</th>'
+      +'<th style="padding:7px 10px;text-align:left;font-size:10px;color:rgba(255,255,255,.5);font-weight:600">DETALHE</th>'
+      +'<th style="padding:7px 10px;text-align:left;font-size:10px;color:rgba(255,255,255,.5);font-weight:600">AÇÃO</th>'
+      +'</tr></thead>'
+      +'<tbody>'+rows_html+'</tbody>'
+      +'</table></div></div>';
 
-    var summary_color = err_count>0 ? '#ef4444' : warn_count>0 ? '#f59e0b' : '#10b981';
-    var summary_txt = err_count>0 ? err_count+' erro(s) encontrado(s)' : warn_count>0 ? warn_count+' aviso(s)' : 'Tudo OK!';
+    // ── Substituir loading pelo resultado ─────────────────────────
+    var inner = document.querySelector('#'+loadId+' > div');
+    if (inner) {
+      inner.style.cssText = 'background:var(--bg2,#1a1a2e);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;gap:14px';
+      inner.innerHTML = tableHtml
+        + '<button id="'+loadId+'_btn" class="btn btn-primary" style="width:100%;flex-shrink:0">Fechar</button>';
+      document.getElementById(loadId+'_btn').addEventListener('click', function(){
+        var el=document.getElementById(loadId); if(el) document.body.removeChild(el);
+      });
+    }
 
-    var dh = '<div style="font-family:var(--ff,sans-serif);font-size:13px">'
-      + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'
-      + '<span style="font-size:16px;font-weight:700">🔍 Diagnóstico de Conexão</span>'
-      + '<span style="background:'+summary_color+'22;color:'+summary_color+';border:1px solid '+summary_color+'44;border-radius:20px;padding:2px 12px;font-size:11px;font-weight:600">'+summary_txt+'</span>'
-      + '<span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.4)">'+ok_count+' OK · '+err_count+' Erro · '+warn_count+' Aviso</span>'
-      + '</div>'
-      + '<div style="overflow:auto;max-height:55vh;border-radius:8px;border:1px solid rgba(255,255,255,.08)">'
-      + '<table style="width:100%;border-collapse:collapse">'
-      + '<thead><tr style="background:rgba(255,255,255,.05);position:sticky;top:0">'
-      + '<th style="padding:8px 10px;text-align:left;font-size:11px;color:rgba(255,255,255,.5);font-weight:600;white-space:nowrap">MÓDULO</th>'
-      + '<th style="padding:8px 10px;text-align:left;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">ITEM</th>'
-      + '<th style="padding:8px 10px;text-align:center;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">STATUS</th>'
-      + '<th style="padding:8px 10px;text-align:left;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">DETALHE</th>'
-      + '<th style="padding:8px 10px;text-align:left;font-size:11px;color:rgba(255,255,255,.5);font-weight:600">AÇÃO NECESSÁRIA</th>'
-      + '</tr></thead>'
-      + '<tbody>' + rows_html + '</tbody>'
-      + '</table></div>'
-      + '</div>';
-
-    var d = document.createElement('div');
-    d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:16px';
-    var diagCloseId = '_gbr_diag_' + Date.now();
-    d.id = diagCloseId;
-    d.innerHTML = '<div style="background:var(--bg2,#1a1a2e);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;width:100%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;gap:16px">'
-      + dh
-      + '<button id="' + diagCloseId + '_btn" class="btn btn-primary" style="width:100%;flex-shrink:0;margin-top:8px">Fechar</button></div>';
-    document.body.appendChild(d);
-    // Adicionar event listener após inserir no DOM (evita problemas de aspas no onclick)
-    document.getElementById(diagCloseId + '_btn').addEventListener('click', function() {
-      var el = document.getElementById(diagCloseId);
-      if (el) document.body.removeChild(el);
-    });
   } catch(eDiag) {
-    alert('Erro ao abrir diagnóstico: ' + eDiag.message);
+    var el = document.getElementById(loadId);
+    if (el) document.body.removeChild(el);
+    alert('Erro no diagnóstico: ' + eDiag.message);
     console.error('[GBR] diagnosticarConexao:', eDiag);
   }
 }
@@ -8314,6 +8272,10 @@ function atualizarBadgeNotif() {
   }
 }
 
+function _fecharPopupNotif() {
+  var el = document.getElementById('_gbr_popup_notif');
+  if (el) el.remove();
+}
 function _marcarLida(notifId) {
   var n = _notifCache.find(function(x){ return x.id===notifId; });
   if (n && !n.lida) {
@@ -8345,7 +8307,7 @@ function _mostrarPopupNotif(notif) {
     + '<div style="font-size:13px;font-weight:600;margin-bottom:4px">'+_escHtmlNotif(notif.titulo)+'</div>'
     + '<div style="font-size:12px;color:var(--text2);line-height:1.5">'+_escHtmlNotif(notif.mensagem)+'</div>'
     + '</div>'
-    + '<button onclick="this.closest(\'#_gbr_popup_notif\').remove()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 0 0 4px">&times;</button>'
+    + '<button onclick="_fecharPopupNotif()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:0 0 0 4px">&times;</button>'
     + '</div>';
   document.body.appendChild(pop);
   setTimeout(function(){ if(pop.parentNode) pop.remove(); }, 8000);
